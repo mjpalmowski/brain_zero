@@ -5,7 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        This issue is public. Follow the [export instructions](https://github.com/mjpalmowski/brain_zero#brain_zero) and share only the generated `compatibility.json`. Keep the original `.rvsc` and your serial number private.
+        In brain_zero, go to **System → VEConfigure → Download settings** to save a fresh `.rvsc` backup. Follow the [export instructions](https://github.com/mjpalmowski/brain_zero#share-a-compatibility-profile) to turn the backup into a shareable `compatibility.json`.
+
+        This issue is public. Share only `compatibility.json` and keep the original `.rvsc` private. Once ESS and VEConfigure checks pass, we’ll add your model and firmware combination to the fully supported list.
   - type: input
     id: inverter
     attributes:

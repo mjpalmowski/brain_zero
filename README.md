@@ -36,7 +36,7 @@ These profiles are for standalone 230 V units. Check the full seven-digit VE.Bus
 
 ### Firmware we’d like to support
 
-We’re collecting settings profiles for the revisions below. All ten passed monitoring checks in the Venus Pi simulator. ESS and settings writes need further testing with matching exports.
+We’re collecting settings profiles for the revisions below. All ten passed monitoring checks in the Venus Pi simulator. ESS and settings writes need further testing with matching exports. If your model or firmware is missing, [send us a compatibility profile](#share-a-compatibility-profile).
 
 | Model | Firmware wanted |
 | --- | --- |
@@ -61,18 +61,18 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 
 ## Share a compatibility profile
 
-If you want to use brain_zero with your inverter, [submit a compatibility profile](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml).
+The current brain_zero firmware can download the settings backup we need directly from your inverter. Once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware, we’ll add that combination to the fully supported list.
 
-1. In VRM, go to **Device list → Remote VEConfigure** and download the `.rvsc` backup for your inverter. [Victron’s download instructions](https://www.victronenergy.com/media/pg/VRM_Portal_manual/en/remote-veconfigure.html)
-2. Open the [exporter](tools/export_compatibility.py) on GitHub, choose **Download raw file**, and run it on your computer with Python 3.10 or later. Use `python3` in place of `py -3` on macOS or Linux.
+1. With brain_zero connected to your inverter, open **System → VEConfigure** and select **Download settings**. This saves a fresh `.rvsc` backup without changing your inverter settings. If the download is unavailable, you can use [Victron Remote VEConfigure](https://www.victronenergy.com/media/pg/VRM_Portal_manual/en/remote-veconfigure.html) to get the backup instead.
+2. Create the file you can share. Open the [compatibility exporter](tools/export_compatibility.py) on GitHub, select **Download raw file**, and run it locally with Python 3.10 or later. Replace the example path with the `.rvsc` you downloaded. On macOS or Linux, use `python3` in place of `py -3`.
 
    ```powershell
    py -3 export_compatibility.py "path\to\backup.rvsc" --output compatibility.json
    ```
 
-3. Open `compatibility.json` in a text editor. Paste its contents into the compatibility form and add your inverter model and firmware if you know them.
+3. Open `compatibility.json` in a text editor and paste its contents into the [compatibility form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). Include your inverter model and the full VE.Bus firmware number if you know it.
 
-The exporter runs locally. It retains the firmware reply, settings limits and metadata needed to reproduce the unit in an isolated Venus OS simulator. It omits your serial number, unit ID, embedded credentials, saved settings and Assistant contents. GitHub issues are public. Keep the original backup on your computer and share only the generated profile.
+GitHub issues are public. Keep the original `.rvsc` on your computer and share only `compatibility.json`. The profile includes the firmware and settings limits we need for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents.
 
 ## License
 
