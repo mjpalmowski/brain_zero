@@ -48,6 +48,28 @@ def bind(library, name, result, *args):
     return function
 
 
+def powershell_path():
+    return Path(os.environ["SystemRoot"]) / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
+
+
+def remove_vm_serial_console():
+    # This is called only on a disposable GitHub-hosted worker. The offline
+    # capture independently checks that no DOS or registry serial ports remain.
+    script = r"""
+    $ErrorActionPreference = 'Stop'
+    $ports = @(Get-PnpDevice -Class Ports -PresentOnly | Where-Object FriendlyName -Match '\(COM\d+\)')
+    foreach ($port in $ports) {
+        Write-Host "Removing hosted VM serial device $($port.FriendlyName) [$($port.InstanceId)]"
+        & "$env:SystemRoot\System32\pnputil.exe" /remove-device $port.InstanceId /force
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+    """
+    result = subprocess.run([str(powershell_path()), "-NoProfile", "-NonInteractive", "-Command", script],
+                            timeout=25)
+    if result.returncode:
+        raise Blocked("Could not remove the virtual serial console from the hosted worker.")
+
+
 def check_firewall(exe):
     """Verify the worker has applied a program-wide outbound block."""
     script = r"""
@@ -68,9 +90,7 @@ def check_firewall(exe):
     }
     exit 1
     """
-    system = Path(os.environ["SystemRoot"])
-    powershell = system / "System32" / "WindowsPowerShell" / "v1.0" / "powershell.exe"
-    result = subprocess.run([str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
+    result = subprocess.run([str(powershell_path()), "-NoProfile", "-NonInteractive", "-Command", script],
                             env={**os.environ, "BZ_EXE": str(exe), "BZ_RULE": FIREWALL_RULE},
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=20)
     if result.returncode:
@@ -210,7 +230,7 @@ def offline_controls(win, main, pid):
     return controls
 
 
-def wait_for_file(win, process):
+def wait_for_file(win, process, report):
     deadline = time.monotonic() + 25
     acknowledged = None
     while time.monotonic() < deadline:
@@ -219,6 +239,9 @@ def wait_for_file(win, process):
         windows = win.windows(process.pid)
         main = next((item for item in windows if item["class"] == MAIN_FORM), None)
         dialogs = [item for item in windows if item["class"] == "TMessageForm"]
+        report["startup"] = {"window_classes": [item["class"] for item in windows[:12]],
+                             "fixture_title_seen": bool(main and "BZSIM000000" in main["text"]),
+                             "dialogs": [item["text"][:80] for item in dialogs[:4]]}
         if main and dialogs:
             # The synthetic file has an erased Assistant area. On startup the
             # reference build shows one Information dialog with a single OK.
@@ -227,6 +250,7 @@ def wait_for_file(win, process):
                 time.sleep(0.15)
                 continue
             buttons = [item for item in win.windows(process.pid, dialog["handle"]) if item["visible"]]
+            report["startup"]["dialog_controls"] = [item["text"][:80] for item in buttons[:8]]
             if (acknowledged is not None or len(dialogs) != 1 or dialog["text"] != "Information" or
                     len(buttons) != 1 or buttons[0]["text"] != "OK" or not buttons[0]["enabled"]):
                 raise NativeFailure("An unexpected VEConfigure startup dialog needs review.")
@@ -339,6 +363,7 @@ def run(fixture, exe, report, isolated):
     report["stage"] = "desktop"
     win = Windows()
     report["stage"] = "serial_isolation"
+    remove_vm_serial_console()
     win.check_serial()
     report["stage"] = "network_isolation"
     check_firewall(exe)
@@ -352,7 +377,7 @@ def run(fixture, exe, report, isolated):
                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             report["stage"] = "offline_file_open"
-            main = wait_for_file(win, process)
+            main = wait_for_file(win, process, report)
             report["stage"] = "native_pages"
             capture_pages(win, main, process.pid, report)
         finally:
