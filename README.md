@@ -61,6 +61,13 @@ brain_zero boards ship with the software pre-installed. Open **System → Firmwa
 
 [View the board, enclosure, and bundle at brain-zero.com](https://brain-zero.com/). Checkout is currently a preview.
 
+The Rev C snap-fit enclosure can be printed in PETG. Each version includes a base STL, a smooth lid STL, and matching two-colour SVG artwork.
+
+- [Version A](hardware/enclosure/version-a) has a recessed RJ45 socket.
+- [Version B](hardware/enclosure/version-b) brings the RJ45 face flush with the front panel.
+
+Use the base and lid from the same version. See the [Bambu Studio placement guide](hardware/enclosure/BAMBU-PLACEMENT.txt) and [artwork preview](hardware/enclosure/placement-preview.png).
+
 For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32ess/blob/main/docs/README.md) shows how to connect an ESP32 to a single MultiPlus-II over VE.Bus. It’s a separate project with its own firmware.
 
 ## Share a compatibility profile

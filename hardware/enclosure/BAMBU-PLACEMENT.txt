@@ -1,0 +1,39 @@
+brain_zero | X1 Carbon | Smooth lids with 2D inlay artwork
+
+Use the base STL, lid STL, and SVG from the same folder. Version A has
+a recessed jack. Version B has a flush jack. Print the base floor down
+in the lid's main colour.
+The lid STL has a flat outside face with four vent slots and is supplied
+face down. The SVG has the logo and INVERTER label as filled outlines
+in millimetres.
+
+Place the SVG in Bambu Studio
+1. View the smooth exterior face with the socket edge at the left,
+   as shown in placement-preview.png. Temporarily turn the lid face up
+   if needed to place the art on its exterior.
+2. Add the matching SVG to the lid as a Modifier and assign the second
+   PETG filament. Keep the artwork at the size below. If the slicer
+   centres on the ink and discards the blank SVG margins, position the
+   ink bounds using the margins or centre below. Measurements are from
+   the lid's rectangular bounds in the exterior view, socket at left.
+3. Place the modifier from the outside surface to 0.40 mm into the lid.
+   Put the lid and modifier back face down together. Slice for the
+   X1 Carbon with your PETG and two-colour setup, then check the filament
+   preview. With a 0.16 mm first layer and 0.12 mm regular layers, the
+   artwork should appear on the first three layers.
+
+Placement measurements
+Version A
+  Lid outline               79.25 x 53.80 mm
+  Artwork bounds            69.28 x 18.42 mm
+  Artwork left/top margins  3.34 / 22.31 mm
+  Artwork bounds centre     37.98 mm from left, 31.52 mm from top
+
+Version B
+  Lid outline               74.80 x 53.80 mm
+  Artwork bounds            69.46 x 18.42 mm
+  Artwork left/top margins  0.94 / 22.31 mm
+  Artwork bounds centre     35.67 mm from left, 31.52 mm from top
+
+Bambu Studio SVG tool source
+https://github.com/bambulab/BambuStudio/blob/master/src/slic3r/GUI/Gizmos/GLGizmoSVG.cpp
