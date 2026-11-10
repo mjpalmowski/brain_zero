@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+<title id="title">brain_zero</title>
+<desc id="desc">brain_zero wordmark with synapse ends describing an invisible zero inside a circuit brain. Original vector artwork by mjpalmowski.</desc>
+<g transform="translate(32 29.5) scale(.5)"><g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <g stroke="#E8F1F5" stroke-width="19">
+    <path d="M237 105C222 80 198 73 177 81C156 88 145 105 141 125C111 121 85 144 85 173C85 184 88 193 94 202C70 214 61 239 68 261C72 277 83 289 98 296C88 321 98 349 120 361C133 369 148 371 161 367C173 394 207 404 229 385C240 376 240 361 234.43 348"/>
+    <path d="M177 83V116Q177 138 199 138H232.51M141 125V148Q141 168 161 168H203.61M94 202H140Q151 202 162 201H191.22M67 248H146Q160 248 168 241H186.50M98 296H134Q151 296 151 281H190.75M120 361V336Q120 316 140 316H203.61" stroke-width="13"/>
+    <g transform="translate(512 0) scale(-1 1)">
+      <path d="M237 105C222 80 198 73 177 81C156 88 145 105 141 125C111 121 85 144 85 173C85 184 88 193 94 202C70 214 61 239 68 261C72 277 83 289 98 296C88 321 98 349 120 361C133 369 148 371 161 367C173 394 207 404 229 385C240 376 240 361 234.43 348"/>
+      <path d="M177 83V116Q177 138 199 138H232.51M141 125V148Q141 168 161 168H203.61M94 202H140Q151 202 162 201H191.22M67 248H146Q160 248 168 241H186.50M98 296H134Q151 296 151 281H190.75M120 361V336Q120 316 140 316H203.61" stroke-width="13"/>
+    </g>
+    <path d="M256 98V127.5M256 356.5V386" stroke-width="13"/>
+  </g>
+</g></g>
+<g transform="translate(296 84) scale(1.82)" fill="none" stroke="#E8F1F5" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
+<path transform="translate(0)" d="M5 1V57M5 39C5 16 40 16 40 39C40 62 5 62 5 39"/>
+<path transform="translate(53)" d="M5 57V23M5 36C5 25 18 19 29 25"/>
+<path transform="translate(94)" d="M39 57V23M39 39C39 16 4 16 4 39C4 62 39 62 39 39"/>
+<path transform="translate(148)" d="M9 25V57M9 8V8.1"/>
+<path transform="translate(176)" d="M5 57V23M5 37C5 15 39 17 39 36V57"/>
+<path transform="translate(232)" d="M1 69H33" stroke="#43E2BC"/>
+<path transform="translate(279)" d="M4 23H38L4 57H38"/>
+<path transform="translate(332)" d="M4 39H39C39 16 4 16 4 39C4 61 28 63 38 52"/>
+<path transform="translate(387)" d="M5 57V23M5 36C5 25 18 19 29 25"/>
+<path transform="translate(431)" d="M5 39C5 16 40 16 40 39C40 62 5 62 5 39"/>
+</g>
+</svg>

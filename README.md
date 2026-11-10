@@ -6,6 +6,8 @@ brain_zero is a Wi-Fi dongle for Victron MultiPlus-II inverter/chargers. It plug
 
 ## Software
 
+The [brain_zero firmware source](firmware/vebus_listener) lives in this repository. Firmware updates are published in [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases). Android and iOS apps are in development.
+
 The screenshots show the local web interface with example data. Select a screenshot to open it full size.
 
 **Dashboard** · Battery state of charge and live AC and DC measurements.
@@ -55,7 +57,7 @@ We’re collecting settings profiles for the revisions below. All ten passed mon
 
 ![3D rendering of the populated brain_zero Rev C board](images/brain-zero-rev-c.png)
 
-brain_zero boards ship with the brain_zero software pre-installed. Install updates over Wi-Fi from **System → Firmware update**.
+brain_zero boards ship with the software pre-installed. Download the firmware for your board from [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases) and install it over Wi-Fi from **System → Firmware update**.
 
 [View the board, enclosure, and bundle at brain-zero.com](https://brain-zero.com/). Checkout is currently a preview.
 
@@ -63,7 +65,7 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 
 ## Share a compatibility profile
 
-brain_zero can create a shareable compatibility profile directly from your inverter. Once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware, we’ll add that combination to the fully supported list.
+brain_zero can create a shareable compatibility profile directly from your inverter. We aim to add support within **48 hours** of receiving a valid `compatibility.json`, once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware.
 
 1. With brain_zero connected to your inverter, open **System → VEConfigure** and select **Download compatibility profile**. This reads the inverter and saves `compatibility.json` directly to your computer.
 2. Select **Submit to developer** on the VEConfigure page to open the public GitHub form. Attach `compatibility.json`, enter your inverter model, and submit the form. Include the full VE.Bus firmware number if you know it.
@@ -85,4 +87,4 @@ python3 export_compatibility.py "path/to/backup.rvsc" --output compatibility.jso
 
 ## License
 
-[MIT License](LICENSE)
+brain_zero is available under the [MIT License](LICENSE). The firmware [third-party notices](firmware/vebus_listener#third-party-notices) list the terms that apply to included components.
