@@ -57,7 +57,7 @@ We’re collecting settings profiles for the revisions below. All ten passed mon
 
 ![3D rendering of the populated brain_zero Rev C board](images/brain-zero-rev-c.png)
 
-brain_zero boards ship with the software pre-installed. Download the firmware for your board from [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases) and install it over Wi-Fi from **System → Firmware update**.
+brain_zero boards ship with the software pre-installed. Open **System → Firmware update** and choose **Check for updates** to install a newer build over Wi-Fi. Older builds need a one-time manual upload from [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases).
 
 [View the board, enclosure, and bundle at brain-zero.com](https://brain-zero.com/). Checkout is currently a preview.
 

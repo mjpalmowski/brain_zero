@@ -30,6 +30,7 @@
 #include "ess_page.h"
 #include "firmware_ota.h"
 #include "firmware_page.h"
+#include "firmware_release_job.h"
 #include "ha_mqtt.h"
 #include "mcp_server.h"
 #include "mqtt_link.h"
@@ -660,6 +661,8 @@ void handle_system_post(ControlExchange &io) {
 }
 
 constexpr char OTA_TOKEN[] = "X-Brain-Zero-OTA", OTA_SIZE[] = "X-Firmware-Size";
+constexpr bool SITE_FIRMWARE = false;
+constexpr char OTA_BUSY[] = "A GitHub firmware operation is already in progress.";
 struct FirmwareUpload {
     bool seen = false, owns = false, complete = false;
     const char *error = nullptr;
@@ -853,7 +856,7 @@ void firmware_reply(int code, const char *why = nullptr) {
         o.add(",\"error\":");
         o.str(why);
     } else {
-        const auto s = firmware_ota::status();
+        const auto s = firmware_release_job::ota_status();
         uint32_t boot_id;
         bool pending;
         const char *ignored;
@@ -863,15 +866,49 @@ void firmware_reply(int code, const char *why = nullptr) {
         o.add(",\"slot\":"); o.str(s.slot);
         o.add(",\"target\":"); o.str(s.target);
         o.add(",\"offset\":%u,\"max_bytes\":%u,\"staged_bytes\":%u,\"safe\":%s,"
-              "\"staged\":%s,\"trial\":%s,\"pending\":%s,\"token\":",
+              "\"staged\":%s,\"trial\":%s,\"pending\":%s,\"release_busy\":%s,\"token\":",
               s.running_offset, unsigned(s.max_bytes), unsigned(s.staged_bytes),
-              tf(listener_firmware_allowed()), tf(s.staged), tf(s.trial), tf(pending));
+              tf(listener_firmware_allowed()), tf(s.staged), tf(s.trial), tf(pending), tf(firmware_release_job::busy()));
         o.str(s.token);
         o.add(",\"message\":"); o.str(s.message);
     }
     o.add("}");
     server.sendHeader("Cache-Control", "no-store");
     server.send(code, "application/json", json);
+}
+
+void firmware_release_reply(int code, const char *error = nullptr) {
+    if (error) { console_error(code, error); return; }
+    const auto s = firmware_release_job::status();
+    char json[512];
+    Out o(json, sizeof json);
+    o.add("{\"ok\":true,\"status\":\"%s\",\"size\":%lu,\"received\":%u,\"preview\":%s,\"channel\":\"%s\",\"tag\":",
+          s.phase, (unsigned long)s.build.size, unsigned(s.received), tf(s.build.preview),
+          SITE_FIRMWARE ? "site" : "public");
+    o.str(s.build.tag);
+    o.add(",\"message\":"); o.str(s.message); o.add("}");
+    server.sendHeader("Cache-Control", "no-store");
+    server.send(code, "application/json", json);
+}
+
+void firmware_release_check() {
+    const char *why = firmware_access();
+    if (!why && firmware_release_job::busy()) why = OTA_BUSY;
+    if (!why) {
+        const auto s = firmware_ota::status();
+        if (!s.max_bytes || s.trial || s.staged || s.queued != firmware_ota::Action::NONE)
+            why = "Finish the current firmware update before checking GitHub.";
+        else why = firmware_release_job::check(diagnostics::RELEASE_VERSION, s.max_bytes, SITE_FIRMWARE);
+    }
+    firmware_release_reply(why ? 409 : 202, why);
+}
+
+void firmware_release_stage() {
+    const char *why = firmware_access();
+    if (!why && firmware_release_job::busy()) why = OTA_BUSY;
+    if (!why && !listener_firmware_allowed()) why = "Connect mains and wait for inverter operations to finish.";
+    if (!why) why = firmware_release_job::stage(server.arg("tag").c_str());
+    firmware_release_reply(why ? 409 : 202, why);
 }
 
 size_t firmware_size() {
@@ -896,6 +933,7 @@ void firmware_upload_chunk() {
         request.seen = true;
         request.error = firmware_access();
         if (request.error) return;
+        if (firmware_release_job::busy()) { request.error = OTA_BUSY; return; }
         if (!listener_firmware_allowed()) {
             request.error = "Connect mains and wait for inverter operations to finish.";
             return;
@@ -926,6 +964,7 @@ void finish_firmware_upload() {
 
 void firmware_action(firmware_ota::Action action) {
     const char *why = firmware_access();
+    if (!why && firmware_release_job::busy()) why = OTA_BUSY;
     if (!why) why = listener_firmware_restart(action);
     firmware_reply(why ? 409 : 202, why);
 }
@@ -1599,19 +1638,32 @@ void begin() {
         const bool local = firmware_host();
         firmware_reply(local ? 200 : 403, local ? nullptr : "Use the controller's local address.");
     });
+    private_route("/api/firmware/release", HTTP_GET, [] {
+        if (!firmware_host()) { firmware_release_reply(403, "Use the controller's local address."); return; }
+        firmware_release_reply(200);
+    });
+    private_route("/api/firmware/release/check", HTTP_POST, firmware_release_check);
+    private_route("/api/firmware/release/stage", HTTP_POST, firmware_release_stage);
     private_route("/api/firmware/upload", HTTP_POST, finish_firmware_upload, firmware_upload_chunk);
     private_route("/api/firmware/install", HTTP_POST, [] { firmware_action(firmware_ota::Action::INSTALL); });
     private_route("/api/firmware/rollback", HTTP_POST, [] { firmware_action(firmware_ota::Action::ROLLBACK); });
     private_route("/api/firmware/keep", HTTP_POST, [] {
         const char *why = firmware_access();
+        if (!why && firmware_release_job::busy()) why = OTA_BUSY;
         if (!why) why = firmware_ota::keep();
         firmware_reply(why ? 409 : 200, why);
     });
     private_route("/api/firmware/discard", HTTP_POST, [] {
         const char *why = firmware_access();
-        const auto s = firmware_ota::status();
-        if (!why && (!s.staged || s.queued != firmware_ota::Action::NONE)) why = "No staged image can be discarded.";
-        if (!why) firmware_ota::discard("Staged image discarded. Current firmware will continue to run.");
+        if (!why && firmware_release_job::busy()) why = OTA_BUSY;
+        if (!why) {
+            const auto s = firmware_ota::status();
+            if (!s.staged || s.queued != firmware_ota::Action::NONE) why = "No staged image can be discarded.";
+            else {
+                firmware_ota::discard("Staged image discarded. Current firmware will continue to run.");
+                firmware_release_job::discarded();
+            }
+        }
         firmware_reply(why ? 409 : 200, why);
     });
     private_route("/api/warning-history", HTTP_GET, handle_warning_history_get);
@@ -1651,6 +1703,7 @@ void begin() {
 }
 
 void loop() {
+    firmware_release_job::poll(listener_firmware_allowed);
     if (!enabled) return;
     const uint32_t now = millis();
     if (!restart_shutdown) {

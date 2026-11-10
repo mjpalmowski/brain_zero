@@ -16,12 +16,15 @@ For a custom first-boot image, copy `include/wifi_secrets.example.h` to `include
 
 ## Update over Wi-Fi
 
-1. Download the Rev C application image from [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases).
-2. With brain_zero connected to your local Wi-Fi network, open its console and select **System → Firmware update**.
-3. Select the application image and choose **Upload and verify**. Once the device verifies it, select **Install and restart**.
-4. When brain_zero comes back online, check its dashboard. If the update page shows a trial build, select **Keep this build** when you are satisfied.
+1. Open the controller’s local console and select **System → Firmware update**.
+2. Select **Check for updates**. If a newer Rev C build is available, select **Download and verify**.
+3. Once the image is staged, select **Install and restart**. After the restart, check the dashboard and select **Keep this build** when you are satisfied.
 
-The update uses the inactive firmware slot and preserves saved settings. It requires a working Wi-Fi configuration on the device and a compatible ESP32-S3 partition layout.
+The controller checks GitHub Releases for the version and checksum, then downloads the matching image over HTTPS from brain-zero.com. It verifies the SHA-256 before staging the image in the inactive slot. The update preserves saved settings and requires internet access, a synced clock, and a compatible ESP32-S3 partition layout.
+
+If the page has only **Upload a build**, first download the Rev C application image and select **Upload and verify** once. This also works for locally built images. [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases)
+
+For a new public OTA release, set `RELEASE_VERSION` to the build date times 100 plus its sequence number. Use the matching `firmware-YYYYMMDD.N` GitHub tag. Publish the same `firmware.bin` under `/firmware/<tag>/firmware.bin` on brain-zero.com before publishing the GitHub release.
 
 ## Third-party notices
 

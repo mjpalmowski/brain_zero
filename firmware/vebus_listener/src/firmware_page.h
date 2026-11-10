@@ -23,10 +23,17 @@ R"HTML(
 
 <main>
 <h1>Firmware update</h1>
-<p class="muted">Install an ESP32-S3 application build from your local network.</p>
+<p class="muted">Check GitHub Releases for an update or upload an ESP32-S3 application build.</p>
 <p id="current">Reading the current firmware…</p>
 <p id="status" class="status" role="status" aria-live="polite">Connecting…</p>
 <p id="error" class="error" role="alert" hidden></p>
+<section id="release-card" class="card">
+<h2>GitHub Releases</h2>
+<p id="release-status" class="muted" role="status" aria-live="polite">Check GitHub for a newer firmware build.</p>
+<p id="release-version" hidden></p>
+<progress id="release-progress" aria-label="Firmware download progress" hidden></progress>
+<div class="row"><button id="release-check" type="button" disabled>Check for updates</button><button id="release-stage" class="primary" type="button" hidden disabled>Download and verify</button></div>
+</section>
 <section id="upload-card" class="card">
 <h2>Upload a build</h2>
 <p>Choose the application <code>firmware.bin</code> from your ESP32-S3 build. Use the standalone app file. <span id="capacity"></span></p>
@@ -52,13 +59,28 @@ const el=id=>document.getElementById(id);
 const tr=text=>window.bzText?.(text)??text;
 const format=(template,values)=>window.bzFormat?.(template,values)??template.replace(/\{(\w+)\}/g,(_,key)=>values[key]);
 const bytes=value=>value.toLocaleString(document.documentElement.lang.replace('_','-')||'en');
-let state=null,busy=false,restart=null,reading=false;
+let state=null,release=null,watchRelease=false,busy=false,restart=null,reading=false,actionGeneration=0,lastBootId;
 function error(message=''){el('error').textContent=tr(message);el('error').hidden=!message}
 function render(){
     const s=state, f=el('file').files[0];
-    const ready=!!s?.token&&!busy&&!restart&&!s.pending;
+    const releaseBusy=!!s?.release_busy||release?.status==='checking'||release?.status==='downloading';
+    const ready=!!s?.token&&!busy&&!releaseBusy&&!restart&&!s.pending;
+    const offer=release?.status==='available'&&release.tag&&release.size>0;
+    const downloading=release?.status==='downloading';
     el('current').textContent=s?.slot ? format('Running {build} · {slot}',{build:s.build,slot:s.slot}) : tr('Reading the current firmware…');
     el('capacity').textContent=s?.max_bytes ? format('Slot capacity {bytes} bytes.',{bytes:bytes(s.max_bytes)}) : '';
+    el('release-card').hidden=!!s&&(s.trial||s.staged);
+    el('release-check').disabled=!ready||!s.max_bytes||s.trial||s.staged;
+    el('release-stage').hidden=!offer;
+    el('release-stage').disabled=el('release-check').disabled||!s.safe||!offer||release.size>s.max_bytes;
+    const releaseMessage=release?.status==='staged'&&!s?.staged?'':release?.message;
+    el('release-status').textContent=tr(releaseMessage||'Check GitHub for a newer firmware build.');
+    el('release-version').hidden=!offer;
+    el('release-version').textContent=offer?format(release.preview?'Preview release {tag} · {bytes} bytes.':'Release {tag} · {bytes} bytes.',{tag:release.tag,bytes:bytes(release.size)}):'';
+    const progress=el('release-progress');
+    progress.hidden=!downloading;
+    if(downloading&&release.size>0){progress.max=release.size;progress.value=release.received||0}
+    else progress.removeAttribute('value');
     el('upload-card').hidden=!!s&&(s.trial||s.staged);
     el('trial-card').hidden=!s?.trial;
     el('staged-card').hidden=!s?.staged;
@@ -76,12 +98,32 @@ function render(){
 async function refresh(){
     if(reading||busy||document.hidden)return;
     reading=true;
+    const generation=actionGeneration;
     try{
         const r=await fetch('/api/firmware',{cache:'no-store',signal:AbortSignal.timeout(3500)});
         if(!r.ok)throw Error();
-        state=await r.json();
+        const next=await r.json();
+        if(generation!==actionGeneration)return;
+        if(lastBootId!==undefined&&next.boot_id!==lastBootId){release=null;watchRelease=false}
+        lastBootId=next.boot_id;
+        state=next;
         if(restart&&(state.boot_id!==restart.boot||!state.pending&&Date.now()>restart.since+4000))restart=null;
+        if(watchRelease||state.release_busy){
+            watchRelease=true;
+            try{
+                const r=await fetch('/api/firmware/release',{cache:'no-store',signal:AbortSignal.timeout(3500)});
+                const nextRelease=await r.json();
+                if(!r.ok||!nextRelease.ok)throw Error();
+                if(generation===actionGeneration){
+                    release=nextRelease;
+                    watchRelease=state.release_busy||release.status==='checking'||release.status==='downloading';
+                }
+            }catch{
+                if(generation===actionGeneration)release={message:'Could not read the GitHub update status.'};
+            }
+        }
     }catch{
+        if(generation!==actionGeneration)return;
         state=null;
         if(restart&&Date.now()-restart.since>60000){
             restart=null;
@@ -89,10 +131,28 @@ async function refresh(){
         }
     }finally{reading=false;render()}
 }
+async function releaseAction(action){
+    const s=state,button=el(action==='check'?'release-check':'release-stage');
+    if(button.disabled||!s?.token)return;
+    const body=action==='stage'?new URLSearchParams({tag:release.tag}):undefined;
+    actionGeneration++;
+    busy=true;error();render();
+    el('release-status').textContent=tr(action==='check'?'Starting the GitHub release check…':'Starting the firmware download…');
+    try{
+        const r=await fetch('/api/firmware/release/'+action,{method:'POST',headers:{'X-Brain-Zero-OTA':s.token},body,signal:AbortSignal.timeout(5000)});
+        const next=await r.json();
+        if(!r.ok||!next.ok)throw Error(next.error||'Action refused.');
+        release=next;
+    }catch(e){error(e.message)}
+    finally{watchRelease=true;busy=false;render();void refresh()}
+}
+el('release-check').addEventListener('click',()=>releaseAction('check'));
+el('release-stage').addEventListener('click',()=>releaseAction('stage'));
 el('file').addEventListener('change',()=>{error();render()});
 el('upload').addEventListener('click',()=>{
     const f=el('file').files[0], s=state;
     if(!f||!s?.token||el('upload').disabled)return;
+    actionGeneration++;
     busy=true;error();render();
     el('status').textContent='Uploading to the inactive slot…';
     el('progress').hidden=false;el('progress').value=0;
@@ -117,6 +177,7 @@ for(const id of ['install','discard','keep','rollback'])el(id).addEventListener(
     if(el(id).disabled||!state?.token)return;
     const reboot=id==='install'||id==='rollback';
     const s=state;
+    actionGeneration++;
     busy=true;error();render();
     try{
         const r=await fetch('/api/firmware/'+id,{method:'POST',headers:{'X-Brain-Zero-OTA':s.token},signal:AbortSignal.timeout(5000)});
