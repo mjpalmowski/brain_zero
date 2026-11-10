@@ -11,9 +11,7 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
-  issues: read
+permissions: {}
 
 jobs:
   intake:
@@ -25,6 +23,11 @@ jobs:
       contains(github.event.issue.body, '### Downloaded compatibility profile'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      fixture_artifact_id: ${{ steps.prepare.outcome == 'success' && steps.intake_artifact.outputs.artifact-id || '' }}
     concurrency:
       group: compatibility-intake-${{ github.event.issue.number || inputs.issue_number }}
       cancel-in-progress: false
@@ -39,7 +42,13 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: python -B tools/intake_compatibility.py --output-dir intake-output
 
-      - name: Upload intake report and validated fixture
+      - name: Prepare the settings catalogue and offline VEConfigure file
+        id: prepare
+        if: ${{ hashFiles('intake-output/profile.json') != '' }}
+        run: python -B tools/prepare_veconfigure.py --profile intake-output/profile.json --output-dir intake-output
+
+      - name: Upload intake report and offline fixtures
+        id: intake_artifact
         if: ${{ always() && hashFiles('intake-output/report.json') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -48,4 +57,76 @@ jobs:
             intake-output/report.json
             intake-output/profile.json
             intake-output/simulator-profile.json
+            intake-output/settings-map.json
+            intake-output/synthetic.rvsc
+          if-no-files-found: error
+
+  veconfigure:
+    name: Inspect the synthetic file in VEConfigure
+    needs: intake
+    if: ${{ needs.intake.result == 'success' && needs.intake.outputs.fixture_artifact_id != '' }}
+    runs-on: windows-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the workflow revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download this run's validated artifact
+        id: download
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.intake.outputs.fixture_artifact_id }}
+          path: intake-output
+
+      - name: Install pinned VEConfigure
+        id: install
+        timeout-minutes: 4
+        shell: pwsh
+        run: '& .github/scripts/install-veconfigure.ps1'
+
+      - name: Map VEConfigure controls to setting words and bits
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path native-output | Out-Null
+          python -B tools/veconfigure_bindings.py --exe "$env:VE_CONFIG_EXE" --report native-output/veconfigure-bindings.json
+          exit $LASTEXITCODE
+
+      - name: Open the synthetic file and read runtime controls
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path native-output | Out-Null
+          python -B tools/native_veconfigure.py --fixture intake-output/synthetic.rvsc --report native-output/native-report.json --exe "$env:VE_CONFIG_EXE" --isolated
+          exit $LASTEXITCODE
+
+      - name: Record an incomplete native run
+        if: ${{ always() && hashFiles('native-output/native-report.json') == '' }}
+        env:
+          DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path native-output | Out-Null
+          $stage = 'fixture'
+          if ($env:DOWNLOAD_OUTCOME -eq 'success') { $stage = 'installer' }
+          if ($env:INSTALL_OUTCOME -eq 'success') { $stage = 'capture' }
+          @{
+            status = 'blocked'
+            stage = $stage
+            reason = 'The native worker did not produce a report. See the workflow log for the failing step.'
+          } | ConvertTo-Json | Set-Content -Encoding utf8 -LiteralPath native-output/native-report.json
+
+      - name: Upload native VEConfigure report
+        if: ${{ always() && hashFiles('native-output/native-report.json') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: compatibility-veconfigure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            native-output/native-report.json
+            native-output/veconfigure-bindings.json
           if-no-files-found: error
