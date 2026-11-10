@@ -116,14 +116,17 @@ class Windows:
         used = self.devices(None, names, len(names))
         if not used:
             raise Blocked("The worker could not verify that COM devices are absent.")
-        com = any(re.fullmatch(r"COM\d+", item, re.IGNORECASE) for item in names[:used].split("\0"))
+        ports = {item.upper() for item in names[:used].split("\0") if re.fullmatch(r"COM\d+", item, re.IGNORECASE)}
         try:
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DEVICEMAP\SERIALCOMM") as key:
-                com = com or winreg.QueryInfoKey(key)[1] > 0
+                for index in range(winreg.QueryInfoKey(key)[1]):
+                    _, value, _ = winreg.EnumValue(key, index)
+                    ports.add(value.upper() if isinstance(value, str) and re.fullmatch(r"COM\d+", value, re.IGNORECASE)
+                              else "unidentified")
         except FileNotFoundError:
             pass
-        if com:
-            raise Blocked("The hosted worker exposes a serial port.")
+        if ports:
+            raise Blocked("The hosted worker exposes serial ports: " + ", ".join(sorted(ports)) + ".")
 
     def owns(self, handle, pid):
         process_id = wintypes.DWORD()

@@ -30,5 +30,14 @@ if ((Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash -ne 'D979D4F7AD111F2
     throw 'The installed VEConfigure executable does not match the reference binary.'
 }
 
+# GitHub's Windows VM exposes a virtual serial console. Remove its COM device
+# before the file-only capture; the Python worker independently checks again.
+$ports = @(Get-PnpDevice -Class Ports -PresentOnly | Where-Object FriendlyName -Match '\(COM\d+\)')
+foreach ($port in $ports) {
+    Write-Host "Disabling hosted VM serial device $($port.FriendlyName)"
+    Disable-PnpDevice -InstanceId $port.InstanceId -Confirm:$false
+}
+
+Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
 New-NetFirewallRule -DisplayName 'brain_zero VEConfigure offline' -Direction Outbound -Action Block -Program $exe -Profile Any | Out-Null
 Add-Content -LiteralPath $env:GITHUB_ENV -Encoding utf8 -Value "VE_CONFIG_EXE=$exe"
