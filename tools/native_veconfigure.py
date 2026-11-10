@@ -110,6 +110,7 @@ class Windows:
         self.enum_children = bind(ui, "EnumChildWindows", w.BOOL, w.HWND, self.callback, w.LPARAM)
         self.window_pid = bind(ui, "GetWindowThreadProcessId", w.DWORD, w.HWND, ctypes.POINTER(w.DWORD))
         self.class_name = bind(ui, "GetClassNameW", ctypes.c_int, w.HWND, w.LPWSTR, ctypes.c_int)
+        self.window_text = bind(ui, "GetWindowTextW", ctypes.c_int, w.HWND, w.LPWSTR, ctypes.c_int)
         self.visible = bind(ui, "IsWindowVisible", w.BOOL, w.HWND)
         self.enabled = bind(ui, "IsWindowEnabled", w.BOOL, w.HWND)
         self.parent = bind(ui, "GetParent", w.HWND, w.HWND)
@@ -172,16 +173,25 @@ class Windows:
         self.post(handle, pid, 0x0201, 1, point)  # WM_LBUTTONDOWN
         self.post(handle, pid, 0x0202, 0, point)  # WM_LBUTTONUP
 
-    def describe(self, handle, pid):
+    def describe(self, handle, pid, top_level=False):
         label = ctypes.create_unicode_buffer(512)
         kind = ctypes.create_unicode_buffer(128)
         rect = wintypes.RECT()
         self.class_name(handle, kind, len(kind))
         self.rect(handle, ctypes.byref(rect))
-        if "edit" in kind.value.casefold() and self.style(handle, -16) & 0x20:
+        if top_level:
+            # Windows supplies a cross-process caption without waiting for
+            # VEConfigure to finish its startup message loop.
+            self.window_text(handle, label, len(label))
+        elif "edit" in kind.value.casefold() and self.style(handle, -16) & 0x20:
             label.value = "[redacted]"
         elif kind.value not in {"TEdit", "Edit"}:
-            self.send(handle, pid, 0x000D, len(label), ctypes.addressof(label))  # WM_GETTEXT
+            try:
+                self.send(handle, pid, 0x000D, len(label), ctypes.addressof(label))  # WM_GETTEXT
+            except NativeFailure:
+                # Some child windows do not implement WM_GETTEXT. Explicit
+                # checks still require the named offline controls before input.
+                pass
         return {"handle": handle, "parent": self.parent(handle), "class": kind.value,
                 "text": label.value, "visible": bool(self.visible(handle)), "enabled": bool(self.enabled(handle)),
                 "rect": [rect.left, rect.top, rect.right, rect.bottom]}
@@ -198,7 +208,7 @@ class Windows:
             self.enum_windows(self.callback(record), 0)
         else:
             self.enum_children(parent, self.callback(record), 0)
-        return [self.describe(handle, pid) for handle in handles]
+        return [self.describe(handle, pid, top_level=parent is None) for handle in handles]
 
     def combo_items(self, handle, pid):
         count = self.send(handle, pid, 0x0146)  # CB_GETCOUNT
