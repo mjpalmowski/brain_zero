@@ -79,7 +79,9 @@ brain_zero can create a shareable compatibility profile directly from your inver
 
 Share only `compatibility.json` and keep any `.rvsc` settings backup private. The profile includes the firmware and settings limits we need for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. [Open the compatibility form directly](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml).
 
-GitHub checks the attachment when you open the issue or update its body. The [intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) reports any problems. For a valid profile, it prepares the settings limits, checksums, and simulator files for review. Compatibility still depends on the ESS and VEConfigure checks for that model and firmware.
+GitHub starts the [intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) when you open the issue or update its body. A valid profile produces a settings map with IDs, limits, defaults, access flags, and offsets in a synthetic VEConfigure file. An isolated Windows job opens that file in VEConfigure and records which controls are available with those defaults. It also extracts the reference application's control-to-setting bindings for the configuration tool.
+
+Find the results under **Artifacts** on the workflow run for the issue. The synthetic file uses descriptor defaults and an empty Assistant area. The report does not reproduce your installation's values, and settings-write and ESS qualification are separate checks.
 
 <details>
 <summary>Contribute from a VEConfigure backup</summary>

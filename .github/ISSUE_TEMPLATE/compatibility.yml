@@ -7,7 +7,7 @@ body:
       value: |
         In brain_zero, go to **System → VEConfigure → Download compatibility profile**. Attach the downloaded `compatibility.json` below.
 
-        This issue is public. Share only `compatibility.json` and keep the original `.rvsc` private. Once ESS and VEConfigure checks pass, we’ll add your model and firmware combination to the fully supported list.
+        This issue is public. Share only `compatibility.json` and keep the original `.rvsc` private. The workflow uses your profile to open a synthetic file in VEConfigure and inspect the settings for your model and firmware. Once ESS and VEConfigure checks pass, we’ll add that combination to the fully supported list.
   - type: input
     id: inverter
     attributes:
