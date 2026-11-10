@@ -55,6 +55,8 @@ We’re collecting settings profiles for the revisions below. All ten passed mon
 
 ![3D rendering of the populated brain_zero Rev C board](images/brain-zero-rev-c.png)
 
+brain_zero boards ship with the brain_zero software pre-installed. Install updates over Wi-Fi from **System → Firmware update**.
+
 [View the board, enclosure, and bundle at brain-zero.com](https://brain-zero.com/). Checkout is currently a preview.
 
 For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32ess/blob/main/docs/README.md) shows how to connect an ESP32 to a single MultiPlus-II over VE.Bus. It’s a separate project with its own firmware.
