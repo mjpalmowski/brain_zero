@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        In brain_zero, go to **System → VEConfigure → Download settings** to save a fresh `.rvsc` backup. Follow the [export instructions](https://github.com/mjpalmowski/brain_zero#share-a-compatibility-profile) to turn the backup into a shareable `compatibility.json`.
+        In brain_zero, go to **System → VEConfigure → Download compatibility profile**. Attach the downloaded `compatibility.json` below.
 
         This issue is public. Share only `compatibility.json` and keep the original `.rvsc` private. Once ESS and VEConfigure checks pass, we’ll add your model and firmware combination to the fully supported list.
   - type: input
@@ -22,14 +22,14 @@ body:
       label: Firmware shown by Victron
       description: Enter the full seven-digit VE.Bus number if you know it.
       placeholder: "2611556"
-  - type: textarea
+  - type: upload
     id: profile
     attributes:
-      label: Generated compatibility profile
-      description: Paste the entire contents of compatibility.json.
-      render: json
+      label: Downloaded compatibility profile
+      description: Attach the compatibility.json file you downloaded from brain_zero.
     validations:
       required: true
+      accept: ".json"
   - type: checkboxes
     id: review
     attributes:

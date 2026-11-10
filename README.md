@@ -61,18 +61,23 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 
 ## Share a compatibility profile
 
-The current brain_zero firmware can download the settings backup we need directly from your inverter. Once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware, we’ll add that combination to the fully supported list.
+brain_zero can create a shareable compatibility profile directly from your inverter. Once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware, we’ll add that combination to the fully supported list.
 
-1. With brain_zero connected to your inverter, open **System → VEConfigure** and select **Download settings**. This saves a fresh `.rvsc` backup without changing your inverter settings. If the download is unavailable, you can use [Victron Remote VEConfigure](https://www.victronenergy.com/media/pg/VRM_Portal_manual/en/remote-veconfigure.html) to get the backup instead.
-2. Create the file you can share. Open the [compatibility exporter](tools/export_compatibility.py) on GitHub, select **Download raw file**, and run it locally with Python 3.10 or later. Replace the example path with the `.rvsc` you downloaded. On macOS or Linux, use `python3` in place of `py -3`.
+1. With brain_zero connected to your inverter, open **System → VEConfigure** and select **Download compatibility profile**. This reads the inverter and saves `compatibility.json` directly to your computer.
+2. Select **Submit to developer** on the VEConfigure page to open the public GitHub form. Attach `compatibility.json`, enter your inverter model, and submit the form. Include the full VE.Bus firmware number if you know it.
 
-   ```powershell
-   py -3 export_compatibility.py "path\to\backup.rvsc" --output compatibility.json
-   ```
+Share only `compatibility.json` and keep any `.rvsc` settings backup private. The profile includes the firmware and settings limits we need for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. [Open the compatibility form directly](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml).
 
-3. Open `compatibility.json` in a text editor and paste its contents into the [compatibility form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). Include your inverter model and the full VE.Bus firmware number if you know it.
+<details>
+<summary>Contribute from a VEConfigure backup</summary>
 
-GitHub issues are public. Keep the original `.rvsc` on your computer and share only `compatibility.json`. The profile includes the firmware and settings limits we need for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents.
+If you have an older brain_zero build or use Victron Remote VEConfigure, you can still create the same `compatibility.json` from your `.rvsc`. Open the [local exporter](tools/export_compatibility.py) and select **Download raw file**. Use Python 3.10 or later and replace the example path with your backup path. On Windows, you can use `py -3` in place of `python3`.
+
+```sh
+python3 export_compatibility.py "path/to/backup.rvsc" --output compatibility.json
+```
+
+</details>
 
 ## License
 
