@@ -68,6 +68,8 @@ brain_zero can create a shareable compatibility profile directly from your inver
 
 Share only `compatibility.json` and keep any `.rvsc` settings backup private. The profile includes the firmware and settings limits we need for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. [Open the compatibility form directly](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml).
 
+GitHub checks the attachment when you open the issue or update its body. The [intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) reports any problems. For a valid profile, it prepares the settings limits, checksums, and simulator files for review. Compatibility still depends on the ESS and VEConfigure checks for that model and firmware.
+
 <details>
 <summary>Contribute from a VEConfigure backup</summary>
 
