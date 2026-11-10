@@ -230,9 +230,30 @@ def area(control):
     return max(0, right - left) * max(0, bottom - top)
 
 
-def offline_controls(win, main, pid):
-    if not win.enabled(main):
+def acknowledge_information(win, dialogs, pid, report):
+    dialog = dialogs[0]
+    buttons = [item for item in win.windows(pid, dialog["handle"]) if item["visible"]]
+    report["modal_controls"] = [item["text"][:80] for item in buttons[:8]]
+    if (len(dialogs) != 1 or dialog["text"] != "Information" or
+            len(buttons) != 1 or buttons[0]["text"] != "OK"):
         raise NativeFailure("An unexpected native dialog interrupted the offline capture.")
+    if report.get("information_window") != dialog["handle"] and buttons[0]["enabled"]:
+        win.dismiss_information(buttons[0]["handle"], pid)
+        report["information_window"] = dialog["handle"]
+
+
+def offline_controls(win, main, pid, report):
+    deadline = time.monotonic() + 8
+    while not win.enabled(main):
+        windows = [item for item in win.windows(pid) if item["handle"] != main and area(item)]
+        report["modal_windows"] = [{"class": item["class"], "title": item["text"][:80]}
+                                   for item in windows[:12]]
+        dialogs = [item for item in windows if item["class"] == "TMessageForm"]
+        if dialogs:
+            acknowledge_information(win, dialogs, pid, report)
+        if time.monotonic() >= deadline:
+            raise NativeFailure("The offline file window did not finish initializing.")
+        time.sleep(0.15)
     controls = win.windows(pid, main)
     release = [item for item in controls if item["text"] == "Release port"]
     if len(release) != 1 or release[0]["enabled"]:
@@ -241,34 +262,29 @@ def offline_controls(win, main, pid):
 
 
 def wait_for_file(win, process, report):
-    deadline = time.monotonic() + 25
-    acknowledged = None
+    deadline = time.monotonic() + 40
+    ready_since = None
     while time.monotonic() < deadline:
         if process.poll() is not None:
             raise NativeFailure("VEConfigure exited before opening the synthetic file.")
-        windows = win.windows(process.pid)
+        windows = [item for item in win.windows(process.pid) if area(item)]
         main = next((item for item in windows if item["class"] == MAIN_FORM), None)
         dialogs = [item for item in windows if item["class"] == "TMessageForm"]
         report["startup"] = {"window_classes": [item["class"] for item in windows[:12]],
                              "fixture_title_seen": bool(main and "BZSIM000000" in main["text"]),
                              "dialogs": [item["text"][:80] for item in dialogs[:4]]}
         if main and dialogs:
-            # The synthetic file has an erased Assistant area. On startup the
-            # reference build shows one Information dialog with a single OK.
-            dialog = dialogs[0]
-            if len(dialogs) == 1 and dialog["handle"] == acknowledged:
-                time.sleep(0.15)
-                continue
-            buttons = [item for item in win.windows(process.pid, dialog["handle"]) if item["visible"]]
-            report["startup"]["dialog_controls"] = [item["text"][:80] for item in buttons[:8]]
-            if (acknowledged is not None or len(dialogs) != 1 or dialog["text"] != "Information" or
-                    len(buttons) != 1 or buttons[0]["text"] != "OK" or not buttons[0]["enabled"]):
-                raise NativeFailure("An unexpected VEConfigure startup dialog needs review.")
-            win.dismiss_information(buttons[0]["handle"], process.pid)
-            acknowledged = dialog["handle"]
+            ready_since = None
+            acknowledge_information(win, dialogs, process.pid, report)
         elif main and main["enabled"] and "BZSIM000000" in main["text"]:
-            offline_controls(win, main["handle"], process.pid)
-            return main["handle"]
+            if ready_since is None:
+                ready_since = time.monotonic()
+            elif time.monotonic() - ready_since >= 1:
+                offline_controls(win, main["handle"], process.pid, report)
+                report["offline_file_mode"] = True
+                return main["handle"]
+        else:
+            ready_since = None
         time.sleep(0.15)
     raise NativeFailure("Timed out waiting for the synthetic VEConfigure file to open.")
 
@@ -326,7 +342,7 @@ def selected_page(controls, tabs, index):
 
 
 def capture_pages(win, main, pid, report):
-    controls = offline_controls(win, main, pid)
+    controls = offline_controls(win, main, pid, report)
     tabs = [item for item in controls if item["class"] == PAGE_CONTROL and item["visible"]]
     if not tabs:
         raise NativeFailure("VEConfigure exposed no visible setting tabs.")
@@ -338,7 +354,7 @@ def capture_pages(win, main, pid, report):
     for index in range(primary_count):
         report["stage"] = f"native_page_index/{index}"
         move_to(win, primary, pid, index)
-        controls = offline_controls(win, main, pid)
+        controls = offline_controls(win, main, pid, report)
         label = selected_page(controls, primary, index)
         report["stage"] = "native_page/" + label
         pages[label] = capture_controls(win, controls, pid)
@@ -349,7 +365,7 @@ def capture_pages(win, main, pid, report):
             for sub_index in range(page_count(win, sub, pid)):
                 report["stage"] = f"native_page/{label}/{sub_index}"
                 move_to(win, sub, pid, sub_index)
-                controls = offline_controls(win, main, pid)
+                controls = offline_controls(win, main, pid, report)
                 sub_label = selected_page(controls, sub, sub_index)
                 pages[f"{label}/{sub_label}"] = capture_controls(win, controls, pid)
 
