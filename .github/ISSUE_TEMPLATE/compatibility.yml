@@ -1,0 +1,39 @@
+name: MultiPlus-II compatibility profile
+description: Contribute a sanitized profile from a standalone 230 V inverter.
+title: "[Compatibility] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Follow the [export instructions](https://github.com/mjpalmowski/brain_zero#brain_zero) and share only the generated `compatibility.json`. Keep the original `.rvsc` and your serial number private.
+  - type: input
+    id: inverter
+    attributes:
+      label: Inverter model
+      description: Enter the model from the nameplate. You can include the Victron product code.
+      placeholder: MultiPlus-II 24/3000/70-32 230 V
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware shown by Victron
+      description: Enter the full seven-digit VE.Bus number if you know it.
+      placeholder: "2611556"
+  - type: textarea
+    id: profile
+    attributes:
+      label: Generated compatibility profile
+      description: Paste the entire contents of compatibility.json.
+      render: json
+    validations:
+      required: true
+  - type: checkboxes
+    id: review
+    attributes:
+      label: Submission review
+      options:
+        - label: This profile comes from a standalone 230 V MultiPlus-II.
+          required: true
+        - label: I reviewed the generated profile and agree to share it publicly.
+          required: true

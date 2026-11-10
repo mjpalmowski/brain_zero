@@ -1,0 +1,5 @@
+*.rvsc
+*.rvms
+*.vsc
+compatibility.json
+__pycache__/
