@@ -1,6 +1,7 @@
 """Observe VEConfigure's runtime controls on a synthetic offline file."""
 
 import argparse
+import base64
 import ctypes
 from ctypes import wintypes
 import hashlib
@@ -8,10 +9,12 @@ import json
 import os
 from pathlib import Path
 import re
+import struct
 import subprocess
 import sys
 import tempfile
 import time
+import zlib
 
 from export_compatibility import MAX_BACKUP_BYTES, export_compatibility
 from validate_compatibility import validate_profile
@@ -224,6 +227,48 @@ class Windows:
             items.append(label.value)
         return items
 
+    def dialog_bitmap(self, dialog, pid):
+        # Capture only the unexpected window from the synthetic-file process.
+        handle = dialog["handle"]
+        left, top, right, bottom = dialog["rect"]
+        width, height = right - left, bottom - top
+        if not self.owns(handle, pid) or not 0 < width <= 1024 or not 0 < height <= 768:
+            return None
+        w = wintypes
+        ui = ctypes.WinDLL("user32", use_last_error=True)
+        gdi = ctypes.WinDLL("gdi32", use_last_error=True)
+        get_dc = bind(ui, "GetWindowDC", w.HDC, w.HWND)
+        release_dc = bind(ui, "ReleaseDC", ctypes.c_int, w.HWND, w.HDC)
+        print_window = bind(ui, "PrintWindow", w.BOOL, w.HWND, w.HDC, w.UINT)
+        create_dc = bind(gdi, "CreateCompatibleDC", w.HDC, w.HDC)
+        create_bitmap = bind(gdi, "CreateCompatibleBitmap", w.HBITMAP, w.HDC, ctypes.c_int, ctypes.c_int)
+        select = bind(gdi, "SelectObject", w.HANDLE, w.HDC, w.HANDLE)
+        delete_bitmap = bind(gdi, "DeleteObject", w.BOOL, w.HANDLE)
+        delete_dc = bind(gdi, "DeleteDC", w.BOOL, w.HDC)
+        get_bits = bind(gdi, "GetDIBits", ctypes.c_int, w.HDC, w.HBITMAP, w.UINT, w.UINT,
+                        ctypes.c_void_p, ctypes.c_void_p, w.UINT)
+        screen = get_dc(handle)
+        memory = create_dc(screen)
+        bitmap = create_bitmap(screen, width, height)
+        previous = select(memory, bitmap)
+        try:
+            if not print_window(handle, memory, 2):
+                return None
+            select(memory, previous)
+            size = width * height * 4
+            header = struct.pack("<IiiHHIIiiII", 40, width, height, 1, 32, 0, size, 0, 0, 0, 0)
+            info = ctypes.create_string_buffer(header)
+            pixels = ctypes.create_string_buffer(size)
+            if get_bits(screen, bitmap, 0, height, pixels, info, 0) != height:
+                return None
+            bmp = struct.pack("<2sIHHI", b"BM", size + 54, 0, 0, 54) + header + pixels.raw
+            return base64.b64encode(zlib.compress(bmp)).decode("ascii")
+        finally:
+            select(memory, previous)
+            delete_bitmap(bitmap)
+            delete_dc(memory)
+            release_dc(handle, screen)
+
 
 def area(control):
     left, top, right, bottom = control["rect"]
@@ -236,6 +281,7 @@ def acknowledge_information(win, dialogs, pid, report):
     report["modal_controls"] = [item["text"][:80] for item in buttons[:8]]
     if (len(dialogs) != 1 or dialog["text"] != "Information" or
             len(buttons) != 1 or buttons[0]["text"] != "OK"):
+        report["dialog_bitmap_zlib_base64"] = win.dialog_bitmap(dialog, pid)
         raise NativeFailure("An unexpected native dialog interrupted the offline capture.")
     if report.get("information_window") != dialog["handle"] and buttons[0]["enabled"]:
         win.dismiss_information(buttons[0]["handle"], pid)
