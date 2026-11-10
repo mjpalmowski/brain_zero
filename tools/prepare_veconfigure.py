@@ -36,6 +36,37 @@ def _section(file, name, payload):
     return payload_start
 
 
+def _fixture_values(settings, grid):
+    values = [row[2] for row in settings]
+    code = values[81]
+    if len(grid) < 5 or grid[2] != 3 or grid[4] != 8 or not 0 <= code < grid[3] <= 64:
+        return values, False
+    table_end = 5 + 2 * grid[3]
+    if table_end > len(grid):
+        return values, False
+    start, = WORD.unpack_from(grid, 5 + 2 * code)
+    if not table_end <= start <= len(grid) - 19:
+        return values, False
+    support = int.from_bytes(grid[start + 11:start + 19], "little")
+    present = [128 + bit for bit in range(1, 63) if support & (1 << bit)]
+    defaults_at = start + 19
+    if defaults_at + 2 * len(present) >= len(grid):
+        return values, False
+
+    # VEConfigure treats the grid region as a selected profile and a paired
+    # validity word, not as 64 independent descriptor defaults. Use only the
+    # profile's public defaults in this synthetic, non-deployable fixture.
+    values[129:191] = [65535] * 62
+    for index, setting_id in enumerate(present):
+        values[setting_id], = WORD.unpack_from(grid, defaults_at + 2 * index)
+    generation = (values[128] + 256) & 0xFF00
+    if generation == values[191] & 0xFF00:
+        generation = (values[191] + 256) & 0xFF00
+    values[128] = generation | code
+    values[191] = generation | ((code + grid[start]) & 255)
+    return values, True
+
+
 def build_synthetic_rvsc(bundle):
     """Encode a validated bundle with defaults and an artificial standalone unit."""
     profile = bundle["profile"]
@@ -55,7 +86,8 @@ def build_synthetic_rvsc(bundle):
 
     unit_head = struct.pack("<I4xI", 3, firmware) + b"\xff\x01\x01" + version[:4] + _blob(version[4:])
     unit_head += unit_info + _blob(SIMULATED_SERIAL) + bytes(18)  # Zero credentials and timestamps.
-    values = _blob(b"".join(WORD.pack(row[2]) for row in settings))
+    words, _ = _fixture_values(settings, grid)
+    values = _blob(struct.pack("<192H", *words))
     assistants = b"".join(struct.pack("<HBH", 0, 255, min(profile["assistant_bytes"] - at, 65472))
                           for at in range(0, profile["assistant_bytes"], 65472))
 
@@ -106,12 +138,14 @@ def _settings_map(bundle, details, image, layout):
         raise ValueError("The synthetic VEConfigure fixture did not preserve the source descriptors.")
 
     flags = bytes.fromhex(source["flag_access"])
+    _, grid_defaults = _fixture_values(source["settings"], bytes.fromhex(bundle["grid"]))
     settings = []
     for setting_id, row in enumerate(source["settings"]):
         present = any(row[:5])
         setting = {
             "id": setting_id,
             "descriptor_present": present,
+            "synthetic_word": WORD.unpack_from(image, layout["values"] + 2 * setting_id)[0],
             "raw": dict(zip(SETTING_FIELDS, row)),
             "access": _access(row[5]),
             "file_offsets": {
@@ -141,12 +175,14 @@ def _settings_map(bundle, details, image, layout):
             "descriptor_sha256": fixture["descriptor_sha256"],
             "schema_version": fixture["schema_version"],
             "unit_version": fixture["unit_version"],
-            "settings_source": "descriptor defaults",
+            "settings_source": "descriptor defaults with synthetic grid initialization" if grid_defaults else "descriptor defaults",
+            "grid_profile_defaults_applied": grid_defaults,
             "assistant_source": "empty synthetic memory",
             "file_offsets": layout,
         },
         "notes": [
             "Offsets are zero-based byte positions in the synthetic file.",
+            "Synthetic grid profile values and validity words can differ from the descriptor defaults.",
             "Scaled values are descriptor units, and fractional values are exact rational strings.",
             "Native VEConfigure controls can apply additional conversions and dependencies.",
             "Descriptors and access bits alone do not establish runtime visibility or write permission.",

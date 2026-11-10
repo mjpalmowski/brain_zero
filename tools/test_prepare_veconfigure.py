@@ -9,12 +9,11 @@ from export_compatibility import MAGIC, Reader, SETTING_FIELDS, export_compatibi
 from prepare_veconfigure import prepare_veconfigure
 
 
-def profile_bytes(*, assistant_bytes=2816):
+def profile_bytes(*, assistant_bytes=2816, grid=bytes.fromhex("0300027f")):
     firmware = 2623563
     version = struct.pack("<I6x", firmware)
     unit_info = bytes((47, 1, 1, 1, 0, 0, 0, 0, 0xE0, 0))
     flag_access = bytes(range(80))
-    grid = bytes.fromhex("0300027f")
     rows = [[0] * 6 for _ in range(192)]
     rows[0] = [0, 0, 1, 0, 15, 0]
     rows[2] = [-100, 0, 5760, 4800, 6400, 0x81]
@@ -82,6 +81,21 @@ class PrepareVeconfigureTest(unittest.TestCase):
         unit.blob(384)
         self.assertEqual(unit.take(unit.remaining), struct.pack("<HBH", 0, 255, 2816))
         self.assertEqual(reader.remaining, 0)
+
+    def test_uses_selected_grid_profile_defaults_and_validity_in_synthetic_values_only(self):
+        # Format 3 with a single grid profile, tag 85 and supported words 129 and 190.
+        grid = bytes((0, 0, 3, 1, 8, 7, 0, 85, 0, 0)) + bytes(8)
+        grid += ((1 << 1) | (1 << 62)).to_bytes(8, "little") + struct.pack("<HHB", 111, 999, 0)
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder)
+            report = prepare_veconfigure(profile_bytes(grid=grid), output)
+            data = (output / "synthetic.rvsc").read_bytes()
+        self.assertTrue(report["synthetic_file"]["grid_profile_defaults_applied"])
+        for setting_id, value in {128: 0x100, 129: 111, 130: 65535, 190: 999, 191: 0x155}.items():
+            setting = report["settings"][setting_id]
+            self.assertEqual(setting["raw"]["default"], 0)
+            self.assertEqual(setting["synthetic_word"], value)
+            self.assertEqual(struct.unpack_from("<H", data, setting["file_offsets"]["value"])[0], value)
 
     def test_maximum_assistant_area_uses_multiple_blank_runs(self):
         with tempfile.TemporaryDirectory() as folder:
