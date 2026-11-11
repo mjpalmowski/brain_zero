@@ -86,11 +86,15 @@ With brain_zero connected to your inverter, open **System → Inverter settings*
 
 The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Submissions and their reports are stored privately. No contact details are requested in the app.
 
-### Submit a VEConfigure backup through an issue
+### Submit a sanitized profile through an issue
 
-You can contribute before buying a brain_zero. Put one current `.rvsc` backup in a ZIP and attach it to the [compatibility issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub accepts ZIP attachments; keep the `.rvsc` file inside unchanged. You can also attach `compatibility.json` from **System → Inverter settings → Download compatibility profile** in brain_zero.
+You can contribute before buying a brain_zero. Convert a current `.rvsc` backup **on your own computer**, then attach only the resulting `compatibility.json` to the [compatibility issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). Alternatively, download `compatibility.json` from **System → Inverter settings → Download compatibility profile** in brain_zero.
 
-Issues and attachments are public. A `.rvsc` backup contains your inverter serial number and configuration. Files saved after unlocking protected settings in VEConfigure may also contain **settings-authorization data**. This authorizes protected inverter settings; it is **not your VRM login, Wi-Fi password or MQTT credentials**. A sanitized `compatibility.json` leaves out the serial number, saved settings and any authorization data.
+**Do not attach the original `.rvsc` or a ZIP.** A backup contains your inverter serial number and configuration; files saved after unlocking protected settings may also contain settings-authorization data. This authorizes protected inverter settings, rather than your VRM login, Wi-Fi password or MQTT credentials. The sanitizer removes serial numbers, unit IDs, authorization data, timestamps, saved settings and Assistant contents before you upload anything.
+
+Download the [local browser sanitizer](tools/rvsc-sanitizer.html) with **Download raw file**, then open the saved HTML file in your browser. Select your `.rvsc` and save the generated `compatibility.json`. The tool works offline, makes no network requests and keeps the original file on your computer. Use the exact generic filename `compatibility.json`; do not put serial numbers in filenames, issue titles or text.
+
+GitHub issues and attachments are public. Files are [uploaded immediately](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files), before a workflow can sanitize them. [Removing an attachment link does not delete the stored file](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-anonymized-urls#removing-github-hosted-attachments); contact GitHub Support if you previously uploaded an original backup. The workflow accepts only sanitized profiles and validates their allowed fields again before publishing reports.
 
 #### Download a current .rvsc backup
 
@@ -99,18 +103,18 @@ For a system connected to VRM through a GX device such as a Cerbo GX:
 1. Check that the GX device is online in VRM and its **Settings → VRM online portal → VRM Portal** access mode is **Full**.
 2. Open your installation in [VRM](https://vrm.victronenergy.com/), select **Device list**, and open **Remote VEConfigure** at the bottom.
 3. Choose **Download** and wait for the system to read the inverter's current settings.
-4. Save the downloaded `.rvsc` file unchanged. Put that single file in a ZIP and attach the ZIP to your issue.
+4. Save the downloaded `.rvsc` file unchanged on your computer. Convert it with the [local browser sanitizer](tools/rvsc-sanitizer.html), then attach only `compatibility.json` to your issue. Keep the original backup local.
 
 Download immediately before submitting, using the inverter's currently installed firmware. Repeat the download after firmware or settings changes. You only need to download the settings for this submission. See [Victron's Remote VEConfigure instructions](https://www.victronenergy.com/media/pg/VRM_Portal_manual/en/remote-veconfigure.html).
 
 If your system has no GX/VRM connection, your installer may be able to provide a current `.rvsc` backup. VEConfigure's local **File → Save As** creates a `.vsc`, which is a different format; changing its extension does not convert it.
 
-The [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) accepts the ZIP or JSON, prepares a sanitized compatibility profile, and produces review reports under **Artifacts** on its workflow run. Server submissions return their reports privately to brain_zero.
+The [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) accepts only sanitized `compatibility.json`, validates it, and produces review reports under **Artifacts** on its workflow run. Reports omit original filenames and attachment URLs. The VEConfigure fixture uses a fixed artificial identity with default settings. Server submissions return their reports privately to brain_zero.
 
 <details>
-<summary>Create a sanitized compatibility.json locally (optional)</summary>
+<summary>Python alternative to the local browser sanitizer</summary>
 
-To remove private fields locally before uploading, create `compatibility.json` from your `.rvsc` with the [local exporter](tools/export_compatibility.py). Select **Download raw file** and use Python 3.10 or later with the command below. On Windows, you can use `py -3` in place of `python3`.
+You can also create `compatibility.json` from your `.rvsc` with the [local exporter](tools/export_compatibility.py). Select **Download raw file** and use Python 3.10 or later with the command below. On Windows, you can use `py -3` in place of `python3`.
 
 ```sh
 python3 export_compatibility.py "path/to/backup.rvsc" --output compatibility.json

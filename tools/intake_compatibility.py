@@ -1,4 +1,8 @@
-"""Validate a GitHub issue attachment and prepare files for offline review."""
+"""Validate an already-sanitized GitHub profile for offline review.
+
+Original backups must be sanitized locally before attachment. GitHub uploads
+issue files before Actions starts and does not expose a supported deletion API.
+"""
 
 import argparse
 import hashlib
@@ -162,8 +166,13 @@ def submission(body):
         raise ValueError("Use exactly one settings file or compatibility profile field.")
     match = ATTACHMENT.fullmatch(sections[fields[0]])
     if not match:
-        raise ValueError("Attach exactly one JSON profile or a ZIP containing one .rvsc backup.")
-    attachment_kind(match[1])
+        raise ValueError("Attach exactly one sanitized compatibility.json profile.")
+    if attachment_kind(match[1]) != "json":
+        raise ValueError("Original .rvsc and ZIP files are not accepted. Sanitize the backup locally before uploading compatibility.json.")
+    # Original backup filenames can themselves include an inverter serial.
+    # Use a fixed public filename and never copy its source URL into artifacts.
+    if unquote(URL.fullmatch(match[1])[1]) != "compatibility.json":
+        raise ValueError("Use the generic filename compatibility.json; do not include serial numbers in filenames.")
 
     declared_firmware = sections.get("Firmware shown by Victron", "")
     if declared_firmware in ("", "_No response_"):
@@ -189,8 +198,6 @@ def process(issue, repository, output_dir):
         raw = download_profile(url)
         report.update(attachment_type=kind, attachment_bytes=len(raw),
                       attachment_sha256=hashlib.sha256(raw).hexdigest())
-        if kind == "json":
-            report["attachment_url"] = url
         fixture, details = sanitize_attachment(raw, kind)
         if declared_firmware is not None and declared_firmware != details["firmware"]:
             raise ValueError("The firmware entered on the issue differs from the attachment.")

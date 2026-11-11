@@ -86,12 +86,17 @@ def zipped(data, name="Any inverter settings.RVSC", *, compression=ZIP_DEFLATED,
 
 
 class SubmissionTest(unittest.TestCase):
-    def test_new_and_legacy_fields_accept_exactly_one_supported_attachment(self):
+    def test_new_and_legacy_fields_accept_only_fixed_name_sanitized_profile(self):
         for field in intake.PROFILE_FIELDS:
-            for name in ("compatibility.json", "Backup.RVSC", "My%20inverter.zip"):
-                with self.subTest(field=field, name=name):
-                    self.assertEqual(intake.submission(body(name, field=field)), (BASE + name, 2623563))
+            with self.subTest(field=field):
+                self.assertEqual(intake.submission(body(field=field)), (BASE + "compatibility.json", 2623563))
         self.assertEqual(intake.submission(body(firmware="_No response_"))[1], None)
+
+    def test_original_backups_and_identifying_filenames_are_rejected(self):
+        for name in ("Backup.RVSC", "backup.zip", "PRIVATE-SERIAL.json", "compatibility(1).json"):
+            with self.subTest(name=name), self.assertRaises(ValueError) as result:
+                intake.submission(body(name))
+            self.assertNotIn("PRIVATE-SERIAL", str(result.exception))
 
     def test_rejects_ambiguous_fields_links_and_bad_firmware(self):
         invalid = [
@@ -245,32 +250,58 @@ class SanitizeTest(unittest.TestCase):
 
 class ProcessTest(unittest.TestCase):
     def test_only_sanitized_files_reach_artifacts_and_synthetic_processing(self):
-        for kind in ("rvsc", "zip"):
-            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as folder:
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "intake"
+            profile, _ = intake.sanitize_attachment(private_backup(), "rvsc")
+            payload = json.dumps(profile).encode()
+            issue = {"number": 12, "body": body()}
+            with patch.object(intake, "download_profile", return_value=payload):
+                self.assertEqual(intake.process(issue, "example/brain_zero", output), 0)
+            self.assertEqual({p.name for p in output.iterdir()}, {"profile.json", "simulator-profile.json", "report.json"})
+            report = json.loads((output / "report.json").read_text())
+            self.assertNotIn("attachment_url", report)
+            self.assertEqual(report["attachment_type"], "json")
+            self.assertEqual(report["status"], "validated")
+            prepare_veconfigure((output / "profile.json").read_bytes(), output)
+            for path in output.iterdir():
+                data = path.read_bytes()
+                for secret in (SERIAL, CREDENTIAL, ASSISTANT, b"PRIVATE-SERIAL", b"PRIVATE-TIMEDATA"):
+                    self.assertNotIn(secret, data, path.name)
+                    self.assertNotIn(secret.hex().encode(), data, path.name)
+            self.assertIn(b"BZSIM000000", (output / "synthetic.rvsc").read_bytes())
+
+    def test_originals_are_rejected_before_download_without_logging_name(self):
+        for name in ("PRIVATE-SERIAL.rvsc", "PRIVATE-SERIAL.zip", "PRIVATE-SERIAL.json"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as folder:
                 output = Path(folder) / "intake"
-                raw = private_backup()
-                payload = zipped(raw) if kind == "zip" else raw
-                issue = {"number": 12, "body": body("PRIVATE-SERIAL." + kind)}
-                with patch.object(intake, "download_profile", return_value=payload):
-                    self.assertEqual(intake.process(issue, "example/brain_zero", output), 0)
-                self.assertEqual({p.name for p in output.iterdir()}, {"profile.json", "simulator-profile.json", "report.json"})
-                report = json.loads((output / "report.json").read_text())
-                self.assertNotIn("attachment_url", report)
-                self.assertEqual(report["attachment_type"], kind)
-                self.assertEqual(report["status"], "validated")
-                prepare_veconfigure((output / "profile.json").read_bytes(), output)
-                for path in output.iterdir():
-                    data = path.read_bytes()
-                    for secret in (SERIAL, CREDENTIAL, ASSISTANT, b"PRIVATE-SERIAL", b"PRIVATE-TIMEDATA"):
-                        self.assertNotIn(secret, data, path.name)
-                        self.assertNotIn(secret.hex().encode(), data, path.name)
-                self.assertIn(b"BZSIM000000", (output / "synthetic.rvsc").read_bytes())
+                summary = Path(folder) / "summary.txt"
+                stderr = StringIO()
+                issue = {"number": 12, "body": body(name)}
+                with patch.object(intake, "download_profile") as download, redirect_stderr(stderr):
+                    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}):
+                        self.assertEqual(intake.process(issue, "example/brain_zero", output), 1)
+                    download.assert_not_called()
+                self.assertEqual({p.name for p in output.iterdir()}, {"report.json"})
+                for data in ((output / "report.json").read_text(), summary.read_text(), stderr.getvalue()):
+                    self.assertNotIn("PRIVATE-SERIAL", data)
+                    self.assertNotIn(BASE, data)
+
+    def test_unexpected_private_json_fields_are_rejected_and_not_republished(self):
+        for field in ("serial", "credentials", "saved_settings"):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as folder:
+                output = Path(folder) / "intake"
+                payload = json.loads(profile_bytes())
+                payload['profile'][field] = "PRIVATE-SERIAL"
+                with patch.object(intake, "download_profile", return_value=json.dumps(payload).encode()), redirect_stderr(StringIO()):
+                    self.assertEqual(intake.process({"number": 12, "body": body()}, "example/brain_zero", output), 1)
+                self.assertEqual({p.name for p in output.iterdir()}, {"report.json"})
+                self.assertNotIn("PRIVATE-SERIAL", (output / "report.json").read_text())
 
     def test_bad_firmware_or_backup_writes_report_only(self):
-        for firmware, payload in (("2623556", private_backup()), ("2623563", b"not a backup")):
+        for firmware, payload in (("2623556", profile_bytes()), ("2623563", b"not a profile")):
             with self.subTest(firmware=firmware), tempfile.TemporaryDirectory() as folder:
                 output = Path(folder) / "intake"
-                issue = {"number": 12, "body": body("backup.rvsc", firmware=firmware)}
+                issue = {"number": 12, "body": body(firmware=firmware)}
                 with patch.object(intake, "download_profile", return_value=payload), redirect_stderr(StringIO()):
                     self.assertEqual(intake.process(issue, "example/brain_zero", output), 1)
                 self.assertEqual({p.name for p in output.iterdir()}, {"report.json"})

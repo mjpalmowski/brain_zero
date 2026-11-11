@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-5xjn+XS8GL8VYfVJwGp7dya4fwgLkvCK9+g6vaOAyMc='; style-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>brain_zero — prepare a compatibility profile</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+    body { margin: 0; background: #f4f6f8; color: #17232d; }
+    main { max-width: 660px; margin: 4rem auto; padding: 2rem; background: white; border: 1px solid #d9e1e7; border-radius: 16px; }
+    h1 { font-size: 1.65rem; line-height: 1.2; margin-top: 0; }
+    h2 { font-size: 1.1rem; }
+    button { border: 0; border-radius: 8px; padding: .8rem 1rem; font: inherit; font-weight: 600; cursor: pointer; background: #1475a4; color: white; }
+    button:disabled { opacity: .45; cursor: default; }
+    button:focus-visible { outline: 3px solid #1d94cc; outline-offset: 3px; }
+    .actions { display: flex; flex-wrap: wrap; gap: .7rem; margin: 1.5rem 0; }
+    #status { min-height: 3.2rem; padding: 1rem; border-radius: 8px; background: #edf4f8; }
+    .small { color: #4d5c67; font-size: .9rem; }
+    code { overflow-wrap: anywhere; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #131b22; color: #e7eef3; }
+      main { background: #1b2731; border-color: #364650; }
+      #status { background: #243743; }
+      .small { color: #bccbd5; }
+    }
+    @media (max-width: 720px) { main { margin: 1rem; padding: 1.4rem; } }
+  </style>
+</head>
+<body>
+<main>
+  <p class="small">brain_zero</p>
+  <h1>Prepare a compatibility profile</h1>
+  <p>Convert a current VEConfigure <code>.rvsc</code> backup into a shareable <code>compatibility.json</code>. The conversion runs in your browser's memory. No file is uploaded or sent over the network.</p>
+  <h2>Run locally</h2>
+  <ol>
+    <li>Save this complete <code>rvsc-sanitizer.html</code> file to your computer and open it in your browser.</li>
+    <li>Choose your original <code>.rvsc</code> backup below. Keep the original on your computer.</li>
+    <li>Save <code>compatibility.json</code>, then attach that file to your brain_zero compatibility issue.</li>
+  </ol>
+  <p>The output includes the inverter model code, firmware and setting descriptors. It leaves out the original serial number, unit ID, authorization data, timestamps, saved settings and Assistant contents. The original filename is not copied.</p>
+  <input id="backup" type="file" accept=".rvsc" hidden>
+  <div class="actions">
+    <button id="choose" type="button">Choose .rvsc backup</button>
+    <button id="save" type="button" disabled>Save compatibility.json</button>
+  </div>
+  <p id="status" role="status" aria-live="polite">Choose a backup to prepare a sanitized profile.</p>
+  <p class="small">Supports backups for one standalone 230 V MultiPlus-II. A local <code>.vsc</code> save is a different format; renaming it does not convert it. This tool reads the backup and does not change your inverter.</p>
+  <noscript><p>Enable JavaScript to convert the backup locally. No server connection is required.</p></noscript>
+</main>
+<script type="module" id="sanitizer-script">
+// This file is deliberately self-contained. Keep all original backup data local.
+const MAX_BACKUP_BYTES = 128 * 1024;
+const SETTING_COUNT = 192;
+const SETTING_FIELDS = ["scale", "offset", "default", "minimum", "maximum", "access"];
+const VOLTAGES = new Map([
+  [12, new Set([2604, 2605, 2630])],
+  [24, new Set([2611, 2615, 2696, 2697])],
+  [48, new Set([2601, 2602, 2619, 2621, 2623, 2625, 2626, 2627, 2628, 2629, 2636, 2637, 2682, 2683, 2684, 2698, 2699])],
+]);
+const ascii = text => new TextEncoder().encode(text);
+const equal = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
+const hex = bytes => Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+function concat(...parts) {
+  const result = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
+  let at = 0;
+  for (const part of parts) { result.set(part, at); at += part.length; }
+  return result;
+}
+
+class Reader {
+  constructor(bytes) { this.bytes = bytes; this.offset = 0; }
+  get remaining() { return this.bytes.length - this.offset; }
+  take(length) {
+    if (!Number.isInteger(length) || length < 0 || length > this.remaining) {
+      throw new Error("Invalid or truncated VEConfigure data.");
+    }
+    const start = this.offset;
+    this.offset += length;
+    return this.bytes.subarray(start, this.offset);
+  }
+  number(length) {
+    const value = this.take(length);
+    let result = 0;
+    for (let index = value.length - 1; index >= 0; index--) { result = result * 256 + value[index]; }
+    return result;
+  }
+  blob(expected) {
+    const length = this.number(2);
+    if (expected !== undefined && length !== expected) { throw new Error("Unexpected VEConfigure field length."); }
+    return this.take(length);
+  }
+  section(name) {
+    const start = this.offset;
+    if (!equal(this.blob(), ascii(name))) { throw new Error("Unexpected VEConfigure section layout."); }
+    const end = this.number(4);
+    const body = this.take(end - this.offset - 4);
+    const checked = this.bytes.subarray(start, end - 4);
+    let checksum = 0;
+    for (let at = 0; at < checked.length; at += 4) {
+      const word = (checked[at] || 0) + (checked[at + 1] || 0) * 256 +
+        (checked[at + 2] || 0) * 65536 + (checked[at + 3] || 0) * 16777216;
+      checksum = (checksum + word) >>> 0;
+    }
+    if (this.number(4) !== checksum) { throw new Error("VEConfigure section checksum mismatch."); }
+    return new Reader(body);
+  }
+}
+
+function chargerRangeIsValid(row, voltage) {
+  const [scale, offset] = row;
+  let minimum = row[3], maximum = row[4];
+  if (minimum > maximum) {
+    if (minimum >= 32768) { minimum -= 65536; }
+    if (maximum >= 32768) { maximum -= 65536; }
+  }
+  let lower = minimum, upper = maximum, denominator = 1;
+  if (scale < 0) { lower += offset; upper += offset; denominator = -scale; }
+  else if (scale > 0) { lower = (lower + offset) * scale; upper = (upper + offset) * scale; }
+  // Integer comparisons preserve Python Fraction semantics without rounding.
+  return lower === voltage * denominator && upper > lower && upper * 3 <= voltage * 4 * denominator;
+}
+
+export async function sanitizeRvsc(input) {
+  if (!(input instanceof Uint8Array)) { throw new Error("Choose a VEConfigure .rvsc backup."); }
+  if (input.length > MAX_BACKUP_BYTES) { throw new Error("VEConfigure backup exceeds the 128 KiB size limit."); }
+  const file = new Reader(input);
+  const magic = ascii("VEConfig setting section file");
+  if (!equal(file.blob(magic.length), magic)) { throw new Error("Expected a VEConfigure settings backup (.rvsc)."); }
+  const producer = file.section("Mk2vscInfo");
+  const schema = file.section("BareSettingInfo");
+  const unit = file.section("BareSettingData");
+  if (file.remaining) { throw new Error("Expected a backup for one standalone inverter."); }
+  if (producer.number(4) !== 1 || !producer.blob().length || producer.remaining) {
+    throw new Error("Unsupported VEConfigure producer layout.");
+  }
+  const schemaVersion = schema.number(4), firmware = schema.number(4), model = schema.number(1);
+  const records = schema.blob(SETTING_COUNT * 10);
+  const flagAccess = schema.blob(80), access = schema.blob(SETTING_COUNT), grid = schema.blob();
+  if (schema.remaining || !grid.length) { throw new Error("Expected complete grid capability descriptors."); }
+  const recordView = new DataView(records.buffer, records.byteOffset, records.byteLength);
+  const settings = Array.from({length: SETTING_COUNT}, (_, index) => {
+    const at = index * 10;
+    return [recordView.getInt16(at, true), recordView.getInt16(at + 2, true),
+      recordView.getUint16(at + 4, true), recordView.getUint16(at + 6, true),
+      recordView.getUint16(at + 8, true), access[index]];
+  });
+  const unitVersion = unit.number(4);
+  if (!((schemaVersion === 3 && unitVersion === 2) || (schemaVersion === 4 && unitVersion === 3))) {
+    throw new Error("Unsupported VEConfigure schema/unit layout.");
+  }
+  unit.take(4); // Never include the unique unit ID.
+  const unitFirmware = unit.number(4);
+  if (unit.take(unitVersion === 2 ? 1 : 3)[0] !== (unitVersion === 2 ? 1 : 255)) {
+    throw new Error("Unexpected VEConfigure unit header.");
+  }
+  const version = concat(unit.take(4), unit.blob(6));
+  const unitInfo = unit.take(10);
+  if (unitInfo[0] !== model || !equal(unitInfo.subarray(1, 8), new Uint8Array([1, 1, 1, 0, 0, 0, 0])) ||
+      (unitInfo[8] & 15) || unitInfo[9]) { throw new Error("Expected a backup for one standalone inverter."); }
+  const versionView = new DataView(version.buffer, version.byteOffset, version.byteLength);
+  if (firmware !== versionView.getUint32(0, true)) { throw new Error("The settings schema and firmware reply disagree."); }
+  const nominalVoltage = [...VOLTAGES].find(([, prefixes]) => prefixes.has(Math.floor(firmware / 1000)))?.[0];
+  if (nominalVoltage === undefined) { throw new Error("Expected a recognized 230 V MultiPlus-II firmware."); }
+  if (!settings.slice(2, 4).every(row => chargerRangeIsValid(row, nominalVoltage))) {
+    throw new Error("Charger descriptors disagree with the inverter battery voltage.");
+  }
+  const serialLength = unit.blob().length; // Consume without decoding, displaying or retaining it.
+  if (serialLength < 1 || serialLength > 15) { throw new Error("Unexpected VEConfigure serial field length."); }
+  const credentialCount = unit.number(2);
+  if (credentialCount > 7) { throw new Error("Unexpected VEConfigure credential count."); }
+  for (let index = 0; index < credentialCount; index++) { unit.blob(8); }
+  unit.take(16); // Timestamps stay local.
+  unit.blob(SETTING_COUNT * 2); // Saved settings stay local.
+  let assistantBytes = 0;
+  while (unit.remaining) {
+    const literalLength = unit.blob().length;
+    const marker = unit.number(1), fillLength = unit.number(2);
+    if (marker !== 255 && fillLength) { throw new Error("Invalid VEConfigure Assistant fill marker."); }
+    assistantBytes += literalLength + fillLength;
+    if (assistantBytes > 65536) { throw new Error("Invalid VEConfigure Assistant area size."); }
+  }
+  if (!assistantBytes || assistantBytes % 64) { throw new Error("Invalid VEConfigure Assistant area size."); }
+
+  const layout = new Uint8Array(17), layoutView = new DataView(layout.buffer);
+  layout[0] = model;
+  layoutView.setUint32(1, unitFirmware, true); layoutView.setUint32(5, firmware, true);
+  layout[9] = schemaVersion; layout[10] = unitVersion;
+  layoutView.setUint16(11, grid.length, true); layoutView.setUint32(13, assistantBytes, true);
+  const descriptors = new Uint8Array(SETTING_COUNT * 11), descriptorView = new DataView(descriptors.buffer);
+  settings.forEach((row, index) => {
+    const at = index * 11;
+    descriptorView.setInt16(at, row[0], true); descriptorView.setInt16(at + 2, row[1], true);
+    descriptorView.setUint16(at + 4, row[2], true); descriptorView.setUint16(at + 6, row[3], true);
+    descriptorView.setUint16(at + 8, row[4], true); descriptors[at + 10] = row[5];
+  });
+  if (!globalThis.crypto?.subtle) { throw new Error("This browser cannot create the profile checksum. Open this saved file in a current browser."); }
+  const fingerprint = new Uint8Array(await crypto.subtle.digest("SHA-256", concat(layout, version, unitInfo, flagAccess, descriptors)));
+  // Exact public field allowlist: never spread original metadata into the result.
+  return {profile: {
+    format: 1, model, unit_firmware: unitFirmware, schema_firmware: firmware,
+    descriptor_firmware: version[0] + version[1] * 256 + version[2] * 65536 + version[7] * 16777216,
+    nominal_voltage: nominalVoltage, descriptor_sha256: hex(fingerprint), version_reply: hex(version),
+    unit_info: hex(unitInfo), schema_version: schemaVersion, unit_version: unitVersion,
+    grid_bytes: grid.length, assistant_bytes: assistantBytes, flag_access: hex(flagAccess),
+    setting_fields: [...SETTING_FIELDS], settings,
+  }, grid: hex(grid)};
+}
+
+if (typeof document !== "undefined") {
+  const input = document.getElementById("backup"), choose = document.getElementById("choose");
+  const save = document.getElementById("save"), status = document.getElementById("status");
+  let sanitizedJson = null;
+  choose.addEventListener("click", () => input.click());
+  input.addEventListener("change", async () => {
+    sanitizedJson = null; save.disabled = true;
+    const file = input.files?.[0];
+    if (!file) { return; }
+    choose.disabled = true; status.textContent = "Preparing the profile locally…";
+    try {
+      if (file.size > MAX_BACKUP_BYTES) { throw new Error("The backup exceeds the 128 KiB size limit."); }
+      const profile = await sanitizeRvsc(new Uint8Array(await file.arrayBuffer()));
+      sanitizedJson = JSON.stringify(profile, null, 2) + "\n";
+      status.textContent = `Ready: ${profile.profile.nominal_voltage} V MultiPlus-II, firmware ${profile.profile.schema_firmware}. Save compatibility.json and attach only that file to your issue.`;
+      save.disabled = false;
+    } catch {
+      // A generic message cannot echo an original filename or private backup content.
+      status.textContent = "This backup could not be converted. Use a complete, current .rvsc backup for one standalone 230 V MultiPlus-II (maximum 128 KiB). No file was uploaded.";
+    } finally { input.value = ""; choose.disabled = false; }
+  });
+  save.addEventListener("click", () => {
+    if (sanitizedJson === null) { return; }
+    const url = URL.createObjectURL(new Blob([sanitizedJson], {type: "application/json"}));
+    const anchor = document.createElement("a");
+    anchor.href = url; anchor.download = "compatibility.json";
+    document.body.append(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+</script>
+</body>
+</html>

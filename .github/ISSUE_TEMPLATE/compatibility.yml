@@ -1,22 +1,22 @@
 name: MultiPlus-II compatibility request
-description: Submit a VEConfigure .rvsc backup or a brain_zero compatibility profile.
+description: Submit a sanitized compatibility.json profile from brain_zero or a local .rvsc backup.
 title: "[Compatibility] "
 body:
   - type: markdown
     attributes:
       value: |
-        Submit a fresh VEConfigure `.rvsc` backup in a ZIP containing that one file, or attach `compatibility.json` from brain_zero. You can submit a backup before buying a brain_zero.
+        Attach only a sanitized `compatibility.json`. You can contribute before buying a brain_zero by converting a fresh `.rvsc` backup locally first.
 
-        **Get a current .rvsc:** With your GX device online in VRM, open your installation → **Device list → Remote VEConfigure → Download**. Wait for the live settings read, then save the original `.rvsc`. Download it again after firmware or settings changes. Zip the unmodified file and attach it below. See the [full instructions](https://github.com/mjpalmowski/brain_zero#download-a-current-rvsc-backup).
+        **Using a .rvsc backup:** Download the [local browser sanitizer](https://github.com/mjpalmowski/brain_zero/blob/main/tools/rvsc-sanitizer.html) with **Download raw file**, open the saved HTML file in your browser, and select your `.rvsc`. It removes identifying/private fields on your computer and saves `compatibility.json`. It makes no network requests. See the [fresh-backup instructions](https://github.com/mjpalmowski/brain_zero#download-a-current-rvsc-backup).
 
-        For a sanitized alternative, open **System → Inverter settings → Download compatibility profile** in brain_zero and attach `compatibility.json`.
+        **Using brain_zero:** Open **System → Inverter settings → Download compatibility profile** and attach `compatibility.json`.
 
-        GitHub issues and attachments are public. A `.rvsc` backup contains your inverter serial number and configuration. Files saved after unlocking protected settings in VEConfigure may also contain **settings-authorization data**. This authorizes protected inverter settings; it is **not your VRM login, Wi-Fi password or MQTT credentials**. Review your file before sharing it.
+        **Do not upload the original .rvsc or a ZIP.** GitHub stores attachments immediately, before automation runs; removing an issue link does not delete the uploaded file. The sanitizer excludes serial numbers, unit IDs, settings-authorization data, saved settings and Assistant contents. Use the generic filename `compatibility.json` and omit serial numbers from the title and issue text. Issues and attachments are public.
   - type: input
     id: inverter
     attributes:
       label: Inverter model
-      description: Enter the model from the nameplate. You can include the Victron product code.
+      description: Enter the model from the nameplate. You can include the Victron product code. Do not enter the serial number.
       placeholder: MultiPlus-II 24/3000/70-32 230 V
     validations:
       required: true
@@ -30,10 +30,10 @@ body:
     id: profile
     attributes:
       label: Downloaded compatibility profile
-      description: Attach a ZIP containing one fresh .rvsc backup, or compatibility.json downloaded from brain_zero.
+      description: Attach only the sanitized compatibility.json, with that exact filename. No .rvsc or ZIP backups.
     validations:
       required: true
-      accept: ".zip,.json"
+      accept: ".json"
   - type: checkboxes
     id: review
     attributes:
@@ -42,4 +42,6 @@ body:
         - label: This file comes from a standalone 230 V MultiPlus-II.
           required: true
         - label: I reviewed the attachment and agree to share its contents publicly.
+          required: true
+        - label: I attached only sanitized compatibility.json and included no serial numbers or original backups.
           required: true
