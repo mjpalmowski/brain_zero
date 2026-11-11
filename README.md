@@ -6,7 +6,7 @@ brain_zero is a Wi-Fi dongle for Victron MultiPlus-II inverter/chargers. It plug
 
 ## Software
 
-The [brain_zero firmware source](firmware/vebus_listener) lives in this repository. Firmware updates are published in [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases). Android and iOS apps are in development.
+The [brain_zero firmware source](firmware/vebus_listener) lives in this repository. [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases) provide only the OTA `firmware.bin` for brain_zero devices. For other hardware, [compile the software from this repository](firmware/vebus_listener#build) with the board and pin configuration for your hardware. Android and iOS apps are in development.
 
 The screenshots show the local web interface with example data. Select a screenshot to open it full size.
 

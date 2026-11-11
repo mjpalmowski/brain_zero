@@ -4,6 +4,8 @@ This is the ESP32-S3 firmware for the brain_zero Rev C VE.Bus board. See the [pr
 
 ## Build
 
+Release downloads contain one OTA application image, `firmware.bin`, for brain_zero hardware. For another board, build from this repository and configure its board, UART pins and flash layout in `platformio.ini` and `src/main.cpp` before flashing.
+
 Install PlatformIO and run this command from the repository root.
 
 ```sh
@@ -24,12 +26,21 @@ The controller checks GitHub Releases for the version and checksum, then downloa
 
 If the page has only **Upload a build**, first download the Rev C application image and select **Upload and verify** once. This also works for locally built images. [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases)
 
-For a new public OTA release, set `RELEASE_VERSION` to the build date times 100 plus its sequence number. Use the matching `firmware-YYYYMMDD.N` GitHub tag. Publish the same `firmware.bin` under `/firmware/<tag>/firmware.bin` on brain-zero.com before publishing the GitHub release.
+For a new public OTA release, set `RELEASE_VERSION` to the build date times 100 plus its sequence number. Use the matching `firmware-YYYYMMDD.N` GitHub tag. Publish the same `firmware.bin` under `/firmware/<tag>/firmware.bin` on brain-zero.com before publishing the GitHub release. Attach only that OTA application image to the release; include its checksum and links to build instructions, source and notices in the release description. Other boards use builds compiled from the repository.
+
+Publish from a clean public checkout using the release helper, replacing the example tag with the matching version:
+
+```sh
+python tools/publish_firmware.py firmware-YYYYMMDD.N --dry-run
+python tools/publish_firmware.py firmware-YYYYMMDD.N --notes release-notes.md --preview
+```
+
+The helper accepts only the public `listener/firmware.bin`, rejects private site builds and secret headers, and checks the OTA image and hosted copy. It creates a draft with one asset, verifies GitHub's size and SHA-256, then publishes. Omit `--preview` for a stable release. Source archives and notices are linked in the description rather than attached. GitHub also generates its own source-code archive links.
 
 ## Third-party notices
 
 The translation catalogue is based on Victron Energy code and remains subject to the [Victron Energy OS license](../../assets/brand/VENUS-TRANSLATIONS-LICENSE.txt). The VEConfigure field labels and file-format references include material from mk2vsc under its [MIT license](third_party/mk2vsc_LICENSE.txt).
 
-The application links Arduino-ESP32 under the [GNU LGPL 2.1 or later](third_party/Arduino-ESP32-LICENSE.md). The firmware release provides the corresponding Arduino source archive. It uses PlatformIO framework package `3.20017.241212+sha.dcc1105b` and [ESP-IDF 4.4.7 at revision `38eeba213a`](https://github.com/espressif/esp-idf/tree/38eeba213aa695aabfd6d89aa9f5078dbe5a94c3). See the [ESP-IDF license](third_party/ESP-IDF-LICENSE.txt) and [component notices](https://docs.espressif.com/projects/esp-idf/en/v4.4.7/esp32s3/COPYRIGHT.html), including the [Wi-Fi](third_party/ESP32-WIFI-LICENSE.txt) and [PHY](third_party/ESP32-PHY-LICENSE.txt) library licenses.
+The application links Arduino-ESP32 under the [GNU LGPL 2.1 or later](third_party/Arduino-ESP32-LICENSE.md). The corresponding [Arduino source archive](https://brain-zero.com/sources/arduino-esp32-dcc1105b-source.tar.gz) and [third-party notices bundle](https://brain-zero.com/sources/third-party-notices.zip) are available separately, with the notices also kept in this repository. It uses PlatformIO framework package `3.20017.241212+sha.dcc1105b` and [ESP-IDF 4.4.7 at revision `38eeba213a`](https://github.com/espressif/esp-idf/tree/38eeba213aa695aabfd6d89aa9f5078dbe5a94c3). See the [ESP-IDF license](third_party/ESP-IDF-LICENSE.txt) and [component notices](https://docs.espressif.com/projects/esp-idf/en/v4.4.7/esp32s3/COPYRIGHT.html), including the [Wi-Fi](third_party/ESP32-WIFI-LICENSE.txt) and [PHY](third_party/ESP32-PHY-LICENSE.txt) library licenses.
 
 To rebuild against a modified Arduino framework, set PlatformIO's [`platform_packages`](https://docs.platformio.org/en/latest/projectconf/sections/env/options/platform/platform_packages.html) option to a local framework package with the matching ESP32-S3 SDK, then run the same build command. Espressif publishes the [SDK build recipe](https://github.com/espressif/esp32-arduino-lib-builder/tree/release/v4.4).
