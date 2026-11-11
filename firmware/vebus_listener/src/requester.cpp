@@ -1079,15 +1079,16 @@ void Requester::settings_reply(const uint8_t *p, size_t k) {
     case ASSISTANT_READ: records_reply(r.assistants, 0x96, p, k); break;
     case INFO_READ: {  // 0x89: scale, offset, default, minimum, maximum, access; empty if not supported
         Setting &s = r.s[setting_id(r)];
-        const auto *profile = r.version_ok ? match_write_profile(r.version, sizeof r.version) : nullptr;
-        const bool strict = r.inspection || (profile && profile->rvsc);
-        if (p[2] == 0x89 && k >= (strict ? 14u : 13u)) {
+        // MK2 mode 2 includes the access byte. Never invent it for an
+        // unqualified inverter or mistake a malformed reply for an absent
+        // setting. Extra trailing bytes remain allowed for future extensions.
+        if (p[2] == 0x89 && k >= 14) {
             s.scale = (int16_t)u16(p, 3);
             s.offset = (int16_t)u16(p, 5);
             s.def = (uint16_t)u16(p, 7);
             s.min = (uint16_t)u16(p, 9);
             s.max = (uint16_t)u16(p, 11);
-            s.access = k >= 14 ? p[13] : 0;
+            s.access = p[13];
             if (r.inspection && (!s.scale || s.min > s.max)) {
                 s.state = READ_FAILED;
                 r.failed++;
@@ -1096,7 +1097,7 @@ void Requester::settings_reply(const uint8_t *p, size_t k) {
             }
             r.info_done = true;
             r.tries = 0;
-        } else if (!strict || (p[2] == 0x89 && k == 3)) {
+        } else if (p[2] == 0x89 && k == 3) {
             s.state = UNSUPPORTED;
             r.unsupported++;
             settings_next();

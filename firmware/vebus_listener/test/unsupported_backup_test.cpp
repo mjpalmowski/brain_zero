@@ -19,7 +19,8 @@ static bool backup_read_command(const uint8_t *p) {
 }
 
 static void unqualified_backup(uint32_t firmware, uint8_t model, bool short_version = false,
-                               bool missing_setting = false) {
+                               bool missing_setting = false, size_t descriptor_size = 0,
+                               uint8_t descriptor_code = 0x89) {
     Requester r;
     AssistantFixture fixture;
     fixture.unit_model = model;
@@ -30,12 +31,27 @@ static void unqualified_backup(uint32_t firmware, uint8_t model, bool short_vers
     hear_cycle(r, start - 151 * CYCLE);
     hear_cycle(r, start - CYCLE);
     CHECK(r.read_settings(start));
-    drop_info_for = missing_setting ? 40 : -1;
-    drops_left = missing_setting ? 3 : 0;
+    drop_info_for = missing_setting || descriptor_size ? 40 : -1;
+    drops_left = descriptor_size ? 4000 : missing_setting ? 3 : 0;
     int cycle = 0;
     for (; cycle < 4000 && !r.settings().done; ++cycle) {
         uint8_t p[16] = {};
-        if (play_cycle(r, start + cycle * CYCLE, 4, p, firmware, &fixture)) CHECK(backup_read_command(p));
+        if (play_cycle(r, start + cycle * CYCLE, 4, p, firmware, &fixture)) {
+            CHECK(backup_read_command(p));
+            if (descriptor_size && p[0] == 0x00 && p[2] == 0x35 && p[3] == 40) {
+                // Answer a real pending descriptor request through the production
+                // frame parser. Nonzero access catches silently lost protection
+                // and restart flags; trailing bytes exercise future extensions.
+                const uint8_t reply[] = {0x00, p[1], descriptor_code, 0x9C, 0xFF, 0, 0,
+                                         0x90, 0x01, 0, 0, 0xFF, 0xFF, 0x81, 0x55, 0x66};
+                uint8_t frame[64];
+                CHECK(descriptor_size <= sizeof reply);
+                const size_t n = vebus::build_frame(0x83, 0x83, 0xFE, nr++, reply,
+                                                   descriptor_size, frame, sizeof frame);
+                CHECK(n != 0);
+                r.heard(frame, n, start + cycle * CYCLE + 19500);
+            }
+        }
         if (cycle % 50 == 49) drain(r);
     }
     const auto &read = r.settings();
@@ -47,7 +63,13 @@ static void unqualified_backup(uint32_t firmware, uint8_t model, bool short_vers
     // A full readable snapshot is independent of qualification. Missing data
     // must still prevent the download rather than yield a partial backup.
     const char *why = nullptr;
-    const bool complete = !short_version && !missing_setting;
+    const bool valid_descriptor = !descriptor_size || (descriptor_code == 0x89 &&
+                                                       (descriptor_size == 3 || descriptor_size >= 14));
+    const bool complete = !short_version && !missing_setting && valid_descriptor;
+    if (descriptor_size) {
+        CHECK(read.s[40].state == (!valid_descriptor ? Requester::READ_FAILED
+                                  : descriptor_size == 3 ? Requester::UNSUPPORTED : Requester::READ_OK));
+    }
     Requester::SettingsRead snapshot = read;
     snprintf(snapshot.serial, sizeof snapshot.serial, "BZSIM000000");
     const uint8_t synthetic_id[] = {1, 2, 3, 4};
@@ -64,6 +86,7 @@ static void unqualified_backup(uint32_t firmware, uint8_t model, bool short_vers
         CHECK(parsed.firmware == firmware && parsed.model == model);
         CHECK(!memcmp(parsed.version, read.version, sizeof read.version));
         CHECK(parsed.settings[191] == read.s[191].value);
+        if (descriptor_size >= 14) CHECK(parsed.access[40] == 0x81 && read.s[40].access == 0x81);
         CHECK(parsed.grid_len > 0 && parsed.assistant_bytes == read.assistants.count * Requester::RECORD);
         uint8_t small[32];
         memset(small, 0xA5, sizeof small);
@@ -105,6 +128,14 @@ int main() {
     unqualified_backup(1915510, 0x61);  // legacy family with the complete backup reply layout
     unqualified_backup(2623570, 0x2F, true);  // insufficient version data is not a complete backup
     unqualified_backup(2623570, 0x2F, false, true);  // unanswered setting cannot be silently omitted
+    unqualified_backup(2623570, 0x2F, false, false, 14);  // complete protected/restart descriptor
+    unqualified_backup(2623570, 0x2F, false, false, 16);  // preserve access with future trailing data
+    unqualified_backup(2623570, 0x2F, false, false, 3);  // explicit empty descriptor is unsupported
+    unqualified_backup(2623570, 0x2F, false, false, 13);  // missing access byte must block export
+    unqualified_backup(2623570, 0x2F, false, false, 12);  // truncated numeric metadata must block export
+    unqualified_backup(2623570, 0x2F, false, false, 5);  // a short-mode fragment is not a full descriptor
+    unqualified_backup(2623570, 0x2F, false, false, 4, 0x80);  // unknown-command reply is not unsupported
+    unqualified_backup(2623570, 0x2F, false, false, 3, 0x86);  // another reply type cannot stand in for info
     printf(failures ? "%d FAILED\n" : "unsupported backup tests passed\n", failures);
     return failures ? 1 : 0;
 }

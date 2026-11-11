@@ -34,6 +34,11 @@ The sanitized compatibility JSON exporter additionally requires a recognized
 `.rvsc` backup. Simulation checks cover the read/export path; untested physical
 models still need hardware verification.
 
+The [35-prefix Venus simulator investigation](../../docs/vebus_settings_downloads_2026-11-11.md)
+records native downloads and byte-identical production reader comparisons.
+Supported long descriptors must include their access byte; truncated replies
+block the backup even when the inverter is not qualified for writes.
+
 ## Update over Wi-Fi
 
 1. Open the controller’s local console and select **System → Firmware update**.
