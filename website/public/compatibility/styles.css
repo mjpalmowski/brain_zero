@@ -21,8 +21,6 @@ button, input { font: inherit; }
 button { display: inline-block; padding: 12px 19px; border: 1px solid var(--green); border-radius: 7px; background: var(--green); color: white; font-size: 14px; font-weight: 650; cursor: pointer; touch-action: manipulation; }
 button:disabled { background: #eef1ec; border-color: #dde3d9; color: #6c7868; cursor: default; }
 button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #77a382; outline-offset: 4px; }
-#model { display: block; width: 100%; margin-top: 7px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #f4f5ee; color: var(--ink); font-size: 15px; }
-label[for="model"] { display: block; margin-top: 21px; font-size: 14px; font-weight: 650; }
 .help { margin: 5px 0 18px; color: var(--muted); font-size: 12px; }
 .consent { display: flex; align-items: flex-start; gap: 10px; margin: 22px 0; font-size: 14px; cursor: pointer; }
 .consent input { width: 18px; height: 18px; margin: 3px 0 0; flex: 0 0 auto; accent-color: var(--green); }

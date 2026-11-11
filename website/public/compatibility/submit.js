@@ -44,9 +44,7 @@ if (typeof document !== 'undefined') {
       sanitized = await sanitizeRvsc(new Uint8Array(await file.arrayBuffer()));
       model.textContent = detectModel(sanitized.profile);
       document.getElementById('voltage').textContent = sanitized.profile.nominal_voltage + ' V';
-      document.getElementById('model-code').textContent = String(sanitized.profile.model);
       document.getElementById('firmware').textContent = String(sanitized.profile.schema_firmware);
-      document.getElementById('settings').textContent = String(sanitized.profile.settings.length);
       summary.hidden = false;
       fileStatus.textContent = 'Ready to submit. Private fields have been removed; your original has not left this browser.';
     } catch {

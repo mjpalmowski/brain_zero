@@ -48,7 +48,7 @@ class Element {
   click() { return this.events.click?.(); }
 }
 const elements = Object.fromEntries(['backup','choose','model','consent','submit','file-status',
-  'submit-status','profile-summary','voltage','model-code','firmware','settings'].map(id=>[id,new Element()]));
+  'submit-status','profile-summary','voltage','firmware'].map(id=>[id,new Element()]));
 globalThis.document = {getElementById: id => elements[id]};
 const calls = [];
 let responseStatus = 202;
