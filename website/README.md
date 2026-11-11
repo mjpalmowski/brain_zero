@@ -6,15 +6,19 @@ the inverter model and chooses **Submit to developer** inside the app. Progress,
 errors and the submission reference stay in the app.
 
 Visitors with a current `.rvsc` backup can also use `/compatibility/`. The browser
-reads and sanitizes the file locally, displays the detected firmware/voltage,
+reads and sanitizes the file locally, displays the detected model/firmware/voltage,
 then submits only `{model, consent: true, profile}` to the same endpoint. It never
 sends the original bytes or filename and does not request contact details. The
-page displays the receipt without polling or automatically retrying ambiguous
-network failures. Public GitHub issues remain an optional developer path for
+model is derived from the backup's schema firmware using the firmware model
+catalogue and cannot be edited. Submission derives it again from the profile,
+not the displayed value. The page displays the receipt without polling or
+automatically retrying ambiguous network failures. Public GitHub issues remain an optional developer path for
 sanitized JSON only.
 
 Run `python -B tools/build_hosted_sanitizer.py` after modifying the standalone
 sanitizer. It builds the hosted `sanitizer.js` from the exact same parser source.
+Run `python -B tools/build_hosted_models.py` after changing the firmware model
+catalogue. It generates the hosted model lookup from `multiplus_ii.h`.
 Deploy all files in `public/compatibility/` along with the homepage link. The
 existing nginx same-origin script/style/connect policy supports this page; no
 inline script or external libraries are needed.

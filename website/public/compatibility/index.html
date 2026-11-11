@@ -33,31 +33,8 @@
     <section aria-labelledby="submit-title">
       <div class="step-title"><span class="step" aria-hidden="true">2</span><h2 id="submit-title">Submit the sanitized profile</h2></div>
       <label for="model">Inverter model</label>
-      <select id="model" required aria-describedby="model-help">
-        <option value="" selected>Select inverter model…</option>
-        <optgroup label="12 V">
-          <option>MultiPlus-II 12/3000/120-32</option>
-          <option>MultiPlus-II 12/4k</option>
-          <option>MultiPlus-II 12/5000/220-50</option>
-        </optgroup>
-        <optgroup label="24 V">
-          <option>MultiPlus-II 24/3000/70-32</option>
-          <option>MultiPlus-II 24/5000/120-50</option>
-        </optgroup>
-        <optgroup label="48 V">
-          <option>MultiPlus-II 48/3000/35-32</option>
-          <option>MultiPlus-II 48/4k5/55-32</option>
-          <option>MultiPlus-II 48/4k5 (low transformer ratio)</option>
-          <option>MultiPlus-II 48/5000/70-50</option>
-          <option>MultiPlus-II 48/6k5/100-50</option>
-          <option>MultiPlus-II 48/6k5 (low transformer ratio)</option>
-          <option>MultiPlus-II 48/8000/110-100</option>
-          <option>MultiPlus-II 48/10000/140-100</option>
-          <option>MultiPlus-II 48/15000/200-100</option>
-        </optgroup>
-        <option>Other standalone 230 V MultiPlus-II</option>
-      </select>
-      <p class="help" id="model-help">Select the model from your inverter’s nameplate, or choose “Other” if it is not listed.</p>
+      <output id="model" aria-describedby="model-help">Choose a backup to detect the model.</output>
+      <p class="help" id="model-help">Detected automatically from your backup.</p>
       <label class="consent"><input id="consent" type="checkbox"><span>I agree to send this sanitized compatibility profile to the brain_zero developer.</span></label>
       <button id="submit" type="button" disabled>Submit profile</button>
       <div id="submit-status" class="status" role="status" aria-live="polite"></div>

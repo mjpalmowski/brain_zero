@@ -88,7 +88,7 @@ The profile includes firmware and settings limits for testing. It leaves out you
 
 ### Submit a profile from a .rvsc backup
 
-You can contribute before buying a brain_zero. Open [the compatibility submission page](https://brain-zero.com/compatibility/), select a current `.rvsc` backup, enter the inverter model and choose **Submit profile**. Your browser converts the backup locally and sends only the sanitized profile directly to our private submission service. The original file and its filename stay on your computer. You do not need to download a tool or use a GitHub account.
+You can contribute before buying a brain_zero. Open [the compatibility submission page](https://brain-zero.com/compatibility/), select a current `.rvsc` backup and choose **Submit profile**. The inverter model is detected automatically from the backup and cannot be edited. Your browser converts the backup locally and sends only the sanitized profile directly to our private submission service. The original file and its filename stay on your computer. You do not need to download a tool or use a GitHub account.
 
 The sanitizer removes serial numbers, unit IDs, authorization data, timestamps, saved settings and Assistant contents. The server validates the profile again before queuing it for VEConfigure analysis. Keep the submission reference shown after a successful upload. See [how to obtain a current backup](#download-a-current-rvsc-backup).
 

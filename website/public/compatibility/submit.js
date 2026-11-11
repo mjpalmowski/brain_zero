@@ -1,4 +1,5 @@
 import {sanitizeRvsc} from './sanitizer.js';
+import {detectModel} from './models.js';
 
 const PROFILE_FIELDS = ['format', 'model', 'unit_firmware', 'schema_firmware', 'descriptor_firmware',
   'nominal_voltage', 'descriptor_sha256', 'version_reply', 'unit_info', 'schema_version', 'unit_version',
@@ -9,15 +10,13 @@ function exactKeys(value, fields) {
     Object.keys(value).length === fields.length && fields.every(field => Object.hasOwn(value, field));
 }
 
-export function makeSubmission(bundle, model, consent) {
+export function makeSubmission(bundle, consent) {
   if (!exactKeys(bundle, ['profile', 'grid']) || !exactKeys(bundle.profile, PROFILE_FIELDS)) {
     throw new Error('Only a sanitized compatibility profile can be submitted.');
   }
-  if (typeof model !== 'string' || !model.trim() || model.length > 160 || /[\x00-\x1f\x7f]/.test(model)) {
-    throw new Error('Enter the inverter model using at most 160 characters.');
-  }
+  const model = detectModel(bundle.profile);
   if (consent !== true) { throw new Error('Confirm that you agree to submit this profile.'); }
-  return {model: model.trim(), consent: true, profile: bundle};
+  return {model, consent: true, profile: bundle};
 }
 
 if (typeof document !== 'undefined') {
@@ -28,14 +27,14 @@ if (typeof document !== 'undefined') {
   let sanitized = null, busy = false, submitted = false;
   const update = () => {
     let valid = false;
-    try { makeSubmission(sanitized, model.value, consent.checked); valid = true; } catch { /* Keep submission disabled. */ }
+    try { makeSubmission(sanitized, consent.checked); valid = true; } catch { /* Keep submission disabled. */ }
     submit.disabled = busy || submitted || !valid;
   };
   choose.addEventListener('click', () => backup.click());
-  model.addEventListener('change', update);
   consent.addEventListener('change', update);
   backup.addEventListener('change', async () => {
     sanitized = null; submitted = false; summary.hidden = true; submitStatus.textContent = ''; submitStatus.className = 'status';
+    model.textContent = 'Choose a backup to detect the model.';
     update();
     const file = backup.files?.[0];
     if (!file) { fileStatus.textContent = 'No backup selected.'; return; }
@@ -43,6 +42,7 @@ if (typeof document !== 'undefined') {
     try {
       if (file.size > 128 * 1024) { throw new Error('The backup is too large.'); }
       sanitized = await sanitizeRvsc(new Uint8Array(await file.arrayBuffer()));
+      model.textContent = detectModel(sanitized.profile);
       document.getElementById('voltage').textContent = sanitized.profile.nominal_voltage + ' V';
       document.getElementById('model-code').textContent = String(sanitized.profile.model);
       document.getElementById('firmware').textContent = String(sanitized.profile.schema_firmware);
@@ -58,8 +58,8 @@ if (typeof document !== 'undefined') {
   });
   submit.addEventListener('click', async () => {
     let envelope;
-    try { envelope = makeSubmission(sanitized, model.value, consent.checked); } catch { update(); return; }
-    busy = true; update(); choose.disabled = true; model.disabled = true; consent.disabled = true;
+    try { envelope = makeSubmission(sanitized, consent.checked); } catch { update(); return; }
+    busy = true; update(); choose.disabled = true; consent.disabled = true;
     submitStatus.className = 'status'; submitStatus.textContent = 'Submitting the sanitized profile…';
     try {
       const response = await fetch('/api/compatibility', {
@@ -79,7 +79,7 @@ if (typeof document !== 'undefined') {
       submitStatus.className = 'status error';
       submitStatus.textContent = 'We could not confirm the submission. Check your connection and try again shortly. Your original backup was not sent.';
     } finally {
-      busy = false; choose.disabled = false; model.disabled = false; consent.disabled = false; update();
+      busy = false; choose.disabled = false; consent.disabled = false; update();
     }
   });
 }
