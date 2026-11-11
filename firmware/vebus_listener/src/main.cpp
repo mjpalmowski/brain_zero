@@ -40,6 +40,7 @@
 #include "driver/uart.h"
 #include "esp_rom_sys.h"
 #include "esp_timer.h"
+#include "controller_time.h"
 #include "diagnostics.h"
 #include "ess_policy.h"
 #include "firmware_ota.h"
@@ -64,7 +65,6 @@
 #endif
 
 void listener_ess(web::EssView &v);
-bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_now);
 
 namespace {
 
@@ -98,6 +98,9 @@ SemaphoreHandle_t state_lock;  // decoder, requester, uploader and ESS policy: r
 constexpr int64_t READ_FRESH_US = 300000000;  // a file is shown against a read at most 5 minutes old
 
 ess::Settings ess_settings;  // as saved in flash; changed by the page or UART0 (listener_ess_set)
+constexpr char TIME_ZONE_KEY[] = "time-zone";
+const controller_time::Zone *time_zone = nullptr;
+bool manual_time_zone = false;
 ess::Policy policy;
 ess::Inputs ess_inputs;      // the policy's latest inputs and decision, for the page
 ess::Decision decision;
@@ -322,7 +325,9 @@ bool run_policy(int64_t now, char *line, size_t cap) {
     time_t t = time(nullptr);
     in.clock_valid = t > CLOCK_SET_AFTER;
     in.utc = t;
-    if (in.clock_valid) localtime_r(&t, &in.local);
+    if (in.clock_valid && !(time_zone && controller_time::local(*time_zone, t, in.local))) {
+        localtime_r(&t, &in.local);
+    }
     in.soc_valid = st.soc.t >= control_epoch && fresh(st.soc, now, SOC_FRESH_US);
     in.soc = st.soc.v;
     in.power_valid = st.acout_w.t >= control_epoch && fresh(st.acout_w, now, POWER_FRESH_US);
@@ -405,6 +410,14 @@ bool run_policy(int64_t now, char *line, size_t cap) {
 
 void save_settings(const ess::Settings &s) { prefs.putBytes("settings", &s, ESS_SETTINGS_BYTES); }
 
+bool save_time_zone(const controller_time::Zone *zone, bool manual) {
+    char record[64];
+    const int length = snprintf(record, sizeof record, "%c:%s", manual ? 'm' : 'a',
+                                zone ? controller_time::name(*zone) : "");
+    return length > 0 && size_t(length) < sizeof record &&
+           prefs.putString(TIME_ZONE_KEY, record) == size_t(length);
+}
+
 void save_mqtt(const ha::Settings &s) { prefs.putBytes("mqtt", &s, sizeof s); }
 
 void load_settings() {
@@ -417,6 +430,13 @@ void load_settings() {
         prefs.getBytes("settings", &s, ESS_SETTINGS_BYTES) == ESS_SETTINGS_BYTES &&
         s.version == ess::Settings().version && ess::validate(s, nullptr, 0)) {
         ess_settings = s;
+    }
+    if (prefs.isKey(TIME_ZONE_KEY)) {
+        const String record = prefs.getString(TIME_ZONE_KEY);
+        if (record.length() >= 2 && record[1] == ':' && (record[0] == 'a' || record[0] == 'm')) {
+            time_zone = controller_time::find(record.c_str() + 2);
+            manual_time_zone = record[0] == 'm' && (time_zone || record.length() == 2);
+        }
     }
     const uint32_t hold = prefs.getUInt("volthold", 0);
     const uint16_t cv = uint16_t(hold);
@@ -633,12 +653,38 @@ void listener_ess(web::EssView &v) {
     v.soc_valid = ess_inputs.soc_valid;
     v.soc = ess_inputs.soc;
     v.clock_valid = ess_inputs.clock_valid;
+    v.detect_time_zone = !time_zone && !manual_time_zone;
+    v.time_zone = time_zone ? controller_time::name(*time_zone) : "";
     if (v.clock_valid) {
-        strftime(v.clock, sizeof v.clock, "%Y-%m-%d %H:%M:%S %Z", &ess_inputs.local);
+        strftime(v.clock, sizeof v.clock, time_zone ? "%Y-%m-%d %H:%M:%S" : "%Y-%m-%d %H:%M:%S %Z",
+                 &ess_inputs.local);
     } else {
         snprintf(v.clock, sizeof v.clock, "not set yet (NTP)");
     }
     xSemaphoreGive(state_lock);
+}
+
+// Only the Arduino loop reads or changes the stored choice. The bus task uses
+// the zone under state_lock when calculating the next ESS setpoint.
+const char *listener_time_zone(bool &manual) {
+    manual = manual_time_zone;
+    return time_zone ? controller_time::name(*time_zone) : "";
+}
+
+bool listener_time_zone_set(const controller_time::Zone *zone, bool manual, bool first_detection) {
+    if (first_detection && (time_zone || manual_time_zone)) return true;
+    if (!zone) zone = time_zone;  // Keep the current rule if the browser could not supply a zone.
+    if (zone == time_zone && manual == manual_time_zone) return true;
+    if (!save_time_zone(zone, manual)) return false;
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    if (zone != time_zone) {
+        time_zone = zone;
+        policy.reset_schedule_hold();
+        decide_now = true;
+    }
+    manual_time_zone = manual;
+    xSemaphoreGive(state_lock);
+    return true;
 }
 
 // One-shot inverter commands from the web page or MQTT; the bus task sends and verifies them.
@@ -814,8 +860,10 @@ const char *listener_firmware_restart(firmware_ota::Action action) {
 // New ESS settings: saved at once, or (Home Assistant's commands) within ESS_SAVE_MS, to spare flash.
 // From the Arduino loop task
 // (page, UART0 or MQTT) only. False, with the reason, if any value is out of range.
-bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_now) {
+bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_now, bool legacy_zone) {
     if (!ess::validate(s, why, cap)) return false;
+    const bool tz_changed = strcmp(s.tz, ess_settings.tz) != 0;
+    const bool use_legacy_zone = legacy_zone && (tz_changed || time_zone);
     const bool voltage_changed = s.voltage_hold_cv != ess_settings.voltage_hold_cv;
     bool latched = false;
     if (voltage_changed) {
@@ -832,13 +880,16 @@ bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_n
         snprintf(why, cap, "Schedule grid setting storage failed");
         return false;
     }
+    if (use_legacy_zone && (!manual_time_zone || time_zone) && !save_time_zone(nullptr, true)) {
+        snprintf(why, cap, "Time zone storage failed");
+        return false;
+    }
     xSemaphoreTake(state_lock, portMAX_DELAY);
     if (voltage_changed) {
         policy.restore_voltage_hold(s.voltage_hold_cv, latched);
         voltage_hold_dirty = false;
     }
-    bool tz_changed = strcmp(s.tz, ess_settings.tz) != 0;
-    bool schedule_changed = schedule_grid_changed || tz_changed;
+    bool schedule_changed = schedule_grid_changed || tz_changed || use_legacy_zone;
     for (int i = 0; i < ess::SCHEDULES; i++) {
         const auto &a = s.schedule[i];
         const auto &b = ess_settings.schedule[i];
@@ -848,6 +899,10 @@ bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_n
     }
     if (schedule_changed) policy.reset_schedule_hold();
     ess_settings = s;
+    if (use_legacy_zone) {
+        time_zone = nullptr;
+        manual_time_zone = true;
+    }
     if (tz_changed) {
         setenv("TZ", s.tz, 1);
         tzset();

@@ -17,6 +17,7 @@
 #include "dashboard.h"
 #include "compatibility_profile.h"
 #include "console_auth.h"
+#include "controller_time.h"
 #include "device_page.h"
 #include "device_settings.h"
 #include "diagnostics.h"
@@ -78,7 +79,8 @@ bool listener_ac_input_config(const acinput::Config &c,uint32_t base,char *why,s
 size_t listener_pv_json(char *out,size_t cap);
 bool listener_pv_request(bool disable,uint32_t base,char *why,size_t cap);
 bool listener_pv_config(const pvdisable::Config &c,uint32_t base,char *why,size_t cap);
-bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_now);  // main.cpp: check, apply, save
+const char *listener_time_zone(bool &manual);
+bool listener_time_zone_set(const controller_time::Zone *zone, bool manual, bool first_detection);
 void listener_mqtt(ha::Settings &out);           // main.cpp: the MQTT settings
 bool listener_settings_read(bool inspection);
 void listener_settings(vebus::Requester::SettingsRead &out, web::InverterSetupView *setup);
@@ -289,11 +291,13 @@ void status_json(const EssView &v, Out &o) {
           "\"setpoint_w\":%d,\"target_w\":%d,\"flags\":%u,\"multi_flags\":%d,\"schedule\":%d,\"charging\":%s,"
           "\"capped\":%s,\"active_soc_limit\":%.1f,\"soc_limit\":%.1f,\"reached\":%u,\"soc\":%s,\"clock\":\"%s\","
           "\"clock_valid\":%s,\"battery_voltage\":%s,\"voltage_hold\":%s,\"voltage_hold_confirmed\":%s,"
-          "\"charge_inhibited\":%s,\"grid_hold\":%s}",
+          "\"charge_inhibited\":%s,\"grid_hold\":%s,\"detect_time_zone\":%s,\"time_zone\":",
           tf(v.settings.enabled), v.ctl, (int)v.settings.mode, ess::mode_name(v.settings.mode), d.state,
           ess::state_name(d.state), d.why, d.setpoint_w, d.target_w, d.flags, v.multi_flags, d.schedule, tf(d.charging),
           tf(d.capped), d.active_soc_limit, v.memory.soc_limit, v.memory.flags, soc, v.clock, tf(v.clock_valid),
-          voltage, tf(d.voltage_hold), tf(v.voltage_hold_confirmed), tf(d.charge_inhibited), tf(d.grid_hold));
+          voltage, tf(d.voltage_hold), tf(v.voltage_hold_confirmed), tf(d.charge_inhibited), tf(d.grid_hold),
+          tf(v.detect_time_zone));
+    o.str(v.time_zone); o.add("}");
 }
 
 // The settings, named as the form fields.
@@ -779,6 +783,9 @@ void handle_device() {
     Out o(json, sizeof json);
     const bool connected = WiFi.status() == WL_CONNECTED && uint32_t(WiFi.localIP());
     o.add("{\"ok\":true,\"language\":"); o.str(language.c_str());
+    bool manual;
+    const char *zone = listener_time_zone(manual);
+    o.add(",\"time_zone_mode\":\"%s\",\"time_zone\":", manual ? "manual" : "auto"); o.str(zone);
     o.add(",\"password_enabled\":%s,\"token_set\":%s,\"wifi\":{\"connected\":%s,\"ssid\":",
           tf(console_auth::enabled()), tf(console_auth::has_token()), tf(connected));
     o.str(connected ? WiFi.SSID().c_str() : network.ssid);
@@ -842,6 +849,21 @@ void handle_language() {
     console_ok();
 }
 
+void handle_time_zone() {
+    const String mode = server.arg("mode");
+    const String id = server.arg("zone");
+    const bool first_detection = !server.hasArg("mode");
+    const bool manual = mode == "manual";
+    const auto *zone = id.length() ? controller_time::find(id.c_str()) : nullptr;
+    if ((!first_detection && !manual && mode != "auto") || ((first_detection || manual || id.length()) && !zone)) {
+        console_error(400, "Choose a supported time zone."); return;
+    }
+    if (!listener_time_zone_set(zone, manual, first_detection)) {
+        console_error(500, "Could not save settings."); return;
+    }
+    console_ok();
+}
+
 const char *firmware_access() {
     if (!firmware_host()) return "Open the firmware page using the controller's local address.";
     if (!firmware_ota::authorized(server.header(OTA_TOKEN).c_str())) return "Reload the firmware page and try again.";
@@ -886,7 +908,7 @@ void firmware_release_reply(int code, const char *error = nullptr) {
           s.phase, (unsigned long)s.build.size, unsigned(s.received), tf(s.build.preview),
           SITE_FIRMWARE ? "site" : "public");
     o.str(s.build.tag);
-    o.add(",\"message\":"); o.str(s.message); o.add("}");
+    o.add(",\"can_stage\":%s,\"message\":", tf(s.can_stage)); o.str(s.message); o.add("}");
     server.sendHeader("Cache-Control", "no-store");
     server.send(code, "application/json", json);
 }
@@ -1186,7 +1208,8 @@ void handle_ess_post(ControlExchange &io) {
     char why[120] = "", reply[200];
     listener_ess(view);
     ess::Settings s = view.settings;
-    bool ok = settings_from_form(io, s, why, sizeof why) && listener_ess_set(s, why, sizeof why, true);
+    bool ok = settings_from_form(io, s, why, sizeof why) &&
+              listener_ess_set(s, why, sizeof why, true, io.hasArg("tz"));
     if (ok) {
         snprintf(reply, sizeof reply, "{\"ok\":true,\"message\":\"saved: ESS from here %s, %s\"}",
                  s.enabled ? "on" : "off", ess::mode_name(s.mode));
@@ -1615,6 +1638,10 @@ void begin() {
     });
     private_route("/api/device", HTTP_GET, handle_device);
     private_route("/api/device/language", HTTP_POST, handle_language);
+    private_route("/api/device/timezones", HTTP_GET, [] {
+        server.send_P(200, "application/json", controller_time::names_json());
+    });
+    private_route("/api/device/timezone", HTTP_POST, handle_time_zone);
     private_route("/api/device/password", HTTP_POST, handle_console_password);
     private_route("/api/device/token", HTTP_POST, handle_console_token);
     private_route("/api/device/wifi", HTTP_POST, handle_network_test);

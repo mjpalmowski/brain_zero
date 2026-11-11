@@ -14,7 +14,7 @@ static const char FIRMWARE_HTML[] PROGMEM = R"HTML(<!doctype html>
 a{color:var(--accent)}h1{font-size:30px;line-height:1.2;margin:8px 0}h2{font-size:18px;margin:0 0 10px}p{margin:0 0 12px}
 .card{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--card);margin:16px 0}
 .status{padding:12px 15px;border-radius:8px;background:var(--soft);overflow-wrap:anywhere}
-.muted,small{color:var(--muted)}.error{color:var(--bad)}.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.muted{color:var(--muted)}.error{color:var(--bad)}.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
 button{font:inherit;font-weight:650;padding:8px 12px;border:1px solid var(--line);border-radius:7px;color:var(--ink);background:var(--card);cursor:pointer}
 button.primary{background:var(--soft);border-color:var(--accent);color:var(--accent)}button:disabled{opacity:.48;cursor:default}input,progress{width:100%;max-width:100%}progress{margin-top:10px;accent-color:var(--accent)}[hidden]{display:none!important}
 </style></head><body>)HTML"
@@ -51,7 +51,6 @@ R"HTML(
 <p>Check the dashboard and inverter readings, then keep this build or return to the previous one.</p>
 <div class="row"><button id="keep" class="primary" disabled>Keep this build</button><button id="rollback" disabled>Return to previous build</button></div>
 </section>
-<small>Use firmware you trust and that matches your board and pinout. A custom build can change how the device behaves or remove this page. Keep USB recovery available when experimenting.</small>
 </main>
 <script>
 'use strict';
@@ -72,7 +71,7 @@ function render(){
     el('release-card').hidden=!!s&&(s.trial||s.staged);
     el('release-check').disabled=!ready||!s.max_bytes||s.trial||s.staged;
     el('release-stage').hidden=!offer;
-    el('release-stage').disabled=el('release-check').disabled||!s.safe||!offer||release.size>s.max_bytes;
+    el('release-stage').disabled=el('release-check').disabled||!s.safe||!offer||release.can_stage===false||release.size>s.max_bytes;
     const releaseMessage=release?.status==='staged'&&!s?.staged?'':release?.message;
     el('release-status').textContent=tr(releaseMessage||'Check GitHub for a newer firmware build.');
     el('release-version').hidden=!offer;

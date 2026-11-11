@@ -13,6 +13,7 @@ enum class Phase { IDLE, CHECKING, AVAILABLE, CURRENT, DOWNLOADING, STAGED, ERRO
 
 constexpr char UNSAFE[] = "Firmware download stopped because the inverter is no longer ready.";
 constexpr char BUSY[] = "A GitHub firmware operation is already in progress.";
+constexpr char CUSTOM_BUILD[] = "A public release is available. This controller needs its matching custom build to keep its extra features.";
 constexpr uint32_t SAFETY_POLL_MS = 100;
 constexpr uint32_t WORKER_STACK_BYTES = 12288;
 
@@ -21,6 +22,7 @@ firmware_release::Build selected;
 firmware_ota::Status before_download = {};
 const char *message = "Check GitHub for a newer firmware build.";
 bool site_build = false;
+bool public_only = false;
 uint32_t last_safety_poll = 0;
 
 // The loop writes inputs before creating the task. The task publishes its
@@ -32,6 +34,7 @@ struct Work {
     bool site;
     firmware_release::Build build;
     const char *error;
+    bool public_only;
 };
 Work work = {};
 std::atomic<bool> completed{false}, cancelled{false};
@@ -47,6 +50,12 @@ const char *receive(const uint8_t *data, size_t bytes, void *) {
 void run(void *) {
     work.error = work.download ? firmware_release::download(work.build, work.site, receive, nullptr)
                                : firmware_release::check(work.running, work.capacity, work.site, work.build);
+    // A private installation can discover the public release without selecting
+    // it for installation. Its extra site-specific controls must stay intact.
+    if (!work.download && !work.error && work.site && !work.build.tag[0]) {
+        work.error = firmware_release::check(work.running, work.capacity, false, work.build);
+        work.public_only = !work.error && work.build.tag[0];
+    }
     completed.store(true, std::memory_order_release);
     vTaskDelete(nullptr);
 }
@@ -70,7 +79,8 @@ bool busy() { return phase == Phase::CHECKING || phase == Phase::DOWNLOADING; }
 
 Status status() {
     static const char *const names[] = {"idle", "checking", "available", "current", "downloading", "staged", "error"};
-    return {names[static_cast<unsigned>(phase)], selected, received.load(), message};
+    return {names[static_cast<unsigned>(phase)], selected, received.load(), message,
+            phase == Phase::AVAILABLE && !public_only};
 }
 
 firmware_ota::Status ota_status() {
@@ -81,7 +91,8 @@ const char *check(uint32_t running, size_t capacity, bool site) {
     if (busy()) return BUSY;
     site_build = site;
     selected = {};
-    work = {false, running, capacity, site, {}, nullptr};
+    public_only = false;
+    work = {false, running, capacity, site, {}, nullptr, false};
     message = "Checking GitHub Releases…";
     return launch(Phase::CHECKING);
 }
@@ -90,9 +101,10 @@ const char *stage(const char *tag) {
     if (busy()) return BUSY;
     if (phase != Phase::AVAILABLE || !tag || strcmp(tag, selected.tag))
         return "Check GitHub Releases again before downloading.";
+    if (public_only) return CUSTOM_BUILD;
     before_download = firmware_ota::status();
     if (const char *error = firmware_ota::start(selected.size)) return error;
-    work = {true, 0, 0, site_build, selected, nullptr};
+    work = {true, 0, 0, site_build, selected, nullptr, false};
     last_safety_poll = millis();
     message = "Downloading firmware from brain-zero.com…";
     if (const char *error = launch(Phase::DOWNLOADING)) {
@@ -125,8 +137,9 @@ void poll(bool (*safe_to_stage)()) {
         message = "Firmware verified and staged.";
     } else if (work.build.tag[0]) {
         selected = work.build;
+        public_only = work.public_only;
         phase = Phase::AVAILABLE;
-        message = "A newer build is available.";
+        message = public_only ? CUSTOM_BUILD : "A newer build is available.";
     } else {
         phase = Phase::CURRENT;
         message = "GitHub has no newer build for this controller.";

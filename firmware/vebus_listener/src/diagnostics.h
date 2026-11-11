@@ -6,8 +6,8 @@
 #include "fault_report.h"
 
 namespace diagnostics {
-constexpr const char *BUILD = "github-ota-20261110.2";
-constexpr uint32_t RELEASE_VERSION = 2026111002;
+constexpr const char *BUILD = "github-ota-20261111.6";
+constexpr uint32_t RELEASE_VERSION = 2026111106;
 struct Cache {
     int64_t now = 0, policy_at = -1;
     charger::View charger;

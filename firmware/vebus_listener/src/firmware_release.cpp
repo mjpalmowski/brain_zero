@@ -1,12 +1,10 @@
 #include "firmware_release.h"
+#include "firmware_release_parser.h"
 #include "firmware_ota.h"
 
-#include <cJSON.h>
 #include <esp_http_client.h>
 #include <esp_timer.h>
 #include <mbedtls/sha256.h>
-#include <new>
-#include <memory>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -19,126 +17,12 @@ extern "C" esp_err_t esp_crt_bundle_attach(void *conf);
 namespace firmware_release {
 namespace {
 constexpr char RELEASES[] = "https://api.github.com/repos/mjpalmowski/brain_zero/releases?per_page=10";
-constexpr char RELEASE_ASSETS[] = "https://github.com/mjpalmowski/brain_zero/releases/download/";
 constexpr char FIRMWARE[] = "https://brain-zero.com/firmware/";
-constexpr size_t ITEM_BYTES = 24 * 1024;
-constexpr size_t LIST_BYTES = 10 * (ITEM_BYTES + 16);
+constexpr size_t LIST_BYTES = 10 * (24 * 1024 + 16);
 constexpr int NETWORK_TIMEOUT_MS = 6000;
 constexpr int64_t CHECK_TIMEOUT_US = 30 * 1000000LL;
 constexpr int64_t DOWNLOAD_TIMEOUT_US = 120 * 1000000LL;
 constexpr time_t VALID_CLOCK = 1704067200; // 2024-01-01 UTC
-
-const char *asset_name(bool site) { return site ? "firmware-site.bin" : "firmware.bin"; }
-
-bool digit(char c) { return c >= '0' && c <= '9'; }
-
-int hex_digit(char c) {
-    if (digit(c)) return c - '0';
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    return -1;
-}
-
-bool parse_digest(const char *digest, uint8_t (&out)[32]) {
-    if (!digest || strlen(digest) != 71 || strncmp(digest, "sha256:", 7)) return false;
-    for (size_t i = 0; i < sizeof out; ++i) {
-        const int high = hex_digit(digest[7 + 2 * i]);
-        const int low = hex_digit(digest[8 + 2 * i]);
-        if (high < 0 || low < 0) return false;
-        out[i] = uint8_t(high * 16 + low);
-    }
-    return true;
-}
-
-const char *field(const cJSON *object, const char *key) {
-    return cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(object, key));
-}
-
-bool select_build(const char *json, uint32_t running, size_t capacity, bool site, Build &best) {
-    std::unique_ptr<cJSON, decltype(&cJSON_Delete)> release(cJSON_ParseWithOpts(json, nullptr, true), cJSON_Delete);
-    if (!cJSON_IsObject(release.get())) return false;
-    const char *tag = field(release.get(), "tag_name");
-    const auto version = tag_version(tag);
-    const auto *preview = cJSON_GetObjectItemCaseSensitive(release.get(), "prerelease");
-    if (!version || version <= running || version <= best.version || !cJSON_IsBool(preview) ||
-        !cJSON_IsFalse(cJSON_GetObjectItemCaseSensitive(release.get(), "draft"))) return true;
-
-    const cJSON *asset = nullptr;
-    const cJSON *assets = cJSON_GetObjectItemCaseSensitive(release.get(), "assets");
-    if (!cJSON_IsArray(assets)) return true;
-    const cJSON *item;
-    cJSON_ArrayForEach(item, assets) {
-        const char *name = field(item, "name");
-        if (name && !strcmp(name, asset_name(site))) {
-            if (asset) return true; // Reject ambiguous asset names.
-            asset = item;
-        }
-    }
-    if (!asset) return true;
-    const char *state = field(asset, "state");
-    const char *url = field(asset, "browser_download_url");
-    char expected_url[128];
-    snprintf(expected_url, sizeof expected_url, "%s%s/%s", RELEASE_ASSETS, tag, asset_name(site));
-    if (!state || strcmp(state, "uploaded") || !url || strcmp(url, expected_url)) return true;
-    const cJSON *size = cJSON_GetObjectItemCaseSensitive(asset, "size");
-    if (!cJSON_IsNumber(size) || !(size->valuedouble >= firmware_ota::PREFIX_BYTES &&
-                                  size->valuedouble <= capacity && size->valuedouble <= UINT32_MAX)) return true;
-
-    Build build;
-    build.size = uint32_t(size->valuedouble);
-    if (build.size != size->valuedouble || !parse_digest(field(asset, "digest"), build.sha256)) return true;
-    memcpy(build.tag, tag, strlen(tag) + 1);
-    build.version = version;
-    build.preview = cJSON_IsTrue(preview);
-    best = build;
-    return true;
-}
-
-// Retain one release object at a time so unrelated releases and notes don't
-// require a second copy of the entire response in RAM.
-struct ReleaseList {
-    enum class Position { OPEN, FIRST, NEXT, SEPARATOR, END };
-    Position position = Position::OPEN;
-    size_t used = 0, depth = 0;
-    bool quoted = false, escaped = false;
-
-    bool append(char c, char *item, uint32_t running, size_t capacity, bool site, Build &best) {
-        if (!depth) {
-            if (c == ' ' || c == '\r' || c == '\n' || c == '\t') return true;
-            if (position == Position::OPEN && c == '[') {
-                position = Position::FIRST;
-                return true;
-            }
-            if ((position == Position::FIRST || position == Position::SEPARATOR) && c == ']') {
-                position = Position::END;
-                return true;
-            }
-            if (position == Position::SEPARATOR && c == ',') {
-                position = Position::NEXT;
-                return true;
-            }
-            if (c != '{' || (position != Position::FIRST && position != Position::NEXT)) return false;
-            used = 0;
-        }
-
-        if (used == ITEM_BYTES - 1 || !c) return false;
-        item[used++] = c;
-        if (quoted) {
-            if (escaped) escaped = false;
-            else if (c == '\\') escaped = true;
-            else if (c == '"') quoted = false;
-        } else if (c == '"') {
-            quoted = true;
-        } else if (c == '{') {
-            if (++depth > 16) return false;
-        } else if (c == '}' && --depth == 0) {
-            item[used] = 0;
-            position = Position::SEPARATOR;
-            if (!select_build(item, running, capacity, site, best)) return false;
-        }
-        return true;
-    }
-};
 
 esp_err_t receive_header(esp_http_client_event_t *event) {
     if (event->event_id != HTTP_EVENT_ON_HEADER || !event->header_key || !event->header_value) return ESP_OK;
@@ -171,6 +55,43 @@ public:
     }
 
     esp_http_client_handle_t client = nullptr;
+};
+
+struct ReleaseReader {
+    ReleaseReader(esp_http_client_handle_t client, int64_t deadline) : client(client), deadline(deadline) {}
+
+    esp_http_client_handle_t client;
+    int64_t deadline;
+    char buffer[1024];
+    size_t read = 0, end = 0, received = 0;
+    const char *error = nullptr;
+
+    static int next(void *context) {
+        return static_cast<ReleaseReader *>(context)->next_byte();
+    }
+
+    int next_byte() {
+        if (read == end) {
+            if (esp_timer_get_time() >= deadline) {
+                error = "Checking GitHub Releases timed out.";
+                return -2;
+            }
+            const int count = esp_http_client_read(client, buffer, sizeof buffer);
+            if (!count && esp_http_client_is_complete_data_received(client)) return -1;
+            if (count <= 0) {
+                error = "The GitHub release list was interrupted.";
+                return -2;
+            }
+            if (size_t(count) > LIST_BYTES - received) {
+                error = "The GitHub release list is too large.";
+                return -2;
+            }
+            received += count;
+            read = 0;
+            end = count;
+        }
+        return static_cast<unsigned char>(buffer[read++]);
+    }
 };
 
 const char *read_image(esp_http_client_handle_t client, const Build &build, Sink sink, void *context,
@@ -212,28 +133,6 @@ const char *read_image(esp_http_client_handle_t client, const Build &build, Sink
 }
 }
 
-uint32_t tag_version(const char *tag) {
-    constexpr char prefix[] = "firmware-";
-    if (!tag || strncmp(tag, prefix, sizeof prefix - 1)) return 0;
-    const char *date = tag + sizeof prefix - 1;
-    uint32_t value = 0;
-    for (unsigned i = 0; i < 8; ++i) {
-        if (!digit(date[i])) return 0;
-        value = value * 10 + uint32_t(date[i] - '0');
-    }
-    if (date[8] != '.' || !digit(date[9]) || date[9] == '0') return 0;
-    uint32_t sequence = date[9] - '0';
-    if (date[10]) {
-        if (!digit(date[10]) || date[11]) return 0;
-        sequence = sequence * 10 + uint32_t(date[10] - '0');
-    }
-    const unsigned year = value / 10000, month = value / 100 % 100, day = value % 100;
-    constexpr uint8_t month_days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    if (year < 2020 || year > 2099 || month < 1 || month > 12 || day < 1 ||
-        day > unsigned(month_days[month - 1]) + (month == 2 && year % 4 == 0)) return 0;
-    return value * 100 + sequence;
-}
-
 const char *check(uint32_t running, size_t capacity, bool site, Build &out) {
     out = Build{};
     if (!running || capacity < firmware_ota::PREFIX_BYTES) return "This build cannot check for a GitHub update.";
@@ -248,26 +147,9 @@ const char *check(uint32_t running, size_t capacity, bool site, Build &out) {
     const int declared = esp_http_client_get_content_length(response.client);
     if (declared > int(LIST_BYTES)) return "The GitHub release list is too large.";
 
-    std::unique_ptr<char[]> item(new (std::nothrow) char[ITEM_BYTES]);
-    if (!item) return "Not enough memory to check GitHub Releases.";
-    Build best;
-    ReleaseList list;
-    char buffer[1024];
-    size_t received = 0;
-    for (;;) {
-        if (esp_timer_get_time() >= deadline) return "Checking GitHub Releases timed out.";
-        const int count = esp_http_client_read(response.client, buffer, sizeof buffer);
-        if (!count && esp_http_client_is_complete_data_received(response.client)) break;
-        if (count <= 0) return "The GitHub release list was interrupted.";
-        if (size_t(count) > LIST_BYTES - received) return "The GitHub release list is too large.";
-        received += count;
-        for (int i = 0; i < count; ++i) {
-            if (!list.append(buffer[i], item.get(), running, capacity, site, best))
-                return "The GitHub release list has an invalid or oversized entry.";
-        }
-    }
-    if (list.position != ReleaseList::Position::END) return "The GitHub release list was incomplete.";
-    out = best;
+    ReleaseReader reader(response.client, deadline);
+    if (!parse_release_list(ReleaseReader::next, &reader, running, capacity, site, out))
+        return reader.error ? reader.error : "The GitHub release list was invalid or incomplete.";
     return nullptr;
 }
 

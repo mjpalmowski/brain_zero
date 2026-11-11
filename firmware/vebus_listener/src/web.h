@@ -81,6 +81,8 @@ struct EssView {
     bool voltage_valid = false, voltage_hold_confirmed = false;
     float voltage = 0;
     bool clock_valid = false;
+    bool detect_time_zone = false;
+    const char *time_zone = "";
     char clock[40] = "";      // local time
 };
 
@@ -100,3 +102,6 @@ void cancel_recovery_restart();         // let the station rejoin if the safety 
 size_t describe(char *out, size_t cap);  // "wifi=..." for the status line
 
 }  // namespace web
+
+bool listener_ess_set(const ess::Settings &settings, char *why, size_t cap, bool save_now,
+                      bool legacy_zone = false);

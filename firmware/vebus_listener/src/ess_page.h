@@ -85,11 +85,6 @@ R"HTML(
 <div class="card"><div class="wrap"><table id="sched"><thead><tr><th>#</th><th>On</th><th>Day</th><th>Start</th><th>Duration</th><th>Charge to</th><th>Discharge above it</th><th>Grid after target</th></tr></thead><tbody></tbody></table></div>
 <p class="s"><strong>Grid after target</strong> supplies loads from the grid after reaching the target, until the window ends. It takes priority over allowing discharge.</p>
 <p class="s">Schedules apply in the optimized ESS modes. Windows can run past midnight, and the first active row takes priority. A 100% target charges for the full window.</p></div>
-<h2>Clock</h2>
-<div class="card">
-<div class="row"><label class="name" for="tz">Time zone (POSIX TZ)</label><input type="text" id="tz" name="tz" maxlength="47" spellcheck="false" required>
-<span class="hint" id="clock"></span></div>
-</div>
 <div class="bar"><button type="submit">Save</button><button type="button" id="reload">Discard changes</button><span id="msg" class="s"></span></div>
 </form>
 </main>
@@ -128,7 +123,7 @@ E("voltage_hold_enabled").checked=!!s.voltage_hold_cv;
 E("voltage_hold_v").value=s.voltage_hold_cv?(s.voltage_hold_cv/100).toFixed(2):"";
 showVoltageHold();
 LIMITS.forEach(k=>{const on=s[k]>=0;limitBox(k).checked=on;if(on||E(k).value==="")E(k).value=on?s[k]:0;E(k).disabled=!on});
-E("always_peak_shave").value=s.always_peak_shave?1:0;E("dc_pv_feed_in").checked=!!s.dc_pv_feed_in;E("tz").value=s.tz;
+E("always_peak_shave").value=s.always_peak_shave?1:0;E("dc_pv_feed_in").checked=!!s.dc_pv_feed_in;
 s.schedules.forEach((w,j)=>{const p="s"+(j+1)+"_";E(p+"on").checked=!!w.on;E(p+"day").value=w.day;E(p+"start").value=hm(w.start);
 E(p+"duration").value=hm(w.duration);E(p+"soc").value=w.soc;E(p+"discharge").checked=!!w.discharge;E(p+"grid_after_target").checked=!!s.schedule_grid_after_target?.[j]});
 showMode()}
@@ -143,13 +138,32 @@ if(controlling&&st.grid_hold)status.push(t("Grid hold requested"));
 else if(controlling&&st.charging)status.push(t("Charging requested"));
 showStatus(status.join(" · "));
 highlightSchedule(slot);
-$("clock").textContent=st.clock_valid?fmt("Controller time {clock}. Europe/London is GMT0BST,M3.5.0/1,M10.5.0.",{clock:st.clock}):"Schedules wait for the controller clock to sync over Wi-Fi.";
 $("voltage-hold-status").textContent=!s.voltage_hold_cv?"Off":!controlling?"Waiting for ESS control":
 st.voltage_hold_confirmed?"Grid supply confirmed":st.voltage_hold?"Waiting for inverter confirmation":
 st.charge_inhibited?"Charging paused until the next window":"Scheduled charge window";
 }
-async function load(full){const r=await fetch("/api/ess",{cache:"no-store"});if(!r.ok)throw Error("ESS request failed");const j=await r.json();if(full)fill(j.settings);live(j.status,j.settings);return j.settings}
-function offline(){showStatus("Controller unavailable");highlightSchedule(-1);$("clock").textContent="Controller time unavailable";$("voltage-hold-status").textContent="Status unavailable"}
+let timeZoneChecked=false;
+async function detectTimeZone(status){
+    if(timeZoneChecked)return;
+    timeZoneChecked=true;
+    if(status.detect_time_zone!==true)return;
+    try{
+        const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if(zone)await fetch("/api/device/timezone",{method:"POST",mode:"same-origin",body:new URLSearchParams({zone})});
+    }catch{
+        // A failed detection should not interrupt ESS status or settings.
+    }
+}
+async function load(full){
+    const response=await fetch("/api/ess",{cache:"no-store"});
+    if(!response.ok)throw Error("ESS request failed");
+    const {settings,status}=await response.json();
+    detectTimeZone(status);
+    if(full)fill(settings);
+    live(status,settings);
+    return settings;
+}
+function offline(){showStatus("Controller unavailable");highlightSchedule(-1);$("voltage-hold-status").textContent="Status unavailable"}
 E("mode").addEventListener("change",showMode);
 E("voltage_hold_enabled").addEventListener("change",showVoltageHold);
 LIMITS.forEach(k=>limitBox(k).addEventListener("change",()=>{E(k).disabled=!limitBox(k).checked}));
@@ -158,7 +172,7 @@ const bad=[...F.elements].find(x=>!x.disabled&&x.willValidate&&!x.checkValidity(
 if(bad){bad.focus();$("msg").textContent="check the highlighted field";return}
 const b=new URLSearchParams();b.set("run",E("run").checked?1:0);
 b.set("voltage_hold_cv",E("voltage_hold_enabled").checked?Math.round(E("voltage_hold_v").valueAsNumber*100):0);
-["safety_max","mode","min_soc","grid_setpoint","tz","always_peak_shave"].forEach(k=>b.set(k,E(k).value.trim()));
+["safety_max","mode","min_soc","grid_setpoint","always_peak_shave"].forEach(k=>b.set(k,E(k).value.trim()));
 ["ext_no_charge","ext_no_feed_in","dc_pv_feed_in"].forEach(k=>b.set(k,E(k).checked?1:0));
 LIMITS.forEach(k=>b.set(k,limitBox(k).checked?E(k).value.trim():-1));
 for(let i=1;i<=5;i++){const p="s"+i+"_";["on","discharge","grid_after_target"].forEach(k=>b.set(p+k,E(p+k).checked?1:0));["day","start","duration","soc"].forEach(k=>b.set(p+k,E(p+k).value.trim()))}

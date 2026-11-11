@@ -14,7 +14,6 @@
 
 void listener_state(vebus::State &out);  // main.cpp
 void listener_ess(web::EssView &out);    // main.cpp
-bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_now);  // main.cpp
 bool listener_inverter_command(const char *key, const char *value, char *why, size_t cap);
 
 namespace mqtt_link {

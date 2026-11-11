@@ -61,6 +61,11 @@ R"HTML(
 <form id="language"><label>Language<select name="code">)HTML"
 BRAIN_ZERO_LANGUAGE_OPTIONS
 R"HTML(</select></label><button>Save</button></form><output id="language-message" role="status"></output>
+<form id="timezone" class="advanced">
+<label>Time zone<select name="zone" disabled><option value="">Automatic</option><option id="timezone-saved" value="@saved" disabled hidden>Saved time zone</option></select></label>
+<small id="timezone-current" dir="ltr" data-no-translate hidden></small>
+<button disabled>Save</button>
+</form><output id="timezone-message" role="status"></output>
 </section></main>
 <script>
 'use strict';
@@ -69,6 +74,11 @@ const tr=s=>window.bzText?.(s)||s;
 const fields=id=>$(id).elements;
 const write=(id,msg)=>{$(id+'-message').textContent=tr(msg)};
 let loaded=false, reading=false;
+let savedTimeZone={mode:'auto',name:''}, timeZonesReady=false, timeZoneEdited=false;
+function browserTimeZone(){
+  try{return Intl.DateTimeFormat().resolvedOptions().timeZone||''}
+  catch{return ''}
+}
 async function api(path,data){
   const r=await fetch('/api/device'+path,data?{method:'POST',body:new URLSearchParams(data),signal:AbortSignal.timeout(10000)}:{cache:'no-store',signal:AbortSignal.timeout(4000)});
   if(r.status===401){location.replace('/login');throw Error('Sign in');}
@@ -87,7 +97,49 @@ function paint(j){
   $('current-label').hidden=$('token-current-label').hidden=$('password-disable').hidden=$('logout').hidden=!j.password_enabled;
   fields('password').current.required=fields('token').current.required=j.password_enabled;
   $('password-state').textContent=tr(j.password_enabled?'Password enabled':'Password disabled');
-  if(!loaded){fields('language').code.value=j.language;fields('wifi').ssid.value=j.wifi.ssid;loaded=true;}
+  savedTimeZone={mode:j.time_zone_mode,name:j.time_zone||''};
+  paintTimeZone();
+  if(!loaded){
+    fields('language').code.value=j.language;
+    fields('wifi').ssid.value=j.wifi.ssid;
+    if(j.time_zone_mode)loadTimeZones();
+    if(j.time_zone_mode==='auto'&&!j.time_zone){
+      const zone=browserTimeZone();
+      if(zone)api('/timezone',{zone}).catch(()=>{});
+    }
+    loaded=true;
+  }
+}
+function paintTimeZone(){
+  const select=fields('timezone').zone;
+  const usesSavedRule=savedTimeZone.mode==='manual'&&!savedTimeZone.name;
+  $('timezone-saved').hidden=!usesSavedRule;
+  if(timeZonesReady&&!timeZoneEdited){
+    select.value=savedTimeZone.mode==='manual'?savedTimeZone.name||'@saved':'';
+    if(usesSavedRule)$('timezone').querySelector('button').disabled=true;
+  }
+  const current=$('timezone-current');
+  current.hidden=select.value!==''||savedTimeZone.mode!=='auto'||!savedTimeZone.name;
+  current.textContent=savedTimeZone.name;
+}
+async function loadTimeZones(){
+  try{
+    const zones=await api('/timezones');
+    if(!Array.isArray(zones))throw Error('Request failed');
+    const options=document.createDocumentFragment();
+    for(const zone of zones){
+      const option=document.createElement('option');
+      option.value=option.textContent=zone;
+      option.setAttribute('data-no-translate','');
+      options.append(option);
+    }
+    const select=fields('timezone').zone;
+    select.append(options);
+    timeZonesReady=true;
+    paintTimeZone();
+    select.disabled=false;
+    $('timezone').querySelector('button').disabled=select.value==='@saved';
+  }catch(e){write('timezone',e.message)}
 }
 async function refresh(){if(reading||document.hidden)return;reading=true;
   try{paint(await api(''))}catch{if(!loaded)write('wifi','Controller unavailable.')}
@@ -121,6 +173,29 @@ form('token',async f=>{
   write('token','Copy this token now');
 });
 form('language',async f=>{await api('/language',{code:f.code.value});location.reload()});
+fields('timezone').zone.addEventListener('change',()=>{
+  timeZoneEdited=true;
+  $('timezone').querySelector('button').disabled=false;
+  paintTimeZone();
+});
+form('timezone',async f=>{
+  const selection=f.zone.value;
+  if(selection==='@saved')return;
+  const mode=selection?'manual':'auto';
+  const zone=selection||browserTimeZone();
+  const data=zone?{mode,zone}:{mode};
+  f.zone.disabled=true;
+  try{
+    await api('/timezone',data);
+    savedTimeZone={mode,name:zone};
+    timeZoneEdited=false;
+    paintTimeZone();
+    write('timezone','Time zone saved');
+    await refresh();
+  }finally{
+    f.zone.disabled=false;
+  }
+});
 refresh();setInterval(refresh,2000);
 </script></body></html>)HTML";
 

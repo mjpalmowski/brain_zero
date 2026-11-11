@@ -10,6 +10,7 @@ struct Status {
     firmware_release::Build build;
     size_t received;
     const char *message;
+    bool can_stage;
 };
 
 // All entry points are called from the Arduino loop. The background task owns

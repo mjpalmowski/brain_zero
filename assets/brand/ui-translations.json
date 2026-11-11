@@ -10,6 +10,7 @@
     "A blinking Temperature LED is a pre-alarm. A steady Temperature LED indicates an overtemperature shutdown.",
     "A connection test is already in progress.",
     "A firmware restart is already queued.",
+    "A public release is available. This controller needs its matching custom build to keep its extra features.",
     "A requested value is outside the inverter's supported range",
     "AC input",
     "AC input 1 availability",
@@ -65,6 +66,7 @@
     "Applying this file restarts the MultiPlus and interrupts AC-out. Keep brain_zero powered during the restart.",
     "Assist current boost factor",
     "Attach compatibility.json to the public GitHub issue form for mjpalmowski/brain_zero. Keep your .rvsc backup private.",
+    "Automatic",
     "Automatic refreshes only read cached diagnostics, every two seconds while visible. “Read fault report” makes up to four read-only inverter queries once; it never resets or clears a report. Downloaded snapshots omit IP addresses, broker details, device identifiers and MQTT commands.",
     "Availability topic",
     "Available",
@@ -161,6 +163,7 @@
     "Choose Off, Charger only, Inverter only or On",
     "Choose a firmware.bin application file.",
     "Choose a supported language.",
+    "Choose a supported time zone.",
     "Choose an ESP32-S3 application .bin, such as PlatformIO firmware.bin.",
     "Choose an application file to begin.",
     "Choose edited RVSC settings file",
@@ -771,6 +774,7 @@
     "Save these charger settings in the inverter? {changes} Use values approved for your battery. Each change will be read back.",
     "Saved PowerAssist settings confirmed by inverter readback",
     "Saved charger settings confirmed by inverter readback",
+    "Saved time zone",
     "Saving changed charger settings",
     "Schedule grid setting storage failed",
     "Schedule storage failed",
@@ -892,7 +896,10 @@
     "This read accepts no parameters",
     "Thursday",
     "Time remaining",
+    "Time zone",
     "Time zone (POSIX TZ)",
+    "Time zone saved",
+    "Time zone storage failed",
     "Timed battery operation with ESS active. Charging windows, low battery and stale data reconnect automatically. A higher ESS reserve takes precedence.",
     "Too many submissions. Please try again later.",
     "Topics and discovery",
@@ -2668,7 +2675,14 @@
       "The submission could not be accepted. Please try again.": "Die indiening kon nie aanvaar word nie. Probeer asseblief weer.",
       "Enter the inverter model using at most 160 characters.": "Voer die omsettermodel in met hoogstens 160 karakters.",
       "Submitting…": "Dien in…",
-      "Inverter/firmware not supported?": "Word jou omsetter of firmware nie ondersteun nie?"
+      "Inverter/firmware not supported?": "Word jou omsetter of firmware nie ondersteun nie?",
+      "Time zone saved": "Tydsone gestoor",
+      "Choose a supported time zone.": "Kies ’n ondersteunde tydsone.",
+      "Automatic": "Outomaties",
+      "Time zone storage failed": "Kon nie die tydsone stoor nie",
+      "Time zone": "Tydsone",
+      "Saved time zone": "Gestoorde tydsone",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "’n Openbare vrystelling is beskikbaar. Hierdie beheerder het die ooreenstemmende pasgemaakte bou nodig om sy ekstra kenmerke te behou."
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -4003,7 +4017,14 @@
       "The submission could not be accepted. Please try again.": "Odeslané údaje nebylo možné přijmout. Zkuste to znovu.",
       "Enter the inverter model using at most 160 characters.": "Zadejte model měniče, nejvýše 160 znaků.",
       "Submitting…": "Odesílání…",
-      "Inverter/firmware not supported?": "Váš měnič nebo firmware není podporován?"
+      "Inverter/firmware not supported?": "Váš měnič nebo firmware není podporován?",
+      "Time zone saved": "Časové pásmo uloženo",
+      "Choose a supported time zone.": "Vyberte podporované časové pásmo.",
+      "Automatic": "Automaticky",
+      "Time zone storage failed": "Časové pásmo se nepodařilo uložit",
+      "Time zone": "Časové pásmo",
+      "Saved time zone": "Uložené časové pásmo",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Je k dispozici veřejné vydání. Tento řadič potřebuje odpovídající přizpůsobené sestavení, aby si zachoval své další funkce."
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5338,7 +5359,14 @@
       "The submission could not be accepted. Please try again.": "Indsendelsen kunne ikke modtages. Prøv igen.",
       "Enter the inverter model using at most 160 characters.": "Indtast invertermodellen med højst 160 tegn.",
       "Submitting…": "Indsender…",
-      "Inverter/firmware not supported?": "Understøttes din inverter eller firmware ikke?"
+      "Inverter/firmware not supported?": "Understøttes din inverter eller firmware ikke?",
+      "Time zone saved": "Tidszone gemt",
+      "Choose a supported time zone.": "Vælg en understøttet tidszone.",
+      "Automatic": "Automatisk",
+      "Time zone storage failed": "Tidszonen kunne ikke gemmes",
+      "Time zone": "Tidszone",
+      "Saved time zone": "Gemt tidszone",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "En offentlig udgivelse er tilgængelig. Denne controller kræver det tilsvarende tilpassede build for at bevare sine ekstra funktioner."
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -6673,7 +6701,14 @@
       "The submission could not be accepted. Please try again.": "Die Einsendung konnte nicht angenommen werden. Bitte versuchen Sie es erneut.",
       "Enter the inverter model using at most 160 characters.": "Geben Sie das Wechselrichtermodell mit höchstens 160 Zeichen ein.",
       "Submitting…": "Wird gesendet…",
-      "Inverter/firmware not supported?": "Wechselrichter oder Firmware nicht unterstützt?"
+      "Inverter/firmware not supported?": "Wechselrichter oder Firmware nicht unterstützt?",
+      "Time zone saved": "Zeitzone gespeichert",
+      "Choose a supported time zone.": "Wählen Sie eine unterstützte Zeitzone.",
+      "Automatic": "Automatisch",
+      "Time zone storage failed": "Zeitzone konnte nicht gespeichert werden",
+      "Time zone": "Zeitzone",
+      "Saved time zone": "Gespeicherte Zeitzone",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Eine öffentliche Version ist verfügbar. Dieser Controller benötigt den passenden angepassten Build, um seine zusätzlichen Funktionen zu behalten."
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -8008,7 +8043,14 @@
       "The submission could not be accepted. Please try again.": "No se ha podido aceptar el envío. Inténtelo de nuevo.",
       "Enter the inverter model using at most 160 characters.": "Introduzca el modelo de inversor con un máximo de 160 caracteres.",
       "Submitting…": "Enviando…",
-      "Inverter/firmware not supported?": "¿Su inversor o firmware no es compatible?"
+      "Inverter/firmware not supported?": "¿Su inversor o firmware no es compatible?",
+      "Time zone saved": "Zona horaria guardada",
+      "Choose a supported time zone.": "Elija una zona horaria compatible.",
+      "Automatic": "Automática",
+      "Time zone storage failed": "No se pudo guardar la zona horaria",
+      "Time zone": "Zona horaria",
+      "Saved time zone": "Zona horaria guardada",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Hay una versión pública disponible. Este controlador necesita la compilación personalizada correspondiente para conservar sus funciones adicionales."
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9343,7 +9385,14 @@
       "The submission could not be accepted. Please try again.": "L’envoi n’a pas pu être accepté. Veuillez réessayer.",
       "Enter the inverter model using at most 160 characters.": "Saisissez le modèle de convertisseur en 160 caractères maximum.",
       "Submitting…": "Envoi…",
-      "Inverter/firmware not supported?": "Votre convertisseur ou son micrologiciel n’est pas pris en charge ?"
+      "Inverter/firmware not supported?": "Votre convertisseur ou son micrologiciel n’est pas pris en charge ?",
+      "Time zone saved": "Fuseau horaire enregistré",
+      "Choose a supported time zone.": "Choisissez un fuseau horaire pris en charge.",
+      "Automatic": "Automatique",
+      "Time zone storage failed": "Impossible d’enregistrer le fuseau horaire",
+      "Time zone": "Fuseau horaire",
+      "Saved time zone": "Fuseau horaire enregistré",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Une version publique est disponible. Ce contrôleur nécessite la version personnalisée correspondante pour conserver ses fonctions supplémentaires."
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -10678,7 +10727,14 @@
       "The submission could not be accepted. Please try again.": "Non è stato possibile accettare l’invio. Riprova.",
       "Enter the inverter model using at most 160 characters.": "Inserisci il modello inverter utilizzando al massimo 160 caratteri.",
       "Submitting…": "Invio…",
-      "Inverter/firmware not supported?": "Il tuo inverter o firmware non è supportato?"
+      "Inverter/firmware not supported?": "Il tuo inverter o firmware non è supportato?",
+      "Time zone saved": "Fuso orario salvato",
+      "Choose a supported time zone.": "Scegliere un fuso orario supportato.",
+      "Automatic": "Automatico",
+      "Time zone storage failed": "Impossibile salvare il fuso orario",
+      "Time zone": "Fuso orario",
+      "Saved time zone": "Fuso orario salvato",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "È disponibile una versione pubblica. Questo controller richiede la build personalizzata corrispondente per mantenere le sue funzionalità aggiuntive."
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -12013,7 +12069,14 @@
       "The submission could not be accepted. Please try again.": "送信を受け付けられませんでした。もう一度お試しください。",
       "Enter the inverter model using at most 160 characters.": "インバーターのモデルを160文字以内で入力してください。",
       "Submitting…": "送信中…",
-      "Inverter/firmware not supported?": "お使いのインバーターまたはファームウェアが未対応ですか？"
+      "Inverter/firmware not supported?": "お使いのインバーターまたはファームウェアが未対応ですか？",
+      "Time zone saved": "タイムゾーンを保存しました",
+      "Choose a supported time zone.": "対応するタイムゾーンを選択してください。",
+      "Automatic": "自動",
+      "Time zone storage failed": "タイムゾーンを保存できませんでした",
+      "Time zone": "タイムゾーン",
+      "Saved time zone": "保存済みのタイムゾーン",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "公開版が利用可能です。このコントローラーの追加機能を維持するには、対応するカスタムビルドが必要です。"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -13348,7 +13411,14 @@
       "The submission could not be accepted. Please try again.": "De inzending kon niet worden geaccepteerd. Probeer het opnieuw.",
       "Enter the inverter model using at most 160 characters.": "Voer het omvormermodel in met maximaal 160 tekens.",
       "Submitting…": "Versturen…",
-      "Inverter/firmware not supported?": "Wordt uw omvormer of firmware niet ondersteund?"
+      "Inverter/firmware not supported?": "Wordt uw omvormer of firmware niet ondersteund?",
+      "Time zone saved": "Tijdzone opgeslagen",
+      "Choose a supported time zone.": "Kies een ondersteunde tijdzone.",
+      "Automatic": "Automatisch",
+      "Time zone storage failed": "De tijdzone kon niet worden opgeslagen",
+      "Time zone": "Tijdzone",
+      "Saved time zone": "Opgeslagen tijdzone",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Er is een openbare versie beschikbaar. Deze controller heeft de bijbehorende aangepaste build nodig om zijn extra functies te behouden."
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -14683,7 +14753,14 @@
       "The submission could not be accepted. Please try again.": "Nie udało się przyjąć zgłoszenia. Spróbuj ponownie.",
       "Enter the inverter model using at most 160 characters.": "Wpisz model falownika, używając maksymalnie 160 znaków.",
       "Submitting…": "Przesyłanie…",
-      "Inverter/firmware not supported?": "Brak obsługi falownika lub oprogramowania sprzętowego?"
+      "Inverter/firmware not supported?": "Brak obsługi falownika lub oprogramowania sprzętowego?",
+      "Time zone saved": "Zapisano strefę czasową",
+      "Choose a supported time zone.": "Wybierz obsługiwaną strefę czasową.",
+      "Automatic": "Automatycznie",
+      "Time zone storage failed": "Nie udało się zapisać strefy czasowej",
+      "Time zone": "Strefa czasowa",
+      "Saved time zone": "Zapisana strefa czasowa",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Dostępne jest wydanie publiczne. Ten kontroler wymaga odpowiedniej kompilacji niestandardowej, aby zachować dodatkowe funkcje."
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -16018,7 +16095,14 @@
       "The submission could not be accepted. Please try again.": "Não foi possível aceitar o envio. Tente novamente.",
       "Enter the inverter model using at most 160 characters.": "Introduza o modelo do inversor com um máximo de 160 caracteres.",
       "Submitting…": "A enviar…",
-      "Inverter/firmware not supported?": "O seu inversor ou firmware não é suportado?"
+      "Inverter/firmware not supported?": "O seu inversor ou firmware não é suportado?",
+      "Time zone saved": "Fuso horário guardado",
+      "Choose a supported time zone.": "Escolha um fuso horário suportado.",
+      "Automatic": "Automático",
+      "Time zone storage failed": "Não foi possível guardar o fuso horário",
+      "Time zone": "Fuso horário",
+      "Saved time zone": "Fuso horário guardado",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Está disponível uma versão pública. Este controlador precisa da compilação personalizada correspondente para manter as suas funcionalidades adicionais."
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -17353,7 +17437,14 @@
       "The submission could not be accepted. Please try again.": "Не удалось принять данные. Повторите попытку.",
       "Enter the inverter model using at most 160 characters.": "Введите модель инвертора, не более 160 символов.",
       "Submitting…": "Отправка…",
-      "Inverter/firmware not supported?": "Ваш инвертор или его прошивка не поддерживается?"
+      "Inverter/firmware not supported?": "Ваш инвертор или его прошивка не поддерживается?",
+      "Time zone saved": "Часовой пояс сохранён",
+      "Choose a supported time zone.": "Выберите поддерживаемый часовой пояс.",
+      "Automatic": "Автоматически",
+      "Time zone storage failed": "Не удалось сохранить часовой пояс",
+      "Time zone": "Часовой пояс",
+      "Saved time zone": "Сохранённый часовой пояс",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Доступна публичная версия. Этому контроллеру нужна соответствующая специальная сборка, чтобы сохранить дополнительные функции."
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -18688,7 +18779,14 @@
       "The submission could not be accepted. Please try again.": "Trimiterea nu a putut fi acceptată. Încercați din nou.",
       "Enter the inverter model using at most 160 characters.": "Introduceți modelul invertorului folosind maximum 160 de caractere.",
       "Submitting…": "Se trimite…",
-      "Inverter/firmware not supported?": "Invertorul sau firmware-ul dvs. nu este acceptat?"
+      "Inverter/firmware not supported?": "Invertorul sau firmware-ul dvs. nu este acceptat?",
+      "Time zone saved": "Fusul orar a fost salvat",
+      "Choose a supported time zone.": "Alegeți un fus orar acceptat.",
+      "Automatic": "Automat",
+      "Time zone storage failed": "Fusul orar nu a putut fi salvat",
+      "Time zone": "Fus orar",
+      "Saved time zone": "Fus orar salvat",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Este disponibilă o versiune publică. Acest controler are nevoie de versiunea personalizată corespunzătoare pentru a-și păstra funcțiile suplimentare."
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -20023,7 +20121,14 @@
       "The submission could not be accepted. Please try again.": "Inskickningen kunde inte tas emot. Försök igen.",
       "Enter the inverter model using at most 160 characters.": "Ange växelriktarmodellen med högst 160 tecken.",
       "Submitting…": "Skickar…",
-      "Inverter/firmware not supported?": "Stöds inte din växelriktare eller firmware?"
+      "Inverter/firmware not supported?": "Stöds inte din växelriktare eller firmware?",
+      "Time zone saved": "Tidszon sparad",
+      "Choose a supported time zone.": "Välj en tidszon som stöds.",
+      "Automatic": "Automatiskt",
+      "Time zone storage failed": "Det gick inte att spara tidszonen",
+      "Time zone": "Tidszon",
+      "Saved time zone": "Sparad tidszon",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "En offentlig version finns tillgänglig. Den här styrenheten behöver motsvarande specialanpassade bygge för att behålla sina extra funktioner."
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -21358,7 +21463,14 @@
       "The submission could not be accepted. Please try again.": "ไม่สามารถรับข้อมูลที่ส่งได้ โปรดลองอีกครั้ง",
       "Enter the inverter model using at most 160 characters.": "ระบุรุ่นอินเวอร์เตอร์โดยใช้ไม่เกิน 160 อักขระ",
       "Submitting…": "กำลังส่ง…",
-      "Inverter/firmware not supported?": "ยังไม่รองรับอินเวอร์เตอร์หรือเฟิร์มแวร์ของคุณใช่ไหม?"
+      "Inverter/firmware not supported?": "ยังไม่รองรับอินเวอร์เตอร์หรือเฟิร์มแวร์ของคุณใช่ไหม?",
+      "Time zone saved": "บันทึกเขตเวลาแล้ว",
+      "Choose a supported time zone.": "เลือกเขตเวลาที่รองรับ",
+      "Automatic": "อัตโนมัติ",
+      "Time zone storage failed": "ไม่สามารถบันทึกเขตเวลาได้",
+      "Time zone": "เขตเวลา",
+      "Saved time zone": "เขตเวลาที่บันทึกไว้",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "มีเวอร์ชันสาธารณะพร้อมใช้งานแล้ว คอนโทรลเลอร์นี้จำเป็นต้องใช้บิลด์แบบปรับแต่งที่ตรงกันเพื่อรักษาฟังก์ชันเพิ่มเติมไว้"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -22693,7 +22805,14 @@
       "The submission could not be accepted. Please try again.": "Gönderim kabul edilemedi. Lütfen tekrar deneyin.",
       "Enter the inverter model using at most 160 characters.": "İnvertör modelini en fazla 160 karakter kullanarak girin.",
       "Submitting…": "Gönderiliyor…",
-      "Inverter/firmware not supported?": "İnvertörünüz veya ürün yazılımınız desteklenmiyor mu?"
+      "Inverter/firmware not supported?": "İnvertörünüz veya ürün yazılımınız desteklenmiyor mu?",
+      "Time zone saved": "Saat dilimi kaydedildi",
+      "Choose a supported time zone.": "Desteklenen bir saat dilimi seçin.",
+      "Automatic": "Otomatik",
+      "Time zone storage failed": "Saat dilimi kaydedilemedi",
+      "Time zone": "Saat dilimi",
+      "Saved time zone": "Kayıtlı saat dilimi",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Herkese açık bir sürüm mevcut. Bu denetleyicinin ek özelliklerini korumak için kendisine uygun özelleştirilmiş derleme gerekir."
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -24028,7 +24147,14 @@
       "The submission could not be accepted. Please try again.": "Не вдалося прийняти дані. Спробуйте ще раз.",
       "Enter the inverter model using at most 160 characters.": "Введіть модель інвертора, не більше 160 символів.",
       "Submitting…": "Надсилання…",
-      "Inverter/firmware not supported?": "Ваш інвертор або його прошивка не підтримується?"
+      "Inverter/firmware not supported?": "Ваш інвертор або його прошивка не підтримується?",
+      "Time zone saved": "Часовий пояс збережено",
+      "Choose a supported time zone.": "Виберіть підтримуваний часовий пояс.",
+      "Automatic": "Автоматично",
+      "Time zone storage failed": "Не вдалося зберегти часовий пояс",
+      "Time zone": "Часовий пояс",
+      "Saved time zone": "Збережений часовий пояс",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "Є публічна версія. Для збереження додаткових функцій цьому контролеру потрібна відповідна спеціальна збірка."
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -25363,7 +25489,14 @@
       "The submission could not be accepted. Please try again.": "无法接受此次提交。请重试。",
       "Enter the inverter model using at most 160 characters.": "请输入逆变器型号，最多 160 个字符。",
       "Submitting…": "正在提交…",
-      "Inverter/firmware not supported?": "您的逆变器或固件尚不受支持？"
+      "Inverter/firmware not supported?": "您的逆变器或固件尚不受支持？",
+      "Time zone saved": "时区已保存",
+      "Choose a supported time zone.": "请选择受支持的时区。",
+      "Automatic": "自动",
+      "Time zone storage failed": "无法保存时区",
+      "Time zone": "时区",
+      "Saved time zone": "已保存的时区",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "已有公开发布的版本。此控制器需要匹配的定制固件版本，才能保留其附加功能。"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -26698,7 +26831,14 @@
       "The submission could not be accepted. Please try again.": "تعذّر قبول الإرسال. يُرجى المحاولة مجددًا.",
       "Enter the inverter model using at most 160 characters.": "أدخل طراز العاكس باستخدام 160 حرفًا كحد أقصى.",
       "Submitting…": "جارٍ الإرسال…",
-      "Inverter/firmware not supported?": "هل العاكس أو البرنامج الثابت لديك غير مدعوم؟"
+      "Inverter/firmware not supported?": "هل العاكس أو البرنامج الثابت لديك غير مدعوم؟",
+      "Time zone saved": "تم حفظ المنطقة الزمنية",
+      "Choose a supported time zone.": "اختر منطقة زمنية مدعومة.",
+      "Automatic": "تلقائي",
+      "Time zone storage failed": "تعذر حفظ المنطقة الزمنية",
+      "Time zone": "المنطقة الزمنية",
+      "Saved time zone": "المنطقة الزمنية المحفوظة",
+      "A public release is available. This controller needs its matching custom build to keep its extra features.": "يتوفر إصدار عام. تحتاج وحدة التحكم هذه إلى الإصدار المخصص المطابق للحفاظ على ميزاتها الإضافية."
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."
