@@ -118,12 +118,27 @@ def verify_server(firmware):
 def verify_release(value, firmware, *, draft):
     expected_url = f"https://github.com/{REPOSITORY}/releases/download/{firmware.tag}/firmware.bin"
     assets = value.get("assets", [])
+    asset_url = assets[0].get("browser_download_url", "") if len(assets) == 1 else ""
+    # GitHub has not created the final tag when a new draft is uploaded. Its
+    # asset URL temporarily uses an untagged-<hex> identifier in the same repo.
+    allowed_url = asset_url == expected_url or (draft and re.fullmatch(
+        rf"https://github\.com/{re.escape(REPOSITORY)}/releases/download/untagged-[0-9a-f]{{8,64}}/firmware\.bin",
+        asset_url) is not None)
     if (value.get("tag_name") != firmware.tag or value.get("draft") is not draft or
             len(assets) != 1 or assets[0].get("name") != "firmware.bin" or
             assets[0].get("size") != firmware.size or assets[0].get("state") != "uploaded" or
             assets[0].get("digest") != "sha256:" + firmware.sha256 or
-            assets[0].get("browser_download_url") != expected_url):
+            not allowed_url):
         raise ValueError("Release verification failed: exactly one matching firmware.bin asset is required.")
+
+
+def release_route(value):
+    """Resolve a draft by its immutable numeric ID before its tag exists."""
+    match = re.fullmatch(rf"https://api\.github\.com/repos/{re.escape(REPOSITORY)}/releases/([1-9][0-9]*)",
+                         value.get("apiUrl", ""))
+    if not match:
+        raise ValueError("Could not resolve the draft's numeric API URL in the official repository.")
+    return f"repos/{REPOSITORY}/releases/{match[1]}"
 
 
 def publish(root, firmware, notes, *, preview=False, run=command, server_check=verify_server):
@@ -151,7 +166,8 @@ def publish(root, firmware, notes, *, preview=False, run=command, server_check=v
         if preview:
             create.append("--prerelease")
         run(create, cwd=root)
-    route = f"repos/{REPOSITORY}/releases/tags/{firmware.tag}"
+    route = release_route(json.loads(run(["gh", "release", "view", firmware.tag, "--repo", REPOSITORY,
+                                          "--json", "apiUrl"], cwd=root)))
     verify_release(json.loads(run(["gh", "api", route], cwd=root)), firmware, draft=True)
     # No wildcard upload or extra attachments: publication happens only after
     # GitHub reports the exact local image as the sole asset, including its digest.

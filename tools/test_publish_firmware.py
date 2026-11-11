@@ -87,9 +87,10 @@ class PublishTest(unittest.TestCase):
                 release.validate_application(raw)
 
     def payload(self, firmware, *, draft=True, extra=False, bad_hash=False):
+        download_tag = "untagged-676167a2250f4448398d" if draft else TAG
         assets = [{"name": "firmware.bin", "size": firmware.size, "state": "uploaded",
                    "digest": "sha256:" + ("0" * 64 if bad_hash else firmware.sha256),
-                   "browser_download_url": f"https://github.com/{release.REPOSITORY}/releases/download/{TAG}/firmware.bin"}]
+                   "browser_download_url": f"https://github.com/{release.REPOSITORY}/releases/download/{download_tag}/firmware.bin"}]
         if extra:
             assets.append({"name": "SHA256SUMS.txt"})
         return {"tag_name": TAG, "draft": draft, "assets": assets}
@@ -114,7 +115,10 @@ class PublishTest(unittest.TestCase):
                 self.assertEqual(args[4], str(self.image))
                 self.assertNotIn("*", " ".join(args))
                 return ""
+            if args[:3] == ["gh", "release", "view"]:
+                return json.dumps({"apiUrl": f"https://api.github.com/repos/{release.REPOSITORY}/releases/441463957"})
             if args[:2] == ["gh", "api"]:
+                self.assertEqual(args[2], f"repos/{release.REPOSITORY}/releases/441463957")
                 published = any(call[:3] == ["gh", "release", "edit"] for call in calls)
                 return json.dumps(self.payload(firmware, draft=not published, extra=extra, bad_hash=bad_hash))
             if args[:3] == ["gh", "release", "edit"]:
@@ -135,6 +139,30 @@ class PublishTest(unittest.TestCase):
         self.assertEqual(len([arg for arg in create if arg.endswith(".bin")]), 1)
         self.assertEqual(sum(call[:2] == ["gh", "api"] for call in calls), 2)
         self.assertTrue(any(call[:3] == ["gh", "release", "edit"] for call in calls))
+
+    def test_draft_download_url_is_temporary_and_published_url_must_use_tag(self):
+        firmware = self.validate()
+        value = self.payload(firmware)
+        release.verify_release(value, firmware, draft=True)
+        value["draft"] = False
+        with self.assertRaisesRegex(ValueError, "verification"):
+            release.verify_release(value, firmware, draft=False)
+        value = self.payload(firmware)
+        value["assets"][0]["browser_download_url"] = value["assets"][0]["browser_download_url"].replace(
+            release.REPOSITORY, "someone/other-repo")
+        with self.assertRaisesRegex(ValueError, "verification"):
+            release.verify_release(value, firmware, draft=True)
+        release.verify_release(self.payload(firmware, draft=False), firmware, draft=False)
+
+    def test_draft_api_route_requires_official_host_repo_and_numeric_id(self):
+        self.assertEqual(release.release_route({"apiUrl":
+            f"https://api.github.com/repos/{release.REPOSITORY}/releases/441463957"}),
+            f"repos/{release.REPOSITORY}/releases/441463957")
+        for url in (f"https://api.github.com/repos/{release.REPOSITORY}/releases/tags/{TAG}",
+                    "https://api.github.com/repos/someone/other-repo/releases/441463957",
+                    f"https://unrelated.example/repos/{release.REPOSITORY}/releases/441463957"):
+            with self.subTest(url=url), self.assertRaisesRegex(ValueError, "numeric API"):
+                release.release_route({"apiUrl": url})
 
     def test_leaves_draft_unpublished_on_extra_attachment_or_hash_mismatch(self):
         firmware = self.validate()
