@@ -3,9 +3,21 @@
 The brain_zero web app submits a freshly read sanitized compatibility profile
 directly to `POST https://brain-zero.com/api/compatibility`. The visitor enters
 the inverter model and chooses **Submit to developer** inside the app. Progress,
-errors and the submission reference stay in the app; there is no website form.
-The main website directs visitors to **System → Inverter settings → Submit to
-developer**. Public GitHub issues remain an optional developer contribution path.
+errors and the submission reference stay in the app.
+
+Visitors with a current `.rvsc` backup can also use `/compatibility/`. The browser
+reads and sanitizes the file locally, displays the detected firmware/voltage,
+then submits only `{model, consent: true, profile}` to the same endpoint. It never
+sends the original bytes or filename and does not request contact details. The
+page displays the receipt without polling or automatically retrying ambiguous
+network failures. Public GitHub issues remain an optional developer path for
+sanitized JSON only.
+
+Run `python -B tools/build_hosted_sanitizer.py` after modifying the standalone
+sanitizer. It builds the hosted `sanitizer.js` from the exact same parser source.
+Deploy all files in `public/compatibility/` along with the homepage link. The
+existing nginx same-origin script/style/connect policy supports this page; no
+inline script or external libraries are needed.
 
 The public intake endpoint accepts browser CORS requests without credentials so
 the controller’s local web interface can use HTTPS directly. Its envelope contains

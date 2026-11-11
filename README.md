@@ -86,9 +86,15 @@ With brain_zero connected to your inverter, open **System → Inverter settings*
 
 The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Submissions and their reports are stored privately. No contact details are requested in the app.
 
-### Submit a sanitized profile through an issue
+### Submit a profile from a .rvsc backup
 
-You can contribute before buying a brain_zero. Convert a current `.rvsc` backup **on your own computer**, then attach only the resulting `compatibility.json` to the [compatibility issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). Alternatively, download `compatibility.json` from **System → Inverter settings → Download compatibility profile** in brain_zero.
+You can contribute before buying a brain_zero. Open [the compatibility submission page](https://brain-zero.com/compatibility/), select a current `.rvsc` backup, enter the inverter model and choose **Submit profile**. Your browser converts the backup locally and sends only the sanitized profile directly to our private submission service. The original file and its filename stay on your computer. You do not need to download a tool or use a GitHub account.
+
+The sanitizer removes serial numbers, unit IDs, authorization data, timestamps, saved settings and Assistant contents. The server validates the profile again before queuing it for VEConfigure analysis. Keep the submission reference shown after a successful upload. See [how to obtain a current backup](#download-a-current-rvsc-backup).
+
+### Optional GitHub issue submission
+
+For a public developer contribution, attach only a sanitized `compatibility.json` to the [compatibility issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). Download it from **System → Inverter settings → Download compatibility profile** in brain_zero, or use the local browser sanitizer below. For direct private submission of a `.rvsc` backup, use [brain-zero.com](https://brain-zero.com/compatibility/).
 
 **Do not attach the original `.rvsc` or a ZIP.** A backup contains your inverter serial number and configuration; files saved after unlocking protected settings may also contain settings-authorization data. This authorizes protected inverter settings, rather than your VRM login, Wi-Fi password or MQTT credentials. The sanitizer removes serial numbers, unit IDs, authorization data, timestamps, saved settings and Assistant contents before you upload anything.
 
@@ -103,7 +109,7 @@ For a system connected to VRM through a GX device such as a Cerbo GX:
 1. Check that the GX device is online in VRM and its **Settings → VRM online portal → VRM Portal** access mode is **Full**.
 2. Open your installation in [VRM](https://vrm.victronenergy.com/), select **Device list**, and open **Remote VEConfigure** at the bottom.
 3. Choose **Download** and wait for the system to read the inverter's current settings.
-4. Save the downloaded `.rvsc` file unchanged on your computer. Convert it with the [local browser sanitizer](tools/rvsc-sanitizer.html), then attach only `compatibility.json` to your issue. Keep the original backup local.
+4. Save the downloaded `.rvsc` file unchanged on your computer. Select it on [the compatibility submission page](https://brain-zero.com/compatibility/) to sanitize and submit it directly. Keep the original backup local.
 
 Download immediately before submitting, using the inverter's currently installed firmware. Repeat the download after firmware or settings changes. You only need to download the settings for this submission. See [Victron's Remote VEConfigure instructions](https://www.victronenergy.com/media/pg/VRM_Portal_manual/en/remote-veconfigure.html).
 

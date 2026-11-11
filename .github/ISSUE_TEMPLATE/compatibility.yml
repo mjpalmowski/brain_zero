@@ -7,6 +7,8 @@ body:
       value: |
         Attach only a sanitized `compatibility.json`. You can contribute before buying a brain_zero by converting a fresh `.rvsc` backup locally first.
 
+        **Have a .rvsc backup?** [Submit it through brain-zero.com](https://brain-zero.com/compatibility/). Your browser sanitizes it locally and sends only the profile to our private service. The original file never goes to our server or GitHub, and you do not need to download a tool or use a GitHub account. This issue form is an optional public route for an existing sanitized JSON profile.
+
         **Using a .rvsc backup:** Download the [local browser sanitizer](https://github.com/mjpalmowski/brain_zero/blob/main/tools/rvsc-sanitizer.html) with **Download raw file**, open the saved HTML file in your browser, and select your `.rvsc`. It removes identifying/private fields on your computer and saves `compatibility.json`. It makes no network requests. See the [fresh-backup instructions](https://github.com/mjpalmowski/brain_zero#download-a-current-rvsc-backup).
 
         **Using brain_zero:** Open **System → Inverter settings → Download compatibility profile** and attach `compatibility.json`.
