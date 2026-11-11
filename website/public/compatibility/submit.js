@@ -32,7 +32,7 @@ if (typeof document !== 'undefined') {
     submit.disabled = busy || submitted || !valid;
   };
   choose.addEventListener('click', () => backup.click());
-  model.addEventListener('input', update);
+  model.addEventListener('change', update);
   consent.addEventListener('change', update);
   backup.addEventListener('change', async () => {
     sanitized = null; submitted = false; summary.hidden = true; submitStatus.textContent = ''; submitStatus.className = 'status';

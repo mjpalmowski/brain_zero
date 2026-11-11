@@ -17,11 +17,11 @@ section { margin-top: 24px; padding: 25px 28px; border: 1px solid var(--line); b
 .step { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: #e5ede1; font-size: 14px; font-weight: 700; }
 h2 { margin: 0; font-size: 20px; line-height: 1.3; letter-spacing: -.02em; }
 section > p { font-size: 14px; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button { display: inline-block; padding: 12px 19px; border: 1px solid var(--green); border-radius: 7px; background: var(--green); color: white; font-size: 14px; font-weight: 650; cursor: pointer; touch-action: manipulation; }
 button:disabled { background: #eef1ec; border-color: #dde3d9; color: #6c7868; cursor: default; }
-button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #77a382; outline-offset: 4px; }
-input[type="text"] { display: block; width: 100%; margin-top: 7px; padding: 10px 12px; border: 1px solid #aebba7; border-radius: 6px; background: #fff; color: var(--ink); font-size: 15px; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #77a382; outline-offset: 4px; }
+select { display: block; width: 100%; margin-top: 7px; padding: 10px 12px; border: 1px solid #aebba7; border-radius: 6px; background: #fff; color: var(--ink); font-size: 15px; }
 label[for="model"] { display: block; margin-top: 21px; font-size: 14px; font-weight: 650; }
 .help { margin: 5px 0 18px; color: var(--muted); font-size: 12px; }
 .consent { display: flex; align-items: flex-start; gap: 10px; margin: 22px 0; font-size: 14px; cursor: pointer; }
