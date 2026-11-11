@@ -1,6 +1,6 @@
 # Build a 5 V brain_zero with an ESP32-S3 development board
 
-Build an externally powered brain_zero using an ESP32-S3-WROOM development board, a manual-direction RS485 module and a numbered RJ45 breakout. Power comes from a 5 V USB supply. The development board supplies 3.3 V to the RS485 module; only three contacts connect to the inverter's VE.Bus socket.
+Build an externally powered brain_zero using an ESP32-S3-WROOM development board, a manual-direction RS485 module and a numbered RJ45 breakout. Use an **isolated, regulated 5 V supply**, for example a good-quality, safety-approved mains-powered USB adapter. The development board supplies 3.3 V to the RS485 module; only three contacts connect to the inverter's VE.Bus socket.
 
 The wiring below matches Rev C's schematic and current firmware. Third-party development boards and RS485 breakouts vary; check your chosen assembly on the bench before connecting it to the inverter. Inverter support follows the [main compatibility table](../README.md#multiplus-ii-compatibility).
 
@@ -11,7 +11,7 @@ The wiring below matches Rev C's schematic and current firmware. Third-party dev
 | ESP32-S3 development board | A complete DevKitC-1-style board with an ESP32-S3-WROOM-1 module, **8 MB quad-SPI flash**, onboard 3.3 V regulator, native USB, BOOT and RESET buttons, and accessible GPIO16, GPIO17 and GPIO18. The firmware's default PlatformIO target is the N8 configuration; PSRAM is not used. |
 | RS485 module | A **THVD1450** breakout operated at **3.3 V**, with separate **D/DI, R/RO, DE, /RE, A and B** connections. This is the transceiver used on Rev C. Choose a board whose bus termination and bias resistors can be disabled. |
 | RJ45 breakout and cable | A plain, unmagnetised, numbered 8P8C screw-terminal breakout and a straight-through network cable. |
-| Power | A regulated **5 V USB supply rated for at least 1 A**, plus a USB data cable for programming. A USB power bank can supply the finished device. |
+| Power | An **isolated, regulated 5 V USB supply rated for at least 1 A**, such as a good-quality, safety-approved mains-powered USB adapter. A standalone USB power bank is another option. Use a USB data cable for programming. |
 | Small parts | Two 10 kΩ resistors and one 100 nF ceramic capacitor, if the module does not already provide the connections shown below. |
 | Assembly tools | Short insulated wires, soldering equipment or secure screw terminals, a multimeter and an insulating enclosure. |
 
@@ -33,7 +33,7 @@ Disable the module's **120 Ω A-to-B termination** and any external **A/B pull-u
 
 | From | To | Purpose |
 | --- | --- | --- |
-| 5 V USB supply | Development board's USB power input | Powers the board and its onboard regulator |
+| Isolated 5 V USB supply | Development board's USB power input | Powers the board and its onboard regulator |
 | Development board **3V3** | RS485 **VCC** | 3.3 V transceiver supply |
 | Development board **GND** | RS485 **GND** and RJ45 **contact 3** | Common signal reference |
 | **GPIO17** | RS485 **D / DI** | UART transmit data |
@@ -50,7 +50,7 @@ Leave RJ45 contacts **1, 2, 6, 7 and 8 unconnected in this build**. Contact 2 is
 
 Use the board's **GPIO numbers**, rather than counting header positions. Pins printed simply **TX** and **RX** on many S3 boards are the separate programming UART, not GPIO17 and GPIO18. Follow the transceiver IC's A/B polarity if a breakout uses different `+`/`−` labels.
 
-Keep the GPIO wiring short and retain the cable's twisted pair for contacts 4 and 5. This is a non-isolated interface: USB ground and VE.Bus contact 3 are connected. Program it on the bench with VE.Bus disconnected, then operate it from a suitably isolated USB power supply or power bank.
+Keep the GPIO wiring short and retain the cable's twisted pair for contacts 4 and 5. This is a non-isolated interface: USB ground and VE.Bus contact 3 are connected. **The external 5 V supply must provide galvanic isolation**, for example a good-quality, safety-approved mains-powered USB adapter. Program it on the bench with VE.Bus disconnected, then use the isolated supply or a standalone power bank for operation.
 
 ## Assemble and check the circuit
 
@@ -60,7 +60,7 @@ Keep the GPIO wiring short and retain the cable's twisted pair for contacts 4 an
 4. Check the RJ45 breakout's contacts 3, 4 and 5 against the cable. Check for supply shorts and unintended connections to the unused contacts.
 5. Power the development board through USB, with VE.Bus still disconnected. Measure approximately 3.3 V between the module's VCC and GND.
 
-For an external wired 5 V supply, use the development board's **5V** and **GND** inputs instead of USB power. Disconnect that supply before attaching a computer's USB cable. Never apply 5 V to the board's **3V3** pin or to a GPIO.
+For an external wired 5 V supply, use the development board's **5V** and **GND** inputs instead of USB power. **That supply must also be isolated.** Disconnect it before attaching a computer's USB cable. Never apply 5 V to the board's **3V3** pin or to a GPIO.
 
 ## Build and flash brain_zero
 
@@ -122,7 +122,7 @@ The native USB port may change after flashing. Close the monitor before the next
 
 ## Connect to the inverter
 
-1. Disconnect the programming computer. Power the device from its operating USB supply, then use the straight-through cable to connect the breakout to the inverter's **VE.Bus** socket. The similar-looking Ethernet, VE.Can and battery BMS sockets are different interfaces.
+1. Disconnect the programming computer. Power the device from its **isolated 5 V USB supply**, then use the straight-through cable to connect the breakout to the inverter's **VE.Bus** socket. The similar-looking Ethernet, VE.Can and battery BMS sockets are different interfaces.
 2. Leave **Run ESS from this ESP32** off during the first checks. Open **System → Diagnostics** and verify that inverter frames arrive, the detected model and firmware are correct, and the live voltage readings match your system.
 3. Before enabling ESS, check the [supported model and firmware list](../README.md#multiplus-ii-compatibility) and make this device the sole controller for the standalone inverter. Remove the previous GX/MK3 controller from that VE.Bus connection when handing over control.
 4. Configure ESS deliberately in the web interface, then check acknowledgements and the resulting operating state in Diagnostics. For an unsupported inverter/firmware combination, use **System → Inverter settings → Submit to developer**.
