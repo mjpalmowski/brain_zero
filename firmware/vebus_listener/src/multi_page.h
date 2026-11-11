@@ -1,4 +1,4 @@
-// Multi settings file workflow (/multi). Downloads settings or a compatibility profile,
+// Inverter settings file workflow (/multi). Downloads settings or a compatibility profile,
 // previews uploaded settings, and applies them only on confirmation with inverter readback.
 // Setting labels in N derive from kylehart/mk2vsc, docs/FIELDS.md (MIT License),
 // Copyright (c) 2026 Kyle Hart; see third_party/mk2vsc_LICENSE.txt.
@@ -9,7 +9,7 @@
 
 static const char MULTI_HTML[] PROGMEM = R"HTML(<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Multi settings · brain_zero</title><link rel="icon" type="image/svg+xml" href="/brand/brain-zero-icon.svg"><link rel="stylesheet" href="/brand/brand.css">
+<title>Inverter settings · brain_zero</title><link rel="icon" type="image/svg+xml" href="/brand/brain-zero-icon.svg"><link rel="stylesheet" href="/brand/brand.css">
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--ink:#1d2430;--muted:#586574;--line:#e2e5ea;--good:#167044;--warn:#965b00;--bad:#b42318;--a:#2463eb;--soft:#eef4ff}
 @media(prefers-color-scheme:dark){:root{--bg:#101318;--card:#191e25;--ink:#e6e9ee;--muted:#a1adbb;--line:#303945;--good:#65d69a;--warn:#edbd65;--bad:#ff9b92;--a:#8bb8ff;--soft:#202c3e}}
@@ -35,7 +35,7 @@ BRAIN_ZERO_NAV
 R"HTML(
 
 <main>
-<h1>Multi settings</h1><p class="intro">Read your MultiPlus-II setup or back up its settings.</p>
+<h1>Inverter settings</h1><p class="intro">Read your MultiPlus-II setup or back up its settings.</p>
 <div class="device" id="device" role="status">Connecting to brain_zero…</div>
 <section class="card" aria-labelledby="setup-title">
 <h2 id="setup-title">Inverter setup</h2>

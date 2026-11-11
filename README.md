@@ -1,6 +1,6 @@
 # brain_zero
 
-brain_zero is a Wi-Fi dongle for Victron MultiPlus-II inverter/chargers. It plugs into the inverter’s VE.Bus port and gives you a local dashboard. On supported firmware, it can also control ESS and read or write VEConfigure settings.
+brain_zero is a Wi-Fi dongle for Victron MultiPlus-II inverter/chargers. It plugs into the inverter’s VE.Bus port and gives you a local dashboard. On supported firmware, it can also control ESS and read or write stored inverter settings.
 
 <img src="images/brain-zero-on-inverter.webp" alt="brain_zero in its black enclosure on top of a blue Victron inverter, connected by a yellow VE.Bus cable" width="500">
 
@@ -19,10 +19,10 @@ The screenshots show the local web interface with example data. Select a screens
 | Grid setpoint, charge and discharge limits, and scheduled charge levels. | Operating mode, AC input current limit, and feedback from VE.Bus. |
 | [![ESS settings with scheduled charge levels](images/ess.png)](images/ess.png) | [![Inverter status and controls](images/inverter.png)](images/inverter.png) |
 
-| Multi settings | Diagnostics |
+| Inverter settings | Diagnostics |
 | --- | --- |
 | Read the inverter setup and download or upload a VEConfigure settings file. | See live measurements, ESS decisions, and connection health. |
-| [![Multi settings with VEConfigure download and upload](images/multi-settings.png)](images/multi-settings.png) | [![Diagnostics showing readings and ESS decisions](images/diagnostics.png)](images/diagnostics.png) |
+| [![Inverter settings with backup and restore](images/multi-settings.png)](images/multi-settings.png) | [![Diagnostics showing readings and ESS decisions](images/diagnostics.png)](images/diagnostics.png) |
 
 ## MultiPlus-II compatibility
 
@@ -30,11 +30,11 @@ These profiles are for standalone 230 V units. Check the full seven-digit VE.Bus
 
 | Model | Firmware | Test coverage |
 | --- | --- | --- |
-| MultiPlus-II 48/5000/70-50 | `2623563` | ESS verified on physical hardware. VEConfigure settings writes supported. |
+| MultiPlus-II 48/5000/70-50 | `2623563` | ESS verified on physical hardware. Stored inverter settings writes supported. |
 | MultiPlus-II 48/5000/70-50 | `2623556` | ESS tested in replay. |
-| MultiPlus-II 48/3000/35-32 | `2629556` | ESS and VEConfigure settings writes tested in simulation. |
-| MultiPlus-II 24/3000/70-32 | `2611552` | ESS and VEConfigure settings writes tested in simulation. |
-| MultiPlus-II 48/4k5/55-32 | `2601560` | ESS and VEConfigure settings writes tested in simulation. |
+| MultiPlus-II 48/3000/35-32 | `2629556` | ESS and stored inverter settings writes tested in simulation. |
+| MultiPlus-II 24/3000/70-32 | `2611552` | ESS and stored inverter settings writes tested in simulation. |
+| MultiPlus-II 48/4k5/55-32 | `2601560` | ESS and stored inverter settings writes tested in simulation. |
 
 ### Firmware we’d like to support
 
@@ -72,9 +72,9 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 
 ## Share a compatibility profile
 
-brain_zero can create a shareable compatibility profile directly from your inverter. We aim to add support within **48 hours** of receiving a valid `compatibility.json`, once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware.
+brain_zero can create a shareable compatibility profile directly from your inverter. We aim to add support within **48 hours** of receiving a valid `compatibility.json`, once we’ve verified ESS control and stored inverter settings writes for your exact model and firmware.
 
-1. With brain_zero connected to your inverter, open **System → VEConfigure** and select **Download compatibility profile**. This reads the inverter and saves `compatibility.json` directly to your computer.
+1. With brain_zero connected to your inverter, open **System → Inverter settings** and select **Download compatibility profile**. This reads the inverter and saves `compatibility.json` directly to your computer.
 2. Upload the file at [brain-zero.com/compatibility](https://brain-zero.com/compatibility/), enter your inverter model, and submit. No GitHub account is needed. New builds also have **Submit to developer**, which opens the form and transfers a fresh profile for review.
 
 The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Server submissions and their reports are stored privately. Contact email is optional.

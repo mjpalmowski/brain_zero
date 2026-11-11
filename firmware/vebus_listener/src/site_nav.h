@@ -13,7 +13,7 @@
     "<div class='site-nav-links'>" \
     "<a href='/'>Overview</a><a href='/inverter'>Inverter</a><a href='/ess'>ESS</a><a href='/settings'>Settings</a>" \
     "<details class='site-nav-group' name='brain-zero-nav'><summary>System</summary>" \
-    "<div class='site-nav-menu'><a href='/multi'>VEConfigure</a>" \
+    "<div class='site-nav-menu'><a href='/multi'>Inverter settings</a>" \
     "<a href='/diagnostics'>Diagnostics</a>" \
     "<a href='/firmware'>Firmware update</a></div></details>" \
     "</div></nav>" \

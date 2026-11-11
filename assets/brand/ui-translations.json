@@ -431,6 +431,8 @@
     "Inverter firmware could not be verified",
     "Inverter only",
     "Inverter overload",
+    "Inverter settings",
+    "Inverter settings · brain_zero",
     "Inverter state",
     "Inverter status overflow",
     "Inverter status unavailable",
@@ -2638,7 +2640,9 @@
       "Open the submission page and upload compatibility.json.": "Maak die indieningsbladsy oop en laai compatibility.json op.",
       "Preparing the submission…": "Besig om die indiening voor te berei…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Dien jou versoenbaarheidsprofiel by brain-zero.com in. Geen GitHub-rekening is nodig nie.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Die indieningsbladsy het nie gereageer nie. Laai compatibility.json af en laai dit op brain-zero.com op."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Die indieningsbladsy het nie gereageer nie. Laai compatibility.json af en laai dit op brain-zero.com op.",
+      "Inverter settings": "Omsetterinstellings",
+      "Inverter settings · brain_zero": "Omsetterinstellings · brain_zero"
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -3958,7 +3962,9 @@
       "Open the submission page and upload compatibility.json.": "Otevřete stránku pro odeslání a nahrajte compatibility.json.",
       "Preparing the submission…": "Připravuje se odeslání…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Odešlete svůj profil kompatibility na brain-zero.com. Účet GitHub není potřeba.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Stránka pro odeslání neodpověděla. Stáhněte compatibility.json a nahrajte jej na brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Stránka pro odeslání neodpověděla. Stáhněte compatibility.json a nahrajte jej na brain-zero.com.",
+      "Inverter settings": "Nastavení měniče",
+      "Inverter settings · brain_zero": "Nastavení měniče · brain_zero"
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5278,7 +5284,9 @@
       "Open the submission page and upload compatibility.json.": "Åbn indsendelsessiden, og upload compatibility.json.",
       "Preparing the submission…": "Forbereder indsendelsen…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Indsend din kompatibilitetsprofil på brain-zero.com. En GitHub-konto er ikke nødvendig.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Indsendelsessiden svarede ikke. Download compatibility.json, og upload filen på brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Indsendelsessiden svarede ikke. Download compatibility.json, og upload filen på brain-zero.com.",
+      "Inverter settings": "Inverterindstillinger",
+      "Inverter settings · brain_zero": "Inverterindstillinger · brain_zero"
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -6598,7 +6606,9 @@
       "Open the submission page and upload compatibility.json.": "Öffnen Sie die Seite zum Einreichen und laden Sie compatibility.json hoch.",
       "Preparing the submission…": "Einreichung wird vorbereitet…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Senden Sie Ihr Kompatibilitätsprofil an brain-zero.com. Ein GitHub-Konto ist dafür nicht erforderlich.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Die Seite zum Einreichen hat nicht geantwortet. Laden Sie compatibility.json herunter und auf brain-zero.com hoch."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Die Seite zum Einreichen hat nicht geantwortet. Laden Sie compatibility.json herunter und auf brain-zero.com hoch.",
+      "Inverter settings": "Wechselrichtereinstellungen",
+      "Inverter settings · brain_zero": "Wechselrichtereinstellungen · brain_zero"
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -7918,7 +7928,9 @@
       "Open the submission page and upload compatibility.json.": "Abra la página de envío y cargue compatibility.json.",
       "Preparing the submission…": "Preparando el envío…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Envíe su perfil de compatibilidad a brain-zero.com. No necesita una cuenta de GitHub.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La página de envío no ha respondido. Descargue compatibility.json y cárguelo en brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La página de envío no ha respondido. Descargue compatibility.json y cárguelo en brain-zero.com.",
+      "Inverter settings": "Ajustes del inversor",
+      "Inverter settings · brain_zero": "Ajustes del inversor · brain_zero"
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9238,7 +9250,9 @@
       "Open the submission page and upload compatibility.json.": "Ouvrez la page d’envoi et téléversez compatibility.json.",
       "Preparing the submission…": "Préparation de l’envoi…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Envoyez votre profil de compatibilité sur brain-zero.com. Aucun compte GitHub n’est nécessaire.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La page d’envoi n’a pas répondu. Téléchargez compatibility.json et téléversez-le sur brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La page d’envoi n’a pas répondu. Téléchargez compatibility.json et téléversez-le sur brain-zero.com.",
+      "Inverter settings": "Paramètres du convertisseur",
+      "Inverter settings · brain_zero": "Paramètres du convertisseur · brain_zero"
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -10558,7 +10572,9 @@
       "Open the submission page and upload compatibility.json.": "Apra la pagina di invio e carichi compatibility.json.",
       "Preparing the submission…": "Preparazione dell’invio…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Invii il profilo di compatibilità a brain-zero.com. Non serve un account GitHub.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La pagina di invio non ha risposto. Scarichi compatibility.json e lo carichi su brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La pagina di invio non ha risposto. Scarichi compatibility.json e lo carichi su brain-zero.com.",
+      "Inverter settings": "Impostazioni inverter",
+      "Inverter settings · brain_zero": "Impostazioni inverter · brain_zero"
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -11878,7 +11894,9 @@
       "Open the submission page and upload compatibility.json.": "送信ページを開き、compatibility.json をアップロードしてください。",
       "Preparing the submission…": "送信を準備しています…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "互換性プロファイルを brain-zero.com に送信します。GitHub アカウントは不要です。",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "送信ページから応答がありません。compatibility.json をダウンロードし、brain-zero.com にアップロードしてください。"
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "送信ページから応答がありません。compatibility.json をダウンロードし、brain-zero.com にアップロードしてください。",
+      "Inverter settings": "インバーター設定",
+      "Inverter settings · brain_zero": "インバーター設定 · brain_zero"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -13198,7 +13216,9 @@
       "Open the submission page and upload compatibility.json.": "Open de inzendpagina en upload compatibility.json.",
       "Preparing the submission…": "De inzending wordt voorbereid…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Verstuur uw compatibiliteitsprofiel via brain-zero.com. Een GitHub-account is niet nodig.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "De inzendpagina heeft niet gereageerd. Download compatibility.json en upload het op brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "De inzendpagina heeft niet gereageerd. Download compatibility.json en upload het op brain-zero.com.",
+      "Inverter settings": "Omvormerinstellingen",
+      "Inverter settings · brain_zero": "Omvormerinstellingen · brain_zero"
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -14518,7 +14538,9 @@
       "Open the submission page and upload compatibility.json.": "Otwórz stronę przesyłania i prześlij plik compatibility.json.",
       "Preparing the submission…": "Przygotowywanie zgłoszenia…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Prześlij profil zgodności na brain-zero.com. Konto GitHub nie jest potrzebne.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Strona przesyłania nie odpowiedziała. Pobierz compatibility.json i prześlij go na brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Strona przesyłania nie odpowiedziała. Pobierz compatibility.json i prześlij go na brain-zero.com.",
+      "Inverter settings": "Ustawienia falownika",
+      "Inverter settings · brain_zero": "Ustawienia falownika · brain_zero"
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -15838,7 +15860,9 @@
       "Open the submission page and upload compatibility.json.": "Abra a página de envio e carregue compatibility.json.",
       "Preparing the submission…": "A preparar o envio…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Envie o seu perfil de compatibilidade para brain-zero.com. Não precisa de uma conta GitHub.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "A página de envio não respondeu. Transfira compatibility.json e carregue-o em brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "A página de envio não respondeu. Transfira compatibility.json e carregue-o em brain-zero.com.",
+      "Inverter settings": "Definições do inversor",
+      "Inverter settings · brain_zero": "Definições do inversor · brain_zero"
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -17158,7 +17182,9 @@
       "Open the submission page and upload compatibility.json.": "Откройте страницу отправки и загрузите compatibility.json.",
       "Preparing the submission…": "Подготовка к отправке…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Отправьте профиль совместимости на brain-zero.com. Учётная запись GitHub не требуется.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Страница отправки не ответила. Скачайте compatibility.json и загрузите его на brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Страница отправки не ответила. Скачайте compatibility.json и загрузите его на brain-zero.com.",
+      "Inverter settings": "Настройки инвертора",
+      "Inverter settings · brain_zero": "Настройки инвертора · brain_zero"
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -18478,7 +18504,9 @@
       "Open the submission page and upload compatibility.json.": "Deschideți pagina de trimitere și încărcați compatibility.json.",
       "Preparing the submission…": "Se pregătește trimiterea…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Trimiteți profilul de compatibilitate pe brain-zero.com. Nu este necesar un cont GitHub.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Pagina de trimitere nu a răspuns. Descărcați compatibility.json și încărcați-l pe brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Pagina de trimitere nu a răspuns. Descărcați compatibility.json și încărcați-l pe brain-zero.com.",
+      "Inverter settings": "Setări invertor",
+      "Inverter settings · brain_zero": "Setări invertor · brain_zero"
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -19798,7 +19826,9 @@
       "Open the submission page and upload compatibility.json.": "Öppna sidan för inskickning och ladda upp compatibility.json.",
       "Preparing the submission…": "Förbereder inskickningen…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Skicka din kompatibilitetsprofil via brain-zero.com. Inget GitHub-konto behövs.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Sidan för inskickning svarade inte. Hämta compatibility.json och ladda upp filen på brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Sidan för inskickning svarade inte. Hämta compatibility.json och ladda upp filen på brain-zero.com.",
+      "Inverter settings": "Växelriktarinställningar",
+      "Inverter settings · brain_zero": "Växelriktarinställningar · brain_zero"
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -21118,7 +21148,9 @@
       "Open the submission page and upload compatibility.json.": "เปิดหน้าส่งข้อมูลและอัปโหลด compatibility.json",
       "Preparing the submission…": "กำลังเตรียมการส่งข้อมูล…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "ส่งโปรไฟล์ความเข้ากันได้ของคุณไปที่ brain-zero.com โดยไม่ต้องมีบัญชี GitHub",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "หน้าส่งข้อมูลไม่ตอบสนอง ดาวน์โหลด compatibility.json แล้วอัปโหลดที่ brain-zero.com"
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "หน้าส่งข้อมูลไม่ตอบสนอง ดาวน์โหลด compatibility.json แล้วอัปโหลดที่ brain-zero.com",
+      "Inverter settings": "การตั้งค่าอินเวอร์เตอร์",
+      "Inverter settings · brain_zero": "การตั้งค่าอินเวอร์เตอร์ · brain_zero"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -22438,7 +22470,9 @@
       "Open the submission page and upload compatibility.json.": "Gönderim sayfasını açın ve compatibility.json dosyasını yükleyin.",
       "Preparing the submission…": "Gönderim hazırlanıyor…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Uyumluluk profilinizi brain-zero.com üzerinden gönderin. GitHub hesabı gerekmez.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Gönderim sayfası yanıt vermedi. compatibility.json dosyasını indirin ve brain-zero.com üzerinden yükleyin."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Gönderim sayfası yanıt vermedi. compatibility.json dosyasını indirin ve brain-zero.com üzerinden yükleyin.",
+      "Inverter settings": "İnvertör ayarları",
+      "Inverter settings · brain_zero": "İnvertör ayarları · brain_zero"
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -23758,7 +23792,9 @@
       "Open the submission page and upload compatibility.json.": "Відкрийте сторінку надсилання та завантажте compatibility.json.",
       "Preparing the submission…": "Підготовка до надсилання…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Надішліть профіль сумісності на brain-zero.com. Обліковий запис GitHub не потрібен.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Сторінка надсилання не відповіла. Збережіть compatibility.json і завантажте його на brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Сторінка надсилання не відповіла. Збережіть compatibility.json і завантажте його на brain-zero.com.",
+      "Inverter settings": "Налаштування інвертора",
+      "Inverter settings · brain_zero": "Налаштування інвертора · brain_zero"
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -25078,7 +25114,9 @@
       "Open the submission page and upload compatibility.json.": "打开提交页面并上传 compatibility.json。",
       "Preparing the submission…": "正在准备提交…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "在 brain-zero.com 上提交您的兼容性配置文件，无需 GitHub 帐号。",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "提交页面未响应。请下载 compatibility.json 并上传到 brain-zero.com。"
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "提交页面未响应。请下载 compatibility.json 并上传到 brain-zero.com。",
+      "Inverter settings": "逆变器设置",
+      "Inverter settings · brain_zero": "逆变器设置 · brain_zero"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -26398,7 +26436,9 @@
       "Open the submission page and upload compatibility.json.": "افتح صفحة الإرسال وارفع compatibility.json.",
       "Preparing the submission…": "جارٍ التحضير للإرسال…",
       "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "أرسل ملف التوافق إلى brain-zero.com. لا تحتاج إلى حساب GitHub.",
-      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "لم تستجب صفحة الإرسال. نزّل compatibility.json وارفعه على brain-zero.com."
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "لم تستجب صفحة الإرسال. نزّل compatibility.json وارفعه على brain-zero.com.",
+      "Inverter settings": "إعدادات العاكس",
+      "Inverter settings · brain_zero": "إعدادات العاكس · brain_zero"
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."
