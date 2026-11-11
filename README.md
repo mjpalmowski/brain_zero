@@ -90,7 +90,7 @@ The profile includes firmware and settings limits for testing. It leaves out you
 
 You can contribute before buying a brain_zero. Put one current `.rvsc` backup in a ZIP and attach it to the [compatibility issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub accepts ZIP attachments; keep the `.rvsc` file inside unchanged. You can also attach `compatibility.json` from **System → Inverter settings → Download compatibility profile** in brain_zero.
 
-Issues and attachments are public. A `.rvsc` backup can contain serial numbers, access credentials and saved settings. Use a sanitized `compatibility.json` if you prefer to leave those out.
+Issues and attachments are public. A `.rvsc` backup contains your inverter serial number and configuration. Files saved after unlocking protected settings in VEConfigure may also contain **settings-authorization data**. This authorizes protected inverter settings; it is **not your VRM login, Wi-Fi password or MQTT credentials**. A sanitized `compatibility.json` leaves out the serial number, saved settings and any authorization data.
 
 #### Download a current .rvsc backup
 

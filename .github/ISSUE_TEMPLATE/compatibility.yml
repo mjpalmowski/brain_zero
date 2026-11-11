@@ -11,7 +11,7 @@ body:
 
         For a sanitized alternative, open **System → Inverter settings → Download compatibility profile** in brain_zero and attach `compatibility.json`.
 
-        GitHub issues and attachments are public. A `.rvsc` backup can contain serial numbers, access credentials and saved settings. Review your file before sharing it.
+        GitHub issues and attachments are public. A `.rvsc` backup contains your inverter serial number and configuration. Files saved after unlocking protected settings in VEConfigure may also contain **settings-authorization data**. This authorizes protected inverter settings; it is **not your VRM login, Wi-Fi password or MQTT credentials**. Review your file before sharing it.
   - type: input
     id: inverter
     attributes:
