@@ -220,6 +220,8 @@ class Requester {
         int64_t started = -1, finished = -1;
         Setting s[SETTINGS];
     };
+    // Full backups are read-only and deliberately do not require a qualified
+    // write/ESS profile. Short setup inspection has its own identity checks.
     bool read_settings(int64_t now, bool inspection = false);
     bool inspection_ready(int64_t now) const;
     const SettingsRead &settings() const { return settings_; }

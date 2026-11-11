@@ -20,6 +20,7 @@ using vebus::Requester;
 constexpr size_t MAX_SIZE = 12288;  // 6560 bytes on this Multi
 
 // Whether the read holds everything the file needs; if not, *why says what is missing.
+// This checks backup completeness, independently of model/firmware write qualification.
 bool ready(const Requester::SettingsRead &r, const char **why);
 
 // The file, stamped as saved at `unix_time`: its size, or 0 if the read isn't ready or `cap` is short.

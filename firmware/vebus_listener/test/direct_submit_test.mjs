@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {Blob} from 'node:buffer';
 import vm from 'node:vm';
 
 const header = readFileSync(new URL('../src/multi_page.h', import.meta.url), 'utf8');
@@ -15,7 +16,9 @@ const upload = {state: 'empty', busy: false, check: {settings: [], assistants: f
   read: {active: false}, bus: {master: true}};
 
 function fixture(options = {}) {
-  const elements = new Map(), calls = [], timers = new Map();
+  const elements = new Map(), calls = [], timers = new Map(), downloads = [];
+  const settings = {...data, ...options.settings, setup: {...data.setup, ...options.settings?.setup}};
+  const backup = new Blob([new Uint8Array([0x00, 0x82, 0xFE, 0xFF, 0x56, 0x45])], {type: 'application/octet-stream'});
   let nextTimer = 0;
   function element(id) {
     if (!elements.has(id)) elements.set(id, {id, value: '', textContent: '', innerHTML: '', disabled: false,
@@ -26,29 +29,33 @@ function fixture(options = {}) {
   const response = (body, status = 200) => ({ok: status >= 200 && status < 300, status,
     async json() {return structuredClone(body);}, async text() {return JSON.stringify(body);}});
   const context = vm.createContext({console, AbortController, TypeError, TextEncoder,
+    recordDownload(blob, name) {downloads.push({blob, name});},
     document: {getElementById: element, hidden: false, addEventListener() {}},
     window: {addEventListener() {}},
     setTimeout(callback, delay) {timers.set(++nextTimer, {callback, delay}); return nextTimer;},
     clearTimeout(id) {timers.delete(id);},
     async fetch(path, init = {}) {
       calls.push({path, init});
-      if (path === '/api/settings') return response(data);
+      if (path === '/api/settings') return response(settings);
       if (path === '/api/upload') return response(upload);
       if (path === '/api/settings/read') {
         if (options.readFailure) return response({ok: false, error: 'Read refused'}, 409);
         return response({ok: true});
       }
       if (path === '/api/compatibility.json') return response(options.profile ?? profile);
+      if (path === '/api/settings.rvsc') return {ok: true, status: 200, async blob() {return backup;}};
       if (path === endpoint) return options.submit ? options.submit(init, response) :
         response({ok: true, status: 'queued', receipt}, 202);
       throw Error('Unexpected request: ' + path);
     },
   });
   vm.runInContext(script, context);
-  vm.runInContext('data=' + JSON.stringify(data) + ';up=' + JSON.stringify(upload) + ';connected=true;render();', context);
+  vm.runInContext('save=(blob,name)=>recordDownload(blob,name);data=' + JSON.stringify(settings) +
+    ';up=' + JSON.stringify(upload) + ';connected=true;render();', context);
   const click = () => element('submit').listeners.click();
+  const clickDownload = () => element('download').listeners.click();
   const settle = async () => {for (let index = 0; index < 15; ++index) await new Promise(setImmediate);};
-  return {context, element, calls, timers, click, settle};
+  return {context, element, calls, timers, downloads, backup, click, clickDownload, settle};
 }
 
 assert(!header.includes('window.open('), 'Submission must stay inside the app');
@@ -151,4 +158,56 @@ for (const result of [
   assert(![...f.timers.values()].some(timer => timer.delay === 30000), 'Request timeout is cleaned up');
 }
 
-console.log('Direct in-app submission checks passed');
+// A backup is a read-only workflow. Its UI must not inherit upload/ESS firmware
+// qualification, including when the model family itself is not recognized.
+for (const inverter of [
+  {firmware: 2605558, nominal_voltage: 12, model: 'MultiPlus-II 12/3000/120-32'},
+  {firmware: 2611556, nominal_voltage: 24, model: 'MultiPlus-II 24/3000/70-32'},
+  {firmware: 2623570, nominal_voltage: 48, model: 'MultiPlus-II 48/5000/70-50'},
+  {firmware: 2780563, nominal_voltage: 0, model: '', status: 'unsupported'},
+]) {
+  const f = fixture({settings: {firmware: inverter.firmware,
+    setup: {...inverter, can_upload: false, ess_setpoint_ram: 0}}});
+  assert.equal(f.element('download').disabled, false, `Allow backup for firmware ${inverter.firmware}`);
+  assert.equal(f.element('upload-section').hidden, true, 'Unqualified uploads stay hidden');
+  assert.equal(f.element('upfile').disabled, true, 'Unqualified uploads stay disabled');
+  assert.equal(f.element('upwrite').disabled, true, 'Unqualified writes stay disabled');
+  f.clickDownload(); await f.settle();
+  const read = f.calls.findIndex(call => call.path === '/api/settings/read');
+  const file = f.calls.findIndex(call => call.path === '/api/settings.rvsc');
+  assert(read >= 0 && file > read, 'Download starts a fresh settings read before fetching the RVSC');
+  assert.equal(f.calls[read].init.method, 'POST');
+  assert.equal(f.downloads.length, 1, 'A complete read saves one backup');
+  assert.deepEqual(new Uint8Array(await f.downloads[0].blob.arrayBuffer()),
+    new Uint8Array(await f.backup.arrayBuffer()), 'Save the exact RVSC response bytes');
+  assert.match(f.downloads[0].name, /^multi-settings-PRIVATE-SERIAL-.*\.rvsc$/);
+  assert.equal(f.element('download-msg').className, 'notice good');
+  assert.equal(f.element('download').disabled, false, 'Backup can be repeated');
+  assert.equal(f.element('upload-section').hidden, true, 'Completing a backup does not qualify uploads');
+  assert.equal(f.element('upwrite').disabled, true, 'Completing a backup does not qualify writes');
+  assert(!f.calls.some(call => call.path === endpoint || call.path === '/api/upload/write'),
+    'Local backup download never submits a profile or writes inverter settings');
+}
+
+{
+  const f = fixture({settings: {file: false, file_problem: 'some settings could not be read',
+    firmware: 2780563, setup: {status: 'unsupported', can_upload: false}}});
+  f.clickDownload(); await f.settle();
+  assert(f.calls.some(call => call.path === '/api/settings/read'), 'Incomplete reads can be retried afresh');
+  assert(!f.calls.some(call => call.path === '/api/settings.rvsc'), 'Incomplete read never fetches a backup');
+  assert.equal(f.downloads.length, 0, 'Incomplete read never saves a partial backup');
+  assert.equal(f.element('download-msg').className, 'notice bad');
+  assert(f.element('download-msg').textContent.includes('some settings could not be read'));
+}
+
+{
+  const f = fixture({readFailure: true, settings: {firmware: 2780563,
+    setup: {status: 'unsupported', can_upload: false}}});
+  f.clickDownload(); await f.settle();
+  assert(!f.calls.some(call => call.path === '/api/settings.rvsc'), 'Refused read never downloads stale backup');
+  assert.equal(f.downloads.length, 0, 'Refused read never saves a backup');
+  assert.equal(f.element('download-msg').className, 'notice bad');
+  assert.equal(f.element('download').disabled, false, 'Refused read permits retry');
+}
+
+console.log('Direct in-app submission and unqualified-firmware backup checks passed');

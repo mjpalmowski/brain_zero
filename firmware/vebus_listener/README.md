@@ -16,6 +16,24 @@ The application image is `firmware/vebus_listener/.pio/build/listener/firmware.b
 
 For a custom first-boot image, copy `include/wifi_secrets.example.h` to `include/wifi_secrets.h` in this folder and set the Wi-Fi credentials locally before building. Keep that file and images built with those credentials private.
 
+## Settings downloads for unqualified inverters
+
+**System → Inverter settings → Download settings** performs a full read-only
+backup. It does not require an ESS or settings-write support profile. A model or
+firmware that is not qualified for control can still provide its `.rvsc` backup
+when it answers the supported VE.Bus settings-read protocol.
+
+The complete firmware/unit reply, settings, access descriptors, grid records and
+Assistant records must fit the controller's buffers and finish successfully.
+Incomplete reads are not offered as downloadable backups. Reading a backup does
+not enable settings uploads, ESS or other controls; their qualification checks
+remain separate.
+
+The sanitized compatibility JSON exporter additionally requires a recognized
+230 V MultiPlus-II family. That is separate from downloading the original
+`.rvsc` backup. Simulation checks cover the read/export path; untested physical
+models still need hardware verification.
+
 ## Update over Wi-Fi
 
 1. Open the controller’s local console and select **System → Firmware update**.
