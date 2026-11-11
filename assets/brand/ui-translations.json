@@ -433,7 +433,6 @@
     "Inverter data unavailable",
     "Inverter firmware could not be verified",
     "Inverter model",
-    "Inverter not supported?",
     "Inverter only",
     "Inverter overload",
     "Inverter settings",
@@ -449,6 +448,7 @@
     "Inverter › enable AES › Start AES when load lower than (probable)",
     "Inverter › shut-down on SOC › SOC low restart (probable)",
     "Inverter › shut-down on SOC › SOC low shut-down (probable)",
+    "Inverter/firmware not supported?",
     "Inverting",
     "Inverting (half)",
     "Keep an untouched copy of the download as your backup.",
@@ -2665,10 +2665,10 @@
       "Submission timed out. Check your internet connection and try again.": "Die indiening het uitgetel. Gaan jou internetverbinding na en probeer weer.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Indiening ontvang. Verwysing {receipt}. Ons sal daaraan werk om ondersteuning vir jou omsetter by te voeg.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Deur “Dien by die ontwikkelaar in” te kies, stem jy in om fermware-inligting en instellingsgrense privaat na brain_zero te stuur. Reeksnommers, gestoorde instellings en aanmeldbesonderhede word uitgesluit. Jou omsetterinstellings sal nie verander nie.",
-      "Inverter not supported?": "Word jou omsetter nie ondersteun nie?",
       "The submission could not be accepted. Please try again.": "Die indiening kon nie aanvaar word nie. Probeer asseblief weer.",
       "Enter the inverter model using at most 160 characters.": "Voer die omsettermodel in met hoogstens 160 karakters.",
-      "Submitting…": "Dien in…"
+      "Submitting…": "Dien in…",
+      "Inverter/firmware not supported?": "Word jou omsetter of firmware nie ondersteun nie?"
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -4000,10 +4000,10 @@
       "Submission timed out. Check your internet connection and try again.": "Časový limit pro odeslání vypršel. Zkontrolujte připojení k internetu a zkuste to znovu.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Údaje byly přijaty. Referenční číslo {receipt}. Pokusíme se přidat podporu vašeho měniče.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Volbou „Odeslat vývojáři“ souhlasíte se soukromým odesláním údajů o firmwaru a mezních hodnotách nastavení do brain_zero. Sériová čísla, uložená nastavení ani přihlašovací údaje se neodesílají. Nastavení vašeho měniče se nezmění.",
-      "Inverter not supported?": "Váš měnič není podporován?",
       "The submission could not be accepted. Please try again.": "Odeslané údaje nebylo možné přijmout. Zkuste to znovu.",
       "Enter the inverter model using at most 160 characters.": "Zadejte model měniče, nejvýše 160 znaků.",
-      "Submitting…": "Odesílání…"
+      "Submitting…": "Odesílání…",
+      "Inverter/firmware not supported?": "Váš měnič nebo firmware není podporován?"
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5335,10 +5335,10 @@
       "Submission timed out. Check your internet connection and try again.": "Indsendelsen fik timeout. Kontrollér din internetforbindelse, og prøv igen.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Indsendelse modtaget. Reference {receipt}. Vi arbejder på at tilføje understøttelse af din inverter.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Ved at vælge “Send til udvikleren” accepterer du, at firmwareoplysninger og indstillingsgrænser sendes privat til brain_zero. Serienumre, gemte indstillinger og loginoplysninger medtages ikke. Dine inverterindstillinger ændres ikke.",
-      "Inverter not supported?": "Understøttes din inverter ikke?",
       "The submission could not be accepted. Please try again.": "Indsendelsen kunne ikke modtages. Prøv igen.",
       "Enter the inverter model using at most 160 characters.": "Indtast invertermodellen med højst 160 tegn.",
-      "Submitting…": "Indsender…"
+      "Submitting…": "Indsender…",
+      "Inverter/firmware not supported?": "Understøttes din inverter eller firmware ikke?"
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -6670,10 +6670,10 @@
       "Submission timed out. Check your internet connection and try again.": "Zeitüberschreitung beim Senden. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Einsendung erhalten. Referenz {receipt}. Wir arbeiten daran, die Unterstützung für Ihren Wechselrichter zu ergänzen.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Mit „An Entwickler senden“ stimmen Sie zu, Firmwareinformationen und Einstellgrenzen vertraulich an brain_zero zu senden. Seriennummern, gespeicherte Einstellungen und Zugangsdaten werden nicht übertragen. Ihre Wechselrichtereinstellungen bleiben unverändert.",
-      "Inverter not supported?": "Ihr Wechselrichter wird nicht unterstützt?",
       "The submission could not be accepted. Please try again.": "Die Einsendung konnte nicht angenommen werden. Bitte versuchen Sie es erneut.",
       "Enter the inverter model using at most 160 characters.": "Geben Sie das Wechselrichtermodell mit höchstens 160 Zeichen ein.",
-      "Submitting…": "Wird gesendet…"
+      "Submitting…": "Wird gesendet…",
+      "Inverter/firmware not supported?": "Wechselrichter oder Firmware nicht unterstützt?"
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -8005,10 +8005,10 @@
       "Submission timed out. Check your internet connection and try again.": "Se ha agotado el tiempo de envío. Compruebe su conexión a Internet e inténtelo de nuevo.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Envío recibido. Referencia {receipt}. Trabajaremos para añadir compatibilidad con su inversor.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Al seleccionar «Enviar al desarrollador», acepta enviar de forma privada a brain_zero la información del firmware y los límites de los ajustes. No se incluyen números de serie, ajustes guardados ni credenciales. Los ajustes de su inversor no cambiarán.",
-      "Inverter not supported?": "¿Su inversor no es compatible?",
       "The submission could not be accepted. Please try again.": "No se ha podido aceptar el envío. Inténtelo de nuevo.",
       "Enter the inverter model using at most 160 characters.": "Introduzca el modelo de inversor con un máximo de 160 caracteres.",
-      "Submitting…": "Enviando…"
+      "Submitting…": "Enviando…",
+      "Inverter/firmware not supported?": "¿Su inversor o firmware no es compatible?"
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9340,10 +9340,10 @@
       "Submission timed out. Check your internet connection and try again.": "Le délai d’envoi est dépassé. Vérifiez votre connexion Internet et réessayez.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Envoi reçu. Référence {receipt}. Nous travaillerons à la prise en charge de votre convertisseur.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "En sélectionnant « Envoyer au développeur », vous acceptez d’envoyer de manière privée à brain_zero les informations du micrologiciel et les limites des paramètres. Les numéros de série, paramètres enregistrés et identifiants sont exclus. Les paramètres de votre convertisseur ne seront pas modifiés.",
-      "Inverter not supported?": "Votre convertisseur n’est pas pris en charge ?",
       "The submission could not be accepted. Please try again.": "L’envoi n’a pas pu être accepté. Veuillez réessayer.",
       "Enter the inverter model using at most 160 characters.": "Saisissez le modèle de convertisseur en 160 caractères maximum.",
-      "Submitting…": "Envoi…"
+      "Submitting…": "Envoi…",
+      "Inverter/firmware not supported?": "Votre convertisseur ou son micrologiciel n’est pas pris en charge ?"
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -10675,10 +10675,10 @@
       "Submission timed out. Check your internet connection and try again.": "Tempo scaduto per l’invio. Controlla la connessione Internet e riprova.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Invio ricevuto. Riferimento {receipt}. Lavoreremo per aggiungere il supporto al tuo inverter.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Selezionando «Invia allo sviluppatore», acconsenti a inviare privatamente a brain_zero le informazioni sul firmware e i limiti delle impostazioni. Numeri di serie, impostazioni salvate e credenziali sono esclusi. Le impostazioni del tuo inverter non verranno modificate.",
-      "Inverter not supported?": "Il tuo inverter non è supportato?",
       "The submission could not be accepted. Please try again.": "Non è stato possibile accettare l’invio. Riprova.",
       "Enter the inverter model using at most 160 characters.": "Inserisci il modello inverter utilizzando al massimo 160 caratteri.",
-      "Submitting…": "Invio…"
+      "Submitting…": "Invio…",
+      "Inverter/firmware not supported?": "Il tuo inverter o firmware non è supportato?"
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -12010,10 +12010,10 @@
       "Submission timed out. Check your internet connection and try again.": "送信がタイムアウトしました。インターネット接続を確認して、もう一度お試しください。",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "送信を受け付けました。受付番号：{receipt}。お使いのインバーターの対応に向けて取り組みます。",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "「開発者に送信」を選択すると、ファームウェア情報と設定範囲をbrain_zeroに非公開で送信することに同意したものとみなされます。シリアル番号、保存済みの設定、認証情報は含まれません。インバーターの設定は変更されません。",
-      "Inverter not supported?": "お使いのインバーターが未対応ですか？",
       "The submission could not be accepted. Please try again.": "送信を受け付けられませんでした。もう一度お試しください。",
       "Enter the inverter model using at most 160 characters.": "インバーターのモデルを160文字以内で入力してください。",
-      "Submitting…": "送信中…"
+      "Submitting…": "送信中…",
+      "Inverter/firmware not supported?": "お使いのインバーターまたはファームウェアが未対応ですか？"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -13345,10 +13345,10 @@
       "Submission timed out. Check your internet connection and try again.": "De inzending is verlopen. Controleer uw internetverbinding en probeer het opnieuw.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Inzending ontvangen. Referentie {receipt}. We werken aan ondersteuning voor uw omvormer.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Door “Indienen bij de ontwikkelaar” te kiezen, stemt u ermee in firmwaregegevens en instelgrenzen privé naar brain_zero te sturen. Serienummers, opgeslagen instellingen en inloggegevens worden niet meegestuurd. Uw omvormerinstellingen veranderen niet.",
-      "Inverter not supported?": "Wordt uw omvormer niet ondersteund?",
       "The submission could not be accepted. Please try again.": "De inzending kon niet worden geaccepteerd. Probeer het opnieuw.",
       "Enter the inverter model using at most 160 characters.": "Voer het omvormermodel in met maximaal 160 tekens.",
-      "Submitting…": "Versturen…"
+      "Submitting…": "Versturen…",
+      "Inverter/firmware not supported?": "Wordt uw omvormer of firmware niet ondersteund?"
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -14680,10 +14680,10 @@
       "Submission timed out. Check your internet connection and try again.": "Upłynął limit czasu przesyłania. Sprawdź połączenie z internetem i spróbuj ponownie.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Zgłoszenie otrzymane. Numer referencyjny {receipt}. Zajmiemy się dodaniem obsługi Twojego falownika.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Wybierając „Wyślij do dewelopera”, zgadzasz się na prywatne przesłanie do brain_zero informacji o oprogramowaniu układowym i zakresach ustawień. Numery seryjne, zapisane ustawienia i dane uwierzytelniające nie są wysyłane. Ustawienia falownika nie zostaną zmienione.",
-      "Inverter not supported?": "Twój falownik nie jest obsługiwany?",
       "The submission could not be accepted. Please try again.": "Nie udało się przyjąć zgłoszenia. Spróbuj ponownie.",
       "Enter the inverter model using at most 160 characters.": "Wpisz model falownika, używając maksymalnie 160 znaków.",
-      "Submitting…": "Przesyłanie…"
+      "Submitting…": "Przesyłanie…",
+      "Inverter/firmware not supported?": "Brak obsługi falownika lub oprogramowania sprzętowego?"
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -16015,10 +16015,10 @@
       "Submission timed out. Check your internet connection and try again.": "O tempo de envio expirou. Verifique a sua ligação à Internet e tente novamente.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Envio recebido. Referência {receipt}. Trabalharemos para adicionar suporte ao seu inversor.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Ao selecionar «Enviar ao programador», concorda em enviar de forma privada para brain_zero as informações do firmware e os limites das definições. Os números de série, as definições guardadas e as credenciais não são incluídos. As definições do seu inversor não serão alteradas.",
-      "Inverter not supported?": "O seu inversor não é suportado?",
       "The submission could not be accepted. Please try again.": "Não foi possível aceitar o envio. Tente novamente.",
       "Enter the inverter model using at most 160 characters.": "Introduza o modelo do inversor com um máximo de 160 caracteres.",
-      "Submitting…": "A enviar…"
+      "Submitting…": "A enviar…",
+      "Inverter/firmware not supported?": "O seu inversor ou firmware não é suportado?"
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -17350,10 +17350,10 @@
       "Submission timed out. Check your internet connection and try again.": "Время ожидания отправки истекло. Проверьте подключение к интернету и повторите попытку.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Данные получены. Номер обращения: {receipt}. Мы займёмся добавлением поддержки вашего инвертора.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Нажимая «Отправить разработчику», вы соглашаетесь на конфиденциальную отправку в brain_zero данных о прошивке и допустимых диапазонах настроек. Серийные номера, сохранённые настройки и учётные данные не отправляются. Настройки инвертора не изменятся.",
-      "Inverter not supported?": "Ваш инвертор не поддерживается?",
       "The submission could not be accepted. Please try again.": "Не удалось принять данные. Повторите попытку.",
       "Enter the inverter model using at most 160 characters.": "Введите модель инвертора, не более 160 символов.",
-      "Submitting…": "Отправка…"
+      "Submitting…": "Отправка…",
+      "Inverter/firmware not supported?": "Ваш инвертор или его прошивка не поддерживается?"
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -18685,10 +18685,10 @@
       "Submission timed out. Check your internet connection and try again.": "Timpul de trimitere a expirat. Verificați conexiunea la internet și încercați din nou.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Datele au fost primite. Referință {receipt}. Vom lucra la adăugarea compatibilității cu invertorul dvs.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Selectând „Trimite dezvoltatorului”, sunteți de acord să trimiteți în mod privat către brain_zero informațiile despre firmware și limitele setărilor. Numerele de serie, setările salvate și datele de autentificare sunt excluse. Setările invertorului nu se vor modifica.",
-      "Inverter not supported?": "Invertorul dvs. nu este acceptat?",
       "The submission could not be accepted. Please try again.": "Trimiterea nu a putut fi acceptată. Încercați din nou.",
       "Enter the inverter model using at most 160 characters.": "Introduceți modelul invertorului folosind maximum 160 de caractere.",
-      "Submitting…": "Se trimite…"
+      "Submitting…": "Se trimite…",
+      "Inverter/firmware not supported?": "Invertorul sau firmware-ul dvs. nu este acceptat?"
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -20020,10 +20020,10 @@
       "Submission timed out. Check your internet connection and try again.": "Tidsgränsen för inskickningen överskreds. Kontrollera din internetanslutning och försök igen.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Inskickning mottagen. Referens {receipt}. Vi arbetar med att lägga till stöd för din växelriktare.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Genom att välja ”Skicka till utvecklaren” godkänner du att uppgifter om fast programvara och inställningsgränser skickas privat till brain_zero. Serienummer, sparade inställningar och inloggningsuppgifter skickas inte. Din växelriktares inställningar ändras inte.",
-      "Inverter not supported?": "Stöds inte din växelriktare?",
       "The submission could not be accepted. Please try again.": "Inskickningen kunde inte tas emot. Försök igen.",
       "Enter the inverter model using at most 160 characters.": "Ange växelriktarmodellen med högst 160 tecken.",
-      "Submitting…": "Skickar…"
+      "Submitting…": "Skickar…",
+      "Inverter/firmware not supported?": "Stöds inte din växelriktare eller firmware?"
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -21355,10 +21355,10 @@
       "Submission timed out. Check your internet connection and try again.": "หมดเวลาการส่งข้อมูล ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณแล้วลองอีกครั้ง",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "ได้รับข้อมูลแล้ว หมายเลขอ้างอิง {receipt} เราจะดำเนินการเพิ่มการรองรับอินเวอร์เตอร์ของคุณ",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "เมื่อเลือก “ส่งให้นักพัฒนา” คุณยินยอมให้ส่งข้อมูลเฟิร์มแวร์และขอบเขตการตั้งค่าไปยัง brain_zero แบบส่วนตัว โดยไม่รวมหมายเลขประจำเครื่อง การตั้งค่าที่บันทึกไว้ และข้อมูลรับรอง การตั้งค่าอินเวอร์เตอร์ของคุณจะไม่เปลี่ยนแปลง",
-      "Inverter not supported?": "อินเวอร์เตอร์ของคุณยังไม่รองรับใช่ไหม?",
       "The submission could not be accepted. Please try again.": "ไม่สามารถรับข้อมูลที่ส่งได้ โปรดลองอีกครั้ง",
       "Enter the inverter model using at most 160 characters.": "ระบุรุ่นอินเวอร์เตอร์โดยใช้ไม่เกิน 160 อักขระ",
-      "Submitting…": "กำลังส่ง…"
+      "Submitting…": "กำลังส่ง…",
+      "Inverter/firmware not supported?": "ยังไม่รองรับอินเวอร์เตอร์หรือเฟิร์มแวร์ของคุณใช่ไหม?"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -22690,10 +22690,10 @@
       "Submission timed out. Check your internet connection and try again.": "Gönderim zaman aşımına uğradı. İnternet bağlantınızı kontrol edip tekrar deneyin.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Gönderim alındı. Referans {receipt}. İnvertörünüz için destek eklemek üzere çalışacağız.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "“Geliştiriciye gönder” seçeneğini seçerek donanım yazılımı bilgilerini ve ayar sınırlarını brain_zero’ya özel olarak göndermeyi kabul edersiniz. Seri numaraları, kayıtlı ayarlar ve kimlik bilgileri gönderilmez. İnvertör ayarlarınız değişmez.",
-      "Inverter not supported?": "İnvertörünüz desteklenmiyor mu?",
       "The submission could not be accepted. Please try again.": "Gönderim kabul edilemedi. Lütfen tekrar deneyin.",
       "Enter the inverter model using at most 160 characters.": "İnvertör modelini en fazla 160 karakter kullanarak girin.",
-      "Submitting…": "Gönderiliyor…"
+      "Submitting…": "Gönderiliyor…",
+      "Inverter/firmware not supported?": "İnvertörünüz veya ürün yazılımınız desteklenmiyor mu?"
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -24025,10 +24025,10 @@
       "Submission timed out. Check your internet connection and try again.": "Час очікування надсилання минув. Перевірте підключення до інтернету й спробуйте ще раз.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "Дані отримано. Номер звернення: {receipt}. Ми працюватимемо над додаванням підтримки вашого інвертора.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "Вибираючи «Надіслати розробнику», ви погоджуєтеся конфіденційно надіслати до brain_zero інформацію про прошивку та допустимі діапазони налаштувань. Серійні номери, збережені налаштування й облікові дані не надсилаються. Налаштування інвертора не зміняться.",
-      "Inverter not supported?": "Ваш інвертор не підтримується?",
       "The submission could not be accepted. Please try again.": "Не вдалося прийняти дані. Спробуйте ще раз.",
       "Enter the inverter model using at most 160 characters.": "Введіть модель інвертора, не більше 160 символів.",
-      "Submitting…": "Надсилання…"
+      "Submitting…": "Надсилання…",
+      "Inverter/firmware not supported?": "Ваш інвертор або його прошивка не підтримується?"
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -25360,10 +25360,10 @@
       "Submission timed out. Check your internet connection and try again.": "提交超时。请检查您的互联网连接后重试。",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "已收到提交。参考编号：{receipt}。我们将着手添加对您的逆变器的支持。",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "选择“提交给开发者”即表示您同意将固件信息和设置范围私密发送至 brain_zero。其中不包含序列号、已保存的设置或凭据。您的逆变器设置不会更改。",
-      "Inverter not supported?": "您的逆变器尚未受支持？",
       "The submission could not be accepted. Please try again.": "无法接受此次提交。请重试。",
       "Enter the inverter model using at most 160 characters.": "请输入逆变器型号，最多 160 个字符。",
-      "Submitting…": "正在提交…"
+      "Submitting…": "正在提交…",
+      "Inverter/firmware not supported?": "您的逆变器或固件尚不受支持？"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -26695,10 +26695,10 @@
       "Submission timed out. Check your internet connection and try again.": "انتهت مهلة الإرسال. تحقّق من اتصالك بالإنترنت وحاول مجددًا.",
       "Submission received. Reference {receipt}. We’ll work on adding support for your inverter.": "تم استلام الإرسال. الرقم المرجعي {receipt}. سنعمل على إضافة الدعم للعاكس لديك.",
       "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.": "باختيار «إرسال إلى المطوّر»، فإنك توافق على إرسال معلومات البرنامج الثابت وحدود الإعدادات بشكل خاص إلى brain_zero. لا تُرسل الأرقام التسلسلية أو الإعدادات المحفوظة أو بيانات الاعتماد. لن تتغير إعدادات العاكس لديك.",
-      "Inverter not supported?": "هل العاكس لديك غير مدعوم؟",
       "The submission could not be accepted. Please try again.": "تعذّر قبول الإرسال. يُرجى المحاولة مجددًا.",
       "Enter the inverter model using at most 160 characters.": "أدخل طراز العاكس باستخدام 160 حرفًا كحد أقصى.",
-      "Submitting…": "جارٍ الإرسال…"
+      "Submitting…": "جارٍ الإرسال…",
+      "Inverter/firmware not supported?": "هل العاكس أو البرنامج الثابت لديك غير مدعوم؟"
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."

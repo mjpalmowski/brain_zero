@@ -71,7 +71,7 @@ R"HTML(
 <p class="hint" style="margin:16px 0 0">brain_zero checks compatibility, applies the changes and reads them back from the MultiPlus to confirm. Protected changes use the authorization saved by VEConfigure in your file.</p>
 </section>
 <section class="card" aria-labelledby="profile-title">
-<h2 id="profile-title">Inverter not supported?</h2>
+<h2 id="profile-title">Inverter/firmware not supported?</h2>
 <p>Submit your inverter data and we’ll work on adding support.</p>
 <label class="model-label" for="submit-model">Inverter model</label>
 <input type="text" id="submit-model" maxlength="160" autocomplete="off" aria-describedby="submit-privacy">

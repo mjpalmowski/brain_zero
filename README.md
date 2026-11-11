@@ -74,7 +74,7 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 
 brain_zero can create a shareable compatibility profile directly from your inverter. We aim to add support within **48 hours** of receiving a valid `compatibility.json`, once we’ve verified ESS control and stored inverter settings writes for your exact model and firmware.
 
-**Inverter not supported?** Submit your inverter data from inside brain_zero and we’ll work on adding support.
+**Inverter/firmware not supported?** Submit your inverter data from inside brain_zero and we’ll work on adding support.
 
 With brain_zero connected to your inverter, open **System → Inverter settings**, enter your inverter model, and select **Submit to developer**. The app reads a fresh sanitized compatibility profile, sends it directly to our server, and shows your submission reference. No file download, website form or GitHub account is needed. Reading and submitting the profile does not change inverter settings.
 

@@ -84,7 +84,7 @@ R"HTML(
 <div class="card"><div class="k">State</div><div class="v" id="state">–</div><div class="s" id="mode-s"></div></div>
 <div class="card"><div class="k">Input current limit</div><div class="v" id="limit">–</div><div class="s" id="limit-s"></div></div>
 </div>
-<p class="s"><span>Inverter not supported?</span> <a href="/multi#profile-title">Submit to developer</a></p>
+<p class="s"><span>Inverter/firmware not supported?</span> <a href="/multi#profile-title">Submit to developer</a></p>
 </main>
 <footer>Grey values are stale.</footer>
 <script>
