@@ -70,7 +70,9 @@ The Rev C snap-fit enclosure can be printed in PETG. Each version includes a bas
 
 Use the base and lid from the same version. See the [Bambu Studio placement guide](hardware/enclosure/BAMBU-PLACEMENT.txt) and [artwork preview](hardware/enclosure/placement-preview.png).
 
-For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32ess/blob/main/docs/README.md) shows how to connect an ESP32 to a single MultiPlus-II over VE.Bus. It’s a separate project with its own firmware.
+### DIY hardware
+
+For a DIY hardware solution, see [pv-baxi/esp32ess](https://github.com/pv-baxi/esp32ess). Its [hardware guide](https://github.com/pv-baxi/esp32ess/blob/main/docs/README.md) describes an ESP32-to-VE.Bus interface for a single MultiPlus-II. It’s a separate project with its own firmware.
 
 ## Share a compatibility profile
 
