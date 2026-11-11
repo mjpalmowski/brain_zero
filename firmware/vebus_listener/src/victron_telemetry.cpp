@@ -5,7 +5,7 @@
 
 namespace gx {
 namespace {
-enum Field { TEXT, SERIAL, VERSION, HEARTBEAT, SYSTEM_SOC, SYSTEM_V, PACE_SOC, PACE_V,
+enum Field { TEXT, SERIAL, VERSION, HEARTBEAT, SYSTEM_SOC, SYSTEM_V, EXTERNAL_SOC, EXTERNAL_V,
              DC_V, DC_A, DC_W, IN_V, IN_A, IN_W, IN_HZ, OUT_V, OUT_A, OUT_W, OUT_HZ };
 struct Topic { const char *path; Field field; const char *text; };
 const Topic TOPICS[] = {
@@ -17,17 +17,17 @@ const Topic TOPICS[] = {
     // Our actual dated firmware release, not a claimed Venus OS version. The
     // HA client also uses this version to enable its stale-metric maintenance.
     {"platform/0/Firmware/Installed/Version", TEXT, "v2026.11.1~brain_zero-telemetry"},
-    {"vebus/288/ProductName", TEXT, "MultiPlus-II 48/5000/70-50"},
+    {"vebus/288/ProductName", TEXT, "VE.Bus inverter/charger"},
     {"vebus/288/CustomName", TEXT, "MultiPlus-II (brain_zero)"},
     {"vebus/288/Manufacturer", TEXT, "Victron Energy"},
-    {"battery/0/ProductName", TEXT, "PACE CAN battery monitor"},
-    {"battery/0/CustomName", TEXT, "PACE battery (brain_zero)"},
-    {"battery/0/Manufacturer", TEXT, "PACE"},
+    {"battery/0/ProductName", TEXT, "External battery"},
+    {"battery/0/CustomName", TEXT, "External battery (brain_zero)"},
+    {"battery/0/Manufacturer", TEXT, "External"},
     {"heartbeat", HEARTBEAT, nullptr},
     {"system/0/Dc/Battery/Soc", SYSTEM_SOC, nullptr},
     {"system/0/Dc/Battery/Voltage", SYSTEM_V, nullptr},
-    {"battery/0/Soc", PACE_SOC, nullptr},
-    {"battery/0/Dc/0/Voltage", PACE_V, nullptr},
+    {"battery/0/Soc", EXTERNAL_SOC, nullptr},
+    {"battery/0/Dc/0/Voltage", EXTERNAL_V, nullptr},
     {"vebus/288/Dc/0/Voltage", DC_V, nullptr},
     {"vebus/288/Dc/0/Current", DC_A, nullptr},
     {"vebus/288/Dc/0/Power", DC_W, nullptr},
@@ -97,8 +97,9 @@ bool notification(int index, const Identity &id, const Snapshot &s,
         return s.bus.bus_fresh(s.now) && r.t >= 0 && s.now >= r.t && s.now-r.t < 10000000 && isfinite(r.v);
     };
     auto value = [&](const vebus::Reading &r) { return fresh(r) ? r.v : NAN; };
-    bool pace = s.pace_valid && isfinite(s.pace_soc) && s.pace_soc >= 0 && s.pace_soc <= 100 &&
-                isfinite(s.pace_voltage) && s.pace_voltage >= 40 && s.pace_voltage <= 65;
+    const bool external_soc = s.external_soc_valid && isfinite(s.external_soc) && s.external_soc >= 0 && s.external_soc <= 100;
+    const bool external_voltage = s.external_voltage_valid && isfinite(s.external_voltage) &&
+                                  s.external_voltage >= 3 && s.external_voltage <= 80;
     float v = NAN;
     switch (t.field) {
     case TEXT: case SERIAL: case VERSION: {
@@ -109,10 +110,10 @@ bool notification(int index, const Identity &id, const Snapshot &s,
     }
     case HEARTBEAT:
         return fit(snprintf(payload, pcap, "{\"value\":%lu}", (unsigned long)s.utc), pcap);
-    case SYSTEM_SOC: v = pace ? s.pace_soc : value(s.bus.soc); break;
-    case SYSTEM_V: v = pace ? s.pace_voltage : value(s.bus.bat_v); break;
-    case PACE_SOC: v = pace ? s.pace_soc : NAN; break;
-    case PACE_V: v = pace ? s.pace_voltage : NAN; break;
+    case SYSTEM_SOC: v = external_soc ? s.external_soc : value(s.bus.soc); break;
+    case SYSTEM_V: v = external_voltage ? s.external_voltage : value(s.bus.bat_v); break;
+    case EXTERNAL_SOC: v = external_soc ? s.external_soc : NAN; break;
+    case EXTERNAL_V: v = external_voltage ? s.external_voltage : NAN; break;
     case DC_V: v = value(s.bus.bat_v); break;
     case DC_A: v = value(s.bus.bat_a); break;
     case DC_W: v = value(s.bus.bat_v) * value(s.bus.bat_a); break;

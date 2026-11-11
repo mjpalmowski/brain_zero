@@ -1,0 +1,500 @@
+set_ac_input:
+  name: Set AC-input control
+  description: Timed Ignore AC with inverter readback. Protection and charging windows reconnect locally; a higher ESS reserve takes precedence.
+  fields:
+    entry_id:
+      name: Controller config entry
+      selector:
+        text: {}
+    ignore:
+      name: Ignore AC input
+      selector:
+        boolean: {}
+    reconnect_soc:
+      name: Reconnect SOC
+      selector:
+        number:
+          min: 0
+          max: 95
+          step: 1
+          unit_of_measurement: '%'
+    reconnect_v:
+      name: Backup battery voltage
+      selector:
+        number:
+          min: 48
+          max: 56
+          step: 0.1
+          unit_of_measurement: V
+    minutes:
+      name: Maximum duration
+      selector:
+        number:
+          min: 1
+          max: 240
+          step: 1
+          unit_of_measurement: min
+    base:
+      name: Original AC-input revision
+      selector:
+        number:
+          min: 0
+          max: 4294967295
+          mode: box
+set_ess:
+  name: Set ESS controls
+  description: Apply only the supplied settings and verify saved readback. Grid watts
+    are import-positive.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+    run:
+      name: Run
+      required: false
+      selector:
+        boolean: {}
+    mode:
+      name: ESS mode (0 BatteryLife, 1 optimized, 2 keep charged, 3 external)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 3
+          mode: box
+          step: 1
+    min_soc:
+      name: Min soc
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+          step: 0.1
+    grid_setpoint:
+      name: Grid setpoint
+      required: false
+      selector:
+        number:
+          min: -5000
+          max: 5000
+          mode: box
+          step: 1
+    max_charge:
+      name: Max charge
+      required: false
+      selector:
+        number:
+          min: -1
+          max: 5000
+          mode: box
+          step: 1
+    max_discharge:
+      name: Max discharge
+      required: false
+      selector:
+        number:
+          min: -1
+          max: 5000
+          mode: box
+          step: 1
+    max_feed_in:
+      name: Max feed in
+      required: false
+      selector:
+        number:
+          min: -1
+          max: 5000
+          mode: box
+          step: 1
+    max_import:
+      name: Max import
+      required: false
+      selector:
+        number:
+          min: -1
+          max: 5000
+          mode: box
+          step: 1
+    always_peak_shave:
+      name: Always peak shave
+      required: false
+      selector:
+        boolean: {}
+    dc_pv_feed_in:
+      name: Dc pv feed in
+      required: false
+      selector:
+        boolean: {}
+    ext_no_charge:
+      name: Ext no charge
+      required: false
+      selector:
+        boolean: {}
+    ext_no_feed_in:
+      name: Ext no feed in
+      required: false
+      selector:
+        boolean: {}
+    safety_max:
+      name: Safety max
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 5000
+          mode: box
+          step: 1
+set_schedule:
+  name: Set an ESS schedule
+  description: Update one of the five local schedule slots atomically. Duration is
+    in seconds.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+    slot:
+      name: Schedule slot (1 to 5)
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 5
+          mode: box
+          step: 1
+    'on':
+      name: Enabled
+      required: false
+      selector:
+        boolean: {}
+    day:
+      name: Day (0 Sunday to 6 Saturday; 7 daily; 8 weekdays; 9 weekends; 10 first
+        of month)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 10
+          mode: box
+          step: 1
+    start:
+      name: Start
+      required: false
+      selector:
+        text: {}
+    duration:
+      name: Duration (seconds)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 86400
+          mode: box
+          step: 1
+    soc:
+      name: Target SOC (%)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+          step: 1
+    discharge:
+      name: Discharge
+      required: false
+      selector:
+        boolean: {}
+set_overnight:
+  name: Set overnight charging
+  description: Update the local overnight plan and wait for both-controller confirmation.
+    Times are Europe/London.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+    enabled:
+      name: Enabled
+      required: false
+      selector:
+        boolean: {}
+    day:
+      name: Day (0 Sunday to 6 Saturday; 7 daily; 8 weekdays; 9 weekends; 10 first
+        of month)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 10
+          mode: box
+          step: 1
+    start:
+      name: Start
+      required: false
+      selector:
+        text: {}
+    end:
+      name: End
+      required: false
+      selector:
+        text: {}
+    victron:
+      name: Use MultiPlus
+      required: false
+      selector:
+        boolean: {}
+    r4875:
+      name: Use R4875 pair
+      required: false
+      selector:
+        boolean: {}
+    victron_w:
+      name: MultiPlus power (W DC)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 5000
+          mode: box
+          step: 1
+    r4875_w:
+      name: R4875 power (W DC)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 10000
+          mode: box
+          step: 1
+    victron_soc:
+      name: MultiPlus target SOC (%)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+          step: 1
+    r4875_soc:
+      name: R4875 target SOC (%)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+          step: 1
+    base_id:
+      name: Original plan revision
+      selector:
+        number:
+          min: 0
+          max: 4294967295
+          mode: box
+set_charger:
+  name: Set stored charger settings
+  description: Read fresh metadata, preserve unspecified fields, save once and verify
+    inverter readback.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+    charge_current:
+      name: Charge current
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 70
+          mode: box
+          step: 1
+    absorption_voltage:
+      name: Absorption voltage
+      required: false
+      selector:
+        number:
+          min: 48
+          max: 64
+          mode: box
+          step: 0.01
+    float_voltage:
+      name: Float voltage
+      required: false
+      selector:
+        number:
+          min: 48
+          max: 64
+          mode: box
+          step: 0.01
+    base:
+      name: Original raw readback
+      description: 'Optional compare-before-save guard: current,absorption,float raw
+        values.'
+      selector:
+        text: {}
+set_assist:
+  name: Set stored PowerAssist settings
+  description: Read fresh inverter settings, preserve all other flag bits, save once
+    and verify the complete raw readback. Omitted values are preserved.
+  fields:
+    entry_id:
+      name: Controller config entry
+      selector:
+        text: {}
+    power_assist:
+      name: PowerAssist enabled
+      selector:
+        boolean: {}
+    boost_factor:
+      name: Assist current boost factor
+      selector:
+        number:
+          min: 0.25
+          max: 3.5
+          step: 0.0625
+          mode: box
+    base:
+      name: Original raw readback
+      description: Optional compare-before-save guard, flags and boost raw values.
+      selector:
+        text: {}
+restart_controller:
+  name: Restart brain_zero controller
+  description: Restart the S3, then verify its identity and a new boot ID. Local
+    control pauses briefly while the controller starts.
+  fields:
+    entry_id:
+      name: Controller config entry
+      selector:
+        text: {}
+set_free_power:
+  name: Set free-power session
+  description: Save and arm a dated local session. Supply ISO date/times with a timezone
+    offset.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+    start:
+      name: Start
+      required: true
+      selector:
+        text: {}
+    end:
+      name: End
+      required: true
+      selector:
+        text: {}
+    charge_w:
+      name: MultiPlus charge power (W DC)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 5000
+          mode: box
+          step: 1
+    chargers:
+      name: Include R4875 pair
+      required: false
+      selector:
+        boolean: {}
+cancel_free_power:
+  name: Cancel free-power session
+  description: Cancel the saved local session with revision checking and readback.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+refresh:
+  name: Refresh cached settings
+  description: Refresh cached settings with the shared request limit. This does not
+    initiate inverter parameter reads unless explicitly requested.
+  fields:
+    entry_id:
+      name: Controller config entry
+      description: Optional when there is only one brain_zero controller.
+      selector:
+        text: {}
+    section:
+      name: Settings section
+      description: Omit for status/settings sections. Charger or assist performs one
+        explicit inverter parameter read.
+      selector:
+        select:
+          options:
+          - state
+          - ess
+          - inverter
+          - recharge
+          - free-power
+          - charger
+          - assist
+get_snapshot:
+  name: Read cached dashboard snapshot
+  description: Read the shared integration cache. Does not send any request to the
+    S3.
+  fields:
+    entry_id:
+      name: Controller config entry
+      selector:
+        text: {}
+set_schedules:
+  name: Save all five charge schedules
+  description: Compare original schedules, apply changed schedule fields in one request
+    and verify saved readback.
+  fields:
+    windows:
+      name: Five edited windows
+      required: true
+      selector:
+        object: {}
+    base:
+      name: Five original windows
+      required: true
+      selector:
+        object: {}
+    entry_id:
+      name: Controller config entry
+      selector:
+        text: {}
+set_pv_disable:
+  name: Temporarily disable AC PV
+  description: Confirmed island only. Raises AC-out frequency; automatically restores on timeout, charging or reconnection. Returns independent inverter flag readback, not solar output confirmation.
+  fields:
+    entry_id:
+      selector:
+        config_entry:
+          integration: brain_zero
+    disable:
+      selector:
+        boolean:
+    seconds:
+      description: Saved duration for the next request; changing it does not extend an active request.
+      selector:
+        number:
+          min: 10
+          max: 300
+          step: 1
+          unit_of_measurement: s
+    base:
+      description: Revision from current PV control readback.
+      selector:
+        number:
+          min: 0
+          max: 4294967295
+          mode: box
+

@@ -43,6 +43,8 @@
 #include "controller_time.h"
 #include "diagnostics.h"
 #include "ess_policy.h"
+#include "ess_lease.h"
+#include "external_battery.h"
 #include "firmware_ota.h"
 #include "ha_mqtt.h"
 #include "hal/uart_ll.h"
@@ -98,6 +100,8 @@ SemaphoreHandle_t state_lock;  // decoder, requester, uploader and ESS policy: r
 constexpr int64_t READ_FRESH_US = 300000000;  // a file is shown against a read at most 5 minutes old
 
 ess::Settings ess_settings;  // as saved in flash; changed by the page or UART0 (listener_ess_set)
+ess_lease::Lease transient_charge;
+external_battery::Feed battery_input;
 constexpr char TIME_ZONE_KEY[] = "time-zone";
 const controller_time::Zone *time_zone = nullptr;
 bool manual_time_zone = false;
@@ -309,6 +313,18 @@ void try_request() {
 
 bool fresh(const vebus::Reading &r, int64_t now, int64_t max_age) { return r.t != vebus::NEVER && now - r.t < max_age; }
 
+// Called with state_lock held. Only later inverter readback can verify a SOC
+// broadcast; the outgoing broadcast itself is not measured inverter feedback.
+external_battery::View battery_view(int64_t now) {
+    auto out = battery_input.view(now);
+    const auto &sync = requester.soc_sync(); const auto &soc = decoder.state().soc;
+    out.sync_target = sync.target_soc; out.sync_sent = sync.soc_sent; out.sync_current_sent = sync.current_sent;
+    out.sync_age_s = sync.last_soc<0 || now<sync.last_soc ? -1 : float(now-sync.last_soc)/1e6f;
+    out.sync_verified = out.soc_valid && sync.last_soc>=0 && out.sync_age_s>=0 && out.sync_age_s<15 &&
+        soc.t>sync.last_soc && now>=soc.t && fresh(soc,now,15000000) && fabsf(soc.v-sync.target_soc)<=0.5f;
+    return out;
+}
+
 // With state_lock held: decide from the decoded state, hand the result to the requester, and put a
 // line in `line` when what is decided changes in kind (running, state, schedule, flag word).
 bool run_policy(int64_t now, char *line, size_t cap) {
@@ -330,6 +346,12 @@ bool run_policy(int64_t now, char *line, size_t cap) {
     }
     in.soc_valid = st.soc.t >= control_epoch && fresh(st.soc, now, SOC_FRESH_US);
     in.soc = st.soc.v;
+    const auto battery = battery_input.view(now);
+    if (battery.soc_valid) { in.soc_valid = true; in.soc = battery.soc; }
+    if (battery.enabled || battery_input.synchronization_started()) {
+        requester.external_battery(battery.soc_valid, battery.soc,
+                                   battery.current_valid ? battery.external_current_a : 0);
+    }
     in.power_valid = st.acout_w.t >= control_epoch && fresh(st.acout_w, now, POWER_FRESH_US);
     in.acout_w = st.acout_w.v;
     if (st.bat_v.t >= control_epoch && fresh(st.bat_v, now, POWER_FRESH_US)) {
@@ -344,13 +366,16 @@ bool run_policy(int64_t now, char *line, size_t cap) {
             ? readback : st.setpoint_w;
         last = setpoint.t >= control_epoch && fresh(setpoint, now, SETPOINT_FRESH_US) ? (int)lroundf(setpoint.v) : 0;
     }
+    const ess::Settings effective = transient_charge.effective(ess_settings, now);
+    in.charge_window = transient_charge.charge_window(ess_settings, now);
+    in.grid_hold = transient_charge.active(now) && effective.max_charge_w == 0;
     ess_inputs = in;
     const bool was_latched = policy.voltage_latched();
     if (!hold_voltage_ok) {
         decision = {};
         snprintf(decision.why, sizeof decision.why, "Battery voltage hold must be 19 to 33 V or off on a 24 V inverter");
     } else {
-        decision = policy.decide(ess_settings, in, last);
+        decision = policy.decide(effective, in, last);
     }
     if (policy.voltage_latched() != was_latched) voltage_hold_dirty = true;
     acinput::Inputs ai;
@@ -370,18 +395,18 @@ bool run_policy(int64_t now, char *line, size_t cap) {
     ai.ess_running=ess_settings.enabled;
     ai.mode_on=ac_input.mode_on(st.actual_mode,st.actual_mode_t,now);
     ai.telemetry=st.bus_fresh(now) && fresh(st.acout_w,now,POWER_FRESH_US);
-    ai.soc_valid=fresh(st.soc,now,15000000);
-    ai.soc=st.soc.v;
-    ai.soc_source="Inverter";
+    ai.soc_valid=battery.soc_valid || fresh(st.soc,now,15000000);
+    ai.soc=battery.soc_valid ? battery.soc : st.soc.v;
+    ai.soc_source=battery.soc_valid ? "External battery" : "Inverter";
     ai.voltage_valid=fresh(st.bat_v,now,POWER_FRESH_US);ai.voltage=st.bat_v.v;
     ai.soc_floor=fmaxf(ess_settings.min_soc,decision.active_soc_limit);
     ai.main_state=st.device_state;ai.main_at=st.device_state_t;
     ai.overload=(in.power_valid && fabsf(in.acout_w)>4000) ||
         (st.device_state_t>=0 && now-st.device_state_t<3000000 && (st.device_state<4 || st.device_state>9));
     ai.voltage_hold = decision.voltage_hold;
-    ai.charging=decision.schedule>=0 || decision.charging ||
+    ai.charging=decision.schedule>=0 || decision.charging || transient_charge.active(now) ||
         ess_settings.mode==ess::Mode::KEEP_CHARGED || system_restart_at>=0;
-    bool timed = false;
+    bool timed = transient_charge.active(now);
     for(const auto &slot:ess_settings.schedule)timed=timed||slot.enabled;
     ai.clock_ready=!timed || in.clock_valid;
     ac_input.update(ai,requester.ac_input_wire());
@@ -421,6 +446,7 @@ bool save_time_zone(const controller_time::Zone *zone, bool manual) {
 void save_mqtt(const ha::Settings &s) { prefs.putBytes("mqtt", &s, sizeof s); }
 
 void load_settings() {
+    battery_input.enabled(prefs.getBool("extbat", false));
     acinput::Config ac;
     if(prefs.getBytesLength("acinput")==sizeof ac && prefs.getBytes("acinput",&ac,sizeof ac)==sizeof ac && acinput::valid(ac))ac_input.config=ac;
     pvdisable::Config pv;
@@ -930,6 +956,60 @@ bool listener_mqtt_set(const ha::Settings &s, char *why, size_t cap) {
     return true;
 }
 
+void listener_battery_input(external_battery::View &out) {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    out = battery_view(esp_timer_get_time());
+    xSemaphoreGive(state_lock);
+}
+
+bool listener_battery_input_enabled(bool value, char *why, size_t cap) {
+    external_battery::View current; listener_battery_input(current);
+    if (current.enabled == value) return true;
+    if (prefs.putBool("extbat", value) != 1) {
+        snprintf(why, cap, "Could not save settings."); return false;
+    }
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    battery_input.enabled(value); decide_now = true;
+    xSemaphoreGive(state_lock);
+    return true;
+}
+
+void listener_battery_input_connection(bool connected) {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    battery_input.connected(connected);
+    xSemaphoreGive(state_lock);
+}
+
+bool listener_battery_input_message(const char *payload, size_t size, bool retained,
+                                    int64_t queued_at, const char **why) {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    const bool ok = battery_input.accept(payload, size, retained, queued_at, esp_timer_get_time(),
+                                          double(time(nullptr)), why);
+    if (ok) decide_now = true;
+    xSemaphoreGive(state_lock);
+    return ok;
+}
+
+void listener_ess_lease(ess_lease::View &out) {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    out = transient_charge.view(esp_timer_get_time());
+    xSemaphoreGive(state_lock);
+}
+const char *listener_ess_lease_set(const char *id, uint32_t ttl_s, int charge_w) {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    const char *error = transient_charge.set(id, ttl_s, charge_w, esp_timer_get_time());
+    if (!error) decide_now = true;
+    xSemaphoreGive(state_lock);
+    return error;
+}
+const char *listener_ess_lease_clear(const char *id) {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    const char *error = transient_charge.clear(id, esp_timer_get_time());
+    if (!error) decide_now = true;
+    xSemaphoreGive(state_lock);
+    return error;
+}
+
 // Start a backup or read the connected MultiPlus-II's setup settings.
 bool listener_settings_read(bool inspection) {
     xSemaphoreTake(state_lock, portMAX_DELAY);
@@ -1153,11 +1233,12 @@ void listener_diagnostics(diagnostics::Cache &v) {
     v.faults = requester.fault_report();
     if(!v.faults.firmware)v.faults.firmware=requester.ac_input_wire().firmware;
     v.led_code=faults::led_code(decoder.state(),v.now);
+    v.external_battery = battery_view(v.now);
     const auto &soc = decoder.state().soc; const auto &sync = requester.soc_sync();
     v.own_soc_valid = fresh(soc,v.now,SOC_FRESH_US); v.own_soc = soc.v;
     v.sync_target = sync.target_soc; v.sync_sent = sync.soc_sent;
     v.sync_age_s = sync.last_soc<0?-1:float(v.now-sync.last_soc)/1e6f;
-    v.sync_verified = sync.last_soc>=0 && soc.t>sync.last_soc && fabsf(soc.v-sync.target_soc)<=0.5f;
+    v.sync_verified = v.external_battery.sync_verified;
     v.max_charge_w=ess_settings.max_charge_w; v.max_discharge_w=ess_settings.max_discharge_w;
     v.max_import_w=ess_settings.max_import_w; v.max_feed_in_w=ess_settings.max_feed_in_w;
     v.safety_max_w=ess_settings.safety_max_w; v.minimum_soc=ess_settings.min_soc;

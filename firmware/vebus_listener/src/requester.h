@@ -397,6 +397,7 @@ class Requester {
     CtlState ctl_reported_ = CtlState::OFF;
     CtlStats ctl_;
     bool external_battery_enabled_=false,external_soc_valid_=false,extra_current_pending_=false;
+    bool external_current_active_=false; // a nonzero broadcast needs a zero release when ESS stops
     int external_soc_raw_=0,extra_current_raw_=0;
     SocSync soc_sync_;
     acinput::Wire ac_input_;

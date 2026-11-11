@@ -8,6 +8,8 @@ brain_zero is a Wi-Fi dongle for Victron MultiPlus-II inverter/chargers. It plug
 
 The [brain_zero firmware source](firmware/vebus_listener) lives in this repository. [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases) provide only the OTA `firmware.bin` for brain_zero devices. For other hardware, [compile the software from this repository](firmware/vebus_listener#build) with the board and pin configuration for your hardware. Android and iOS apps are in development.
 
+All brain_zero devices use the same firmware. Optional external-battery SOC and voltage, plus external charging-current measurements, can be supplied over MQTT and configured at runtime. [Home Assistant](home-assistant/custom_components/brain_zero) owns installation-specific overnight and free-power plans and coordinates external chargers. Its optional adapter imports existing plans and preserves entity IDs when migrating from earlier firmware.
+
 The screenshots show the local web interface with example data. Select a screenshot to open it full size.
 
 **Dashboard** · Battery state of charge and live AC and DC measurements.

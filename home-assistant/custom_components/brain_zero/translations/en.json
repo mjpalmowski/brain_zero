@@ -1,0 +1,48 @@
+{
+  "title": "brain_zero",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect brain_zero",
+        "description": "Connect through Home Assistant's MQTT broker. The controller ID is shown in brain_zero under Settings → Connectivity → MQTT. The web address is used for the controller link.",
+        "data": {
+          "controller_id": "Controller ID",
+          "host": "Controller web link host",
+          "port": "Controller web link port"
+        }
+      },
+      "reconfigure": {
+        "title": "Controller connection",
+        "data": {
+          "host": "Controller web link host",
+          "port": "Controller web link port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No response from this controller through the Home Assistant MQTT broker. Check that brain_zero is connected and has MQTT control firmware."
+    },
+    "abort": {
+      "already_configured": "This controller is already configured.",
+      "reconfigure_successful": "Connection updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Home Assistant charging and battery input",
+        "description": "Keep plans in Home Assistant and forward authenticated battery measurements. These options do not put credentials in firmware. Leave a pairing key blank to keep its current value.",
+        "data": {
+          "charging_adapter": "Manage charging plans in Home Assistant",
+          "battery_link_host": "Battery-link host",
+          "battery_link_token": "Battery-link pairing key",
+          "r4875_host": "External charger host",
+          "r4875_token": "External charger pairing key"
+        }
+      }
+    },
+    "error": {
+      "invalid_charging_options": "Use host names or IPv4 addresses and matching 32–128 character pairing keys."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "brain_zero",
+  "name": "brain_zero",
+  "codeowners": [
+    "@mjpalmowski"
+  ],
+  "config_flow": true,
+  "dependencies": ["mqtt"],
+  "documentation": "https://github.com/mjpalmowski",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.6.0"
+}

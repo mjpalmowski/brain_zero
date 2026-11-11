@@ -133,7 +133,7 @@ const char *read_image(esp_http_client_handle_t client, const Build &build, Sink
 }
 }
 
-const char *check(uint32_t running, size_t capacity, bool site, Build &out) {
+const char *check(uint32_t running, size_t capacity, Build &out) {
     out = Build{};
     if (!running || capacity < firmware_ota::PREFIX_BYTES) return "This build cannot check for a GitHub update.";
     if (time(nullptr) < VALID_CLOCK) return "Wait for the clock to sync before connecting to GitHub.";
@@ -148,19 +148,19 @@ const char *check(uint32_t running, size_t capacity, bool site, Build &out) {
     if (declared > int(LIST_BYTES)) return "The GitHub release list is too large.";
 
     ReleaseReader reader(response.client, deadline);
-    if (!parse_release_list(ReleaseReader::next, &reader, running, capacity, site, out))
+    if (!parse_release_list(ReleaseReader::next, &reader, running, capacity, out))
         return reader.error ? reader.error : "The GitHub release list was invalid or incomplete.";
     return nullptr;
 }
 
-const char *download(const Build &build, bool site, Sink sink, void *context) {
+const char *download(const Build &build, Sink sink, void *context) {
     if (!sink || !memchr(build.tag, 0, sizeof build.tag) || !build.version ||
         tag_version(build.tag) != build.version || build.size < firmware_ota::PREFIX_BYTES)
         return "Invalid GitHub firmware selection.";
     if (time(nullptr) < VALID_CLOCK) return "Wait for the clock to sync before downloading firmware.";
     const int64_t deadline = esp_timer_get_time() + DOWNLOAD_TIMEOUT_US;
     char url[128];
-    snprintf(url, sizeof url, "%s%s/%s", FIRMWARE, build.tag, asset_name(site));
+    snprintf(url, sizeof url, "%s%s/%s", FIRMWARE, build.tag, asset_name());
     bool encoded = false;
     Http response;
     if (!response.open(url, false, encoded)) return "Could not connect securely to the brain_zero firmware server.";

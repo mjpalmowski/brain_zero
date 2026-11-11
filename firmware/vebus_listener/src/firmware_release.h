@@ -11,10 +11,10 @@ struct Build {
     bool preview = false;
 };
 
-// An empty tag means that GitHub has no newer image for the current variant.
+// An empty tag means that GitHub has no newer image for this controller.
 // These calls perform bounded network I/O and belong on the update worker.
 uint32_t tag_version(const char *tag);
-const char *check(uint32_t running, size_t capacity, bool site, Build &out);
+const char *check(uint32_t running, size_t capacity, Build &out);
 using Sink = const char *(*)(const uint8_t *, size_t, void *);
-const char *download(const Build &, bool site, Sink, void *);
+const char *download(const Build &, Sink, void *);
 }

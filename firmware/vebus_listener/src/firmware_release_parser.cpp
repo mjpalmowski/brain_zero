@@ -87,8 +87,8 @@ struct Release {
 // release/asset and validate the remaining JSON without storing it.
 class Parser {
 public:
-    Parser(int (*next)(void *), void *context, uint32_t running, size_t capacity, bool site)
-        : next_(next), context_(context), running_(running), capacity_(capacity), name_(asset_name(site)) {
+    Parser(int (*next)(void *), void *context, uint32_t running, size_t capacity)
+        : next_(next), context_(context), running_(running), capacity_(capacity), name_(asset_name()) {
         read();
     }
 
@@ -393,10 +393,9 @@ uint32_t tag_version(const char *tag) {
     return value * 100 + sequence;
 }
 
-bool parse_release_list(int (*next)(void *), void *context, uint32_t running, size_t capacity,
-                        bool site, Build &out) {
+bool parse_release_list(int (*next)(void *), void *context, uint32_t running, size_t capacity, Build &out) {
     out = {};
-    return Parser(next, context, running, capacity, site).parse(out);
+    return Parser(next, context, running, capacity).parse(out);
 }
 
 }  // namespace firmware_release

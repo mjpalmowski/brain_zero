@@ -254,7 +254,7 @@ size_t state_json(const vebus::State &st, const web::EssView &v, int64_t now, co
     num("battery_w", dc, st.bat_v.v * st.bat_a.v, 0);
     num("battery_v", fresh(st.bat_v.t, 10), st.bat_v.v, 2);
     num("battery_a", fresh(st.bat_a.t, 10), st.bat_a.v, 1);
-    num("soc", fresh(st.soc.t, 60), st.soc.v, 1);
+    num("soc", v.soc_valid || fresh(st.soc.t, 60), v.soc_valid ? v.soc : st.soc.v, 1);
     num("mains_v", fresh(st.mains_v.t, 10), st.mains_v.v, 1);
     num("mains_a", fresh(st.mains_a.t, 10), st.mains_a.v, 2);
     num("mains_hz", fresh(st.ac_hz.t, 10), st.ac_hz.v, 2);

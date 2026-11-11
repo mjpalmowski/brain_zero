@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "id": 1793480849,
+  "start": 1793541600,
+  "end": 1793545200,
+  "charge_w": 5000,
+  "enabled": 1,
+  "completed": 0,
+  "chargers": 1,
+  "phase": "armed",
+  "active": 0,
+  "utc": 1793529305,
+  "clock_valid": 1,
+  "peer": {
+    "reachable": 1,
+    "matching": 1,
+    "active": 0,
+    "clock_valid": 1,
+    "id": 1793480849,
+    "phase": "armed",
+    "error": "",
+    "board1_state": "OFF",
+    "board2_state": "OFF",
+    "board1_w": 0.0,
+    "board2_w": 0.0
+  }
+}

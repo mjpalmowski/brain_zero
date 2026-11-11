@@ -1,0 +1,82 @@
+{
+  "settings": {
+    "run": 1,
+    "mode": 1,
+    "min_soc": 0.0,
+    "grid_setpoint": -15,
+    "max_charge": 2500,
+    "max_discharge": -1,
+    "max_feed_in": -1,
+    "max_import": -1,
+    "always_peak_shave": 0,
+    "dc_pv_feed_in": 0,
+    "ext_no_charge": 0,
+    "ext_no_feed_in": 0,
+    "safety_max": 5000,
+    "tz": "GMT0BST,M3.5.0/1,M10.5.0",
+    "schedules": [
+      {
+        "on": 0,
+        "day": 7,
+        "start": 84600,
+        "duration": 21600,
+        "soc": 40,
+        "discharge": 1
+      },
+      {
+        "on": 0,
+        "day": 7,
+        "start": 0,
+        "duration": 0,
+        "soc": 100,
+        "discharge": 0
+      },
+      {
+        "on": 0,
+        "day": 7,
+        "start": 0,
+        "duration": 0,
+        "soc": 100,
+        "discharge": 0
+      },
+      {
+        "on": 0,
+        "day": 7,
+        "start": 0,
+        "duration": 0,
+        "soc": 50,
+        "discharge": 0
+      },
+      {
+        "on": 0,
+        "day": 7,
+        "start": 0,
+        "duration": 0,
+        "soc": 100,
+        "discharge": 0
+      }
+    ]
+  },
+  "status": {
+    "run": true,
+    "ctl": "writing",
+    "mode": 1,
+    "mode_name": "optimized without BatteryLife",
+    "state": 10,
+    "state_name": "self-consumption",
+    "why": "grid setpoint, export 15 W",
+    "setpoint_w": 15,
+    "target_w": 15,
+    "flags": 4,
+    "multi_flags": 8196,
+    "schedule": -1,
+    "charging": false,
+    "capped": false,
+    "active_soc_limit": 0.0,
+    "soc_limit": 10.0,
+    "reached": 0,
+    "soc": 11.0,
+    "clock": "2026-11-01 10:35:04 GMT",
+    "clock_valid": true
+  }
+}

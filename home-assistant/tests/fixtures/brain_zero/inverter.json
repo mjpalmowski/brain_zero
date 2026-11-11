@@ -1,0 +1,23 @@
+{
+  "available": true,
+  "mode_adjustable": true,
+  "current_adjustable": true,
+  "can_equalize": false,
+  "can_interrupt": false,
+  "mode": 7,
+  "mode_name": "On",
+  "current_a": 50.0,
+  "minimum_a": 0.0,
+  "maximum_a": 50.0,
+  "main_state": 9,
+  "charge_state": 1,
+  "charge_name": "Bulk",
+  "reason": "Ready",
+  "command": {
+    "state": "idle",
+    "action": 0,
+    "value": 0,
+    "sends": 0,
+    "message": "No command sent"
+  }
+}

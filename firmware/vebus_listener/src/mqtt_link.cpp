@@ -34,6 +34,7 @@ QueueHandle_t inbox = nullptr;
 std::atomic<bool> up{false}, announce{false};
 char status_topic[64], state_topic[64], command_filter[64], ha_status_topic[48];
 char rpc_request_topic[48];
+char battery_input_topic[80];
 char recent_write_ids[16][33];
 unsigned next_write_id = 0;
 uint32_t last_rpc_ms = 0;
@@ -99,6 +100,12 @@ void gx_publish() {
     gx_batch_at = ms;
     // Refresh each small batch, including after backpressure or reconnection.
     listener_state(gx_snapshot.bus);
+    external_battery::View battery;
+    listener_battery_input(battery);
+    gx_snapshot.external_soc_valid=battery.soc_valid;
+    gx_snapshot.external_voltage_valid=battery.voltage_valid;
+    gx_snapshot.external_soc=battery.soc;
+    gx_snapshot.external_voltage=battery.voltage;
     gx_snapshot.utc = time(nullptr);
     if (gx_snapshot.utc < 1767225600) gx_snapshot.utc = 0;
     gx_snapshot.now = esp_timer_get_time();
@@ -136,6 +143,7 @@ void on_event(void *, esp_event_base_t, int32_t id, void *data) {
         esp_mqtt_client_subscribe(e->client, ha_status_topic, 1);
         esp_mqtt_client_subscribe(e->client, gx_read_filter, 0);
         esp_mqtt_client_subscribe(e->client, rpc_request_topic, 0);
+        esp_mqtt_client_subscribe(e->client, battery_input_topic, 1);
         announce = true;  // the discovery messages go out from the Arduino loop
         up = true;
         break;
@@ -190,6 +198,7 @@ void start() {
     snprintf(ha_status_topic, sizeof ha_status_topic, "%s/status", cfg.prefix);
     snprintf(gx_read_filter, sizeof gx_read_filter, "R/%s/#", gx_id.installation);
     snprintf(rpc_request_topic, sizeof rpc_request_topic, "brain_zero/%s/request", gx_id.installation);
+    snprintf(battery_input_topic, sizeof battery_input_topic, "%s/external_battery", cfg.base);
     esp_mqtt_client_config_t c = {};
     c.host = cfg.host;
     c.port = cfg.port;
@@ -221,6 +230,7 @@ void start() {
 }
 
 void stop() {
+    listener_battery_input_connection(false);
     if (!client) return;
     if (up) esp_mqtt_client_publish(client, status_topic, "offline", 0, 1, 1);
     esp_mqtt_client_stop(client);
@@ -325,6 +335,11 @@ void controller_rpc(const Message &m) {
 }
 
 void handle(const Message &m) {
+    if (!strcmp(m.topic, battery_input_topic)) {
+        const char *why;
+        listener_battery_input_message(m.payload, strlen(m.payload), m.retained, m.received_at, &why);
+        return;
+    }
     if (!strcmp(m.topic, rpc_request_topic)) {
         controller_rpc(m);
         return;
@@ -392,16 +407,19 @@ void begin(const ha::Settings &s) {
     gx::identity(mac, ids.version, gx_id);
     inbox = xQueueCreate(8, sizeof(Message));
     cfg = s;
+    snprintf(battery_input_topic,sizeof battery_input_topic,"%s/external_battery",cfg.base);
 }
 
 void apply(const ha::Settings &s) {
     stop();
     cfg = s;
+    snprintf(battery_input_topic,sizeof battery_input_topic,"%s/external_battery",cfg.base);
     wifi_ready_at = 0;
 }
 
 void loop() {
     if (!inbox) return;
+    listener_battery_input_connection(up.load());
     const uint32_t ms = millis();
     if (!client && cfg.enabled && cfg.host[0]) {
         if (WiFi.status() != WL_CONNECTED || !uint32_t(WiFi.localIP())) wifi_ready_at = 0;
@@ -427,6 +445,8 @@ void loop() {
     if (esp_mqtt_client_get_outbox_size(client) >= OUTBOX_LIMIT) return;
     gx_publish();
 }
+
+const char *battery_topic() { return battery_input_topic; }
 
 size_t status_json(char *out, size_t cap) {
     char error[112];

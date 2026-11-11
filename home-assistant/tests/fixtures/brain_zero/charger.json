@@ -1,0 +1,54 @@
+{
+  "available": false,
+  "reason": "Wait for the current inverter operation to finish",
+  "state": "reading",
+  "saving": false,
+  "message": "Reading charger settings from the inverter",
+  "changes": 0,
+  "writes": 0,
+  "confirmed": 0,
+  "parameters": [
+    {
+      "key": "charge_current",
+      "id": 4,
+      "raw": 0,
+      "value": null,
+      "minimum": 0.0,
+      "maximum": 0.0,
+      "step": 1.0,
+      "supported": false,
+      "age_s": -1.0,
+      "acknowledged": false,
+      "verified": false,
+      "requested": null
+    },
+    {
+      "key": "absorption_voltage",
+      "id": 2,
+      "raw": 0,
+      "value": null,
+      "minimum": 48.0,
+      "maximum": 0.0,
+      "step": 0.01,
+      "supported": false,
+      "age_s": -1.0,
+      "acknowledged": false,
+      "verified": false,
+      "requested": null
+    },
+    {
+      "key": "float_voltage",
+      "id": 3,
+      "raw": 0,
+      "value": null,
+      "minimum": 48.0,
+      "maximum": 0.0,
+      "step": 0.01,
+      "supported": false,
+      "age_s": -1.0,
+      "acknowledged": false,
+      "verified": false,
+      "requested": null
+    }
+  ]
+}

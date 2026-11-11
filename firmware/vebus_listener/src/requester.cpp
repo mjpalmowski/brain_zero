@@ -1608,9 +1608,16 @@ bool Requester::control_job(int64_t now, Kind *kind) {
         *kind=acjob==acinput::Wire::VERSION?AC_VERSION:acjob==acinput::Wire::WRITE?AC_WRITE:AC_STATUS;
         return true;
     }
+    if(s==CtlState::POLLING&&runtime_ready&&external_battery_enabled_&&
+       (extra_current_pending_||external_current_active_)){
+        // Finish an external SOC/current transaction after ESS is stopped,
+        // without rearming ESS. This branch is below the same runtime/profile,
+        // ownership and settings-job gates as ordinary control traffic.
+        *kind=EXTRA_CURRENT_SEND;return true;
+    }
     if(s==CtlState::WRITING&&runtime_ready&&external_battery_enabled_){
         // Always release the SOC estimator immediately after sending external
-        // SOC; continue refreshing external current even if the PACE feed stops.
+        // SOC; continue refreshing zero current even if its MQTT feed stops.
         if(extra_current_pending_||now>=ctl_next_[EXTRA_CURRENT_SEND]){*kind=EXTRA_CURRENT_SEND;return true;}
         if(external_soc_valid_&&now>=ctl_next_[SOC_SEND]){*kind=SOC_SEND;return true;}
     }
@@ -1826,7 +1833,7 @@ bool Requester::due(int64_t now, uint8_t *frame, size_t cap, size_t *n, int64_t 
         planned_value_=value;put({0x38,0x04,(uint8_t)value,(uint8_t)(value>>8),0x00});break;
     }
     case EXTRA_CURRENT_SEND: {
-        int value=extra_current_raw_;if(value<0)value=0;if(value>2000)value=2000;
+        int value=ctl_armed_?extra_current_raw_:0;if(value<0)value=0;if(value>2000)value=2000;
         planned_value_=value;put({0x38,0x05,(uint8_t)value,(uint8_t)(value>>8),(uint8_t)(value>>16)});break;
     }
     case CHARGE_STATUS: put({0x00, id, 0x0E, 0x00, 0x00}); break;
@@ -1985,6 +1992,7 @@ void Requester::sent(const uint8_t *frame, size_t n, int64_t t_start, int64_t t_
             soc_sync_.soc_sent++;soc_sync_.last_soc=t_start;soc_sync_.target_soc=value_*0.5f;
         }else if(kind_==EXTRA_CURRENT_SEND){
             ctl_next_[EXTRA_CURRENT_SEND]=t_start+3000000;extra_current_pending_=false;
+            external_current_active_=value_!=0;
             soc_sync_.current_sent++;soc_sync_.last_current=t_start;
         }
         if (kind_ == WRITE) {

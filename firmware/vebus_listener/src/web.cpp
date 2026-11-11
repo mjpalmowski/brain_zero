@@ -665,7 +665,6 @@ void handle_system_post(ControlExchange &io) {
 }
 
 constexpr char OTA_TOKEN[] = "X-Brain-Zero-OTA", OTA_SIZE[] = "X-Firmware-Size";
-constexpr bool SITE_FIRMWARE = false;
 constexpr char OTA_BUSY[] = "A GitHub firmware operation is already in progress.";
 struct FirmwareUpload {
     bool seen = false, owns = false, complete = false;
@@ -906,7 +905,7 @@ void firmware_release_reply(int code, const char *error = nullptr) {
     Out o(json, sizeof json);
     o.add("{\"ok\":true,\"status\":\"%s\",\"size\":%lu,\"received\":%u,\"preview\":%s,\"channel\":\"%s\",\"tag\":",
           s.phase, (unsigned long)s.build.size, unsigned(s.received), tf(s.build.preview),
-          SITE_FIRMWARE ? "site" : "public");
+          "public");
     o.str(s.build.tag);
     o.add(",\"can_stage\":%s,\"message\":", tf(s.can_stage)); o.str(s.message); o.add("}");
     server.sendHeader("Cache-Control", "no-store");
@@ -920,7 +919,7 @@ void firmware_release_check() {
         const auto s = firmware_ota::status();
         if (!s.max_bytes || s.trial || s.staged || s.queued != firmware_ota::Action::NONE)
             why = "Finish the current firmware update before checking GitHub.";
-        else why = firmware_release_job::check(diagnostics::RELEASE_VERSION, s.max_bytes, SITE_FIRMWARE);
+        else why = firmware_release_job::check(diagnostics::RELEASE_VERSION, s.max_bytes);
     }
     firmware_release_reply(why ? 409 : 202, why);
 }
@@ -1445,6 +1444,63 @@ void handle_upload_clear() {
 
 void handle_mqtt_page() { server.send_P(200, "text/html", MQTT_HTML); }
 
+void battery_input_json(Out &o) {
+    external_battery::View v; listener_battery_input(v);
+    o.add("{\"enabled\":%s,\"connected\":%s,\"soc_valid\":%s,\"current_valid\":%s,\"voltage_valid\":%s,\"soc\":",
+          tf(v.enabled),tf(v.connected),tf(v.soc_valid),tf(v.current_valid),tf(v.voltage_valid));
+    if(v.soc_valid)o.add("%.2f",v.soc);else o.add("null");
+    o.add(",\"voltage\":");if(v.voltage_valid)o.add("%.2f",v.voltage);else o.add("null");
+    o.add(",\"external_current_a\":");if(v.current_valid)o.add("%.2f",v.external_current_a);else o.add("null");
+    o.add(",\"soc_age_s\":%.3f,\"current_age_s\":%.3f,\"accepted\":%u,\"refused\":%u,\"topic\":",
+          v.soc_age_s,v.current_age_s,v.accepted,v.refused);
+    o.str(mqtt_link::battery_topic());
+    o.add(",\"sync_verified\":%s,\"sync_target\":",tf(v.sync_verified));
+    if(v.sync_sent)o.add("%.1f",v.sync_target);else o.add("null");
+    o.add(",\"sync_age_s\":%.3f,\"sync_sent\":%u,\"sync_current_sent\":%u}",
+          v.sync_age_s,v.sync_sent,v.sync_current_sent);
+}
+void handle_battery_input_get(ControlExchange &io) {
+    Out o(control_body,CONTROL_BODY_BYTES);battery_input_json(o);
+    io.sendHeader("Cache-Control","no-store");io.send(o.cut?500:200,"application/json",control_body);
+}
+void handle_battery_input_post(ControlExchange &io) {
+    long enabled; Fields fields(io); char why[120]="";
+    if(io.args()!=1 || !fields.get_long("enabled",&enabled,0,1) || fields.bad[0]) {
+        io.send(400,"application/json","{\"error\":\"The request was refused.\"}");return;
+    }
+    if(!listener_battery_input_enabled(enabled!=0,why,sizeof why)) {
+        Out o(control_body,CONTROL_BODY_BYTES);o.add("{\"error\":");o.str(why);o.add("}");
+        io.send(500,"application/json",control_body);return;
+    }
+    handle_battery_input_get(io);
+}
+void handle_ess_lease_get(ControlExchange &io) {
+    ess_lease::View v;listener_ess_lease(v);
+    Out o(control_body,CONTROL_BODY_BYTES);
+    o.add("{\"active\":%s,\"id\":",tf(v.active));o.str(v.id);
+    o.add(",\"charge_w\":%d,\"remaining_s\":%u}",v.charge_w,v.remaining_s);
+    io.sendHeader("Cache-Control","no-store");io.send(o.cut?500:200,"application/json",control_body);
+}
+void handle_ess_lease_post(ControlExchange &io) {
+    const String id=io.arg("id");Fields fields(io);long ttl=0,watts=0,clear=0;
+    const bool valid_id=id.length()==32 && strspn(id.c_str(),"0123456789abcdef")==32;
+    const char *error=nullptr;
+    if(!valid_id)error="The request was refused.";
+    else if(io.hasArg("clear")) {
+        if(io.args()!=2 || !fields.get_long("clear",&clear,1,1) || fields.bad[0])error="The request was refused.";
+        else error=listener_ess_lease_clear(id.c_str());
+    } else {
+        if(io.args()!=3 || !fields.get_long("ttl_s",&ttl,5,60) ||
+           !fields.get_long("charge_w",&watts,0,5000) || fields.bad[0])error="The request was refused.";
+        else error=listener_ess_lease_set(id.c_str(),uint32_t(ttl),int(watts));
+    }
+    if(error) {
+        Out o(control_body,CONTROL_BODY_BYTES);o.add("{\"error\":");o.str(error);o.add("}");
+        io.send(!strcmp(error,"Another controller is active")?409:400,"application/json",control_body);return;
+    }
+    handle_ess_lease_get(io);
+}
+
 // GET /api/mqtt: {"settings":{...},"status":{...}}; the password is never sent, only whether one is set.
 void handle_mqtt_get() {
     ha::Settings m;
@@ -1456,8 +1512,9 @@ void handle_mqtt_get() {
     o.add(",\"port\":%u,\"user\":", m.port);
     o.str(m.user);
     o.add(",\"password_set\":%s,\"base\":\"%s\",\"discovery\":%d,\"prefix\":\"%s\",\"interval_s\":%u},"
-          "\"entities\":%d,\"status\":%s}",
+          "\"entities\":%d,\"status\":%s,\"battery_input\":",
           m.password[0] ? "true" : "false", m.base, m.discovery, m.prefix, m.interval_s, ha::entity_count(), json_fragment);
+    battery_input_json(o);o.add("}");
     server.sendHeader("Cache-Control", "no-store");
     server.send_P(200, "application/json", control_body);
 }
@@ -1482,10 +1539,16 @@ void handle_mqtt_post() {
     f.get_text("prefix", m.prefix, sizeof m.prefix);
     long interval;
     if (f.get_long("interval_s", &interval, 1, 3600)) m.interval_s = (uint16_t)interval;
+    external_battery::View battery;listener_battery_input(battery);
+    bool external_input=battery.enabled;f.get("external_input",&external_input);
     bool ok;
     if (f.bad[0]) {
         snprintf(why, sizeof why, "bad value for %s", f.bad);
         ok = false;
+    } else if (!ha::validate(m,why,sizeof why)) {
+        ok=false;
+    } else if (server.hasArg("external_input") && !listener_battery_input_enabled(external_input,why,sizeof why)) {
+        ok=false;
     } else {
         ok = listener_mqtt_set(m, why, sizeof why);
     }
@@ -1512,6 +1575,8 @@ struct ControlRoute {
 const ControlRoute CONTROL_ROUTES[] = {
     {"state", handle_state, nullptr},
     {"ess", handle_ess_get, handle_ess_post},
+    {"ess/lease", handle_ess_lease_get, handle_ess_lease_post},
+    {"battery-input", handle_battery_input_get, handle_battery_input_post},
     {"inverter", handle_inverter_get, handle_inverter_post},
     {"charger", handle_charger_get, handle_charger_post},
     {"charger/read", nullptr, handle_charger_read},

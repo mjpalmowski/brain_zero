@@ -1,0 +1,225 @@
+{
+  "now_s": 1765.9,
+  "frames": 207888,
+  "bad": 0,
+  "gaps": 0,
+  "multi_frames": 195408,
+  "master_frames": 0,
+  "own_frames": 12480,
+  "multi_age_s": 0.0,
+  "master_age_s": null,
+  "sync_ms": 19.989,
+  "inverter_w": [
+    -976,
+    0.2
+  ],
+  "acout_w": [
+    949,
+    0.2
+  ],
+  "acin_w": [
+    27,
+    0.2
+  ],
+  "bat_v": [
+    51.56,
+    0.0
+  ],
+  "bat_a": [
+    -19.8,
+    0.6
+  ],
+  "charge_a": [
+    0.0,
+    0.2
+  ],
+  "discharge_a": [
+    19.8,
+    0.2
+  ],
+  "soc": [
+    11.0,
+    3.2
+  ],
+  "mains_v": [
+    235.99,
+    1.0
+  ],
+  "mains_a": [
+    -1.51,
+    1.0
+  ],
+  "inverter_v": [
+    235.99,
+    1.0
+  ],
+  "inverter_a": [
+    2.63,
+    1.0
+  ],
+  "ac_hz": [
+    49.972,
+    0.0
+  ],
+  "device_state": 9,
+  "device_state_age_s": 1.0,
+  "led_on": 5,
+  "led_blink": 16,
+  "led_age_s": 0.6,
+  "limit_a": [
+    50.0,
+    0.6
+  ],
+  "limit_max_a": [
+    50.0,
+    0.6
+  ],
+  "limit_min_a": [
+    0.0,
+    0.6
+  ],
+  "ac_input_config": 148,
+  "switch_register": 119,
+  "actual_mode": 7,
+  "actual_mode_age_s": 0.6,
+  "charge_state": 1,
+  "charge_state_age_s": 0.4,
+  "temp_raw": 180,
+  "ess_live": null,
+  "ess_no_feed_in": 0,
+  "setpoint_fresh": 1,
+  "accepted_setpoint_w": [
+    15,
+    2.1
+  ],
+  "setpoint_ack_age_s": 2.1,
+  "sync_status": [
+    202,
+    0.0
+  ],
+  "setpoint_w": [
+    15,
+    2.1
+  ],
+  "setpoint_writes": 703,
+  "setpoint_acks": 703,
+  "flags": [
+    8196,
+    3.2
+  ],
+  "mode_cmd": null,
+  "mode_age_s": null,
+  "limit_cmd_a": null,
+  "rssi": -70,
+  "heap": 82432,
+  "ip": "192.0.2.10",
+  "tx": {
+    "mode": "off",
+    "left_s": 0,
+    "watts": 0,
+    "sent": 0,
+    "echo_ok": 0,
+    "counted": 0,
+    "failed": 0,
+    "answered": 0,
+    "same_cycle": 0,
+    "unanswered": 0,
+    "writes": 0,
+    "acked": 0,
+    "yielded": 0,
+    "busy": 0,
+    "late": 0,
+    "bad": 0,
+    "gaps": 0,
+    "last_reply_ms": -1.0,
+    "last_code": -1,
+    "last_values": [
+      -1,
+      -1
+    ],
+    "ess_live": null,
+    "why": ""
+  },
+  "ctl": {
+    "state": "writing",
+    "armed": true,
+    "watts": 15,
+    "checked": true,
+    "flags": 4,
+    "multi_flags": 8196,
+    "polls": 11777,
+    "answered": 8934,
+    "unanswered": 0,
+    "failed": 0,
+    "writes": 703,
+    "acked": 703,
+    "flag_writes": 0,
+    "flag_acks": 0,
+    "yielded": 0,
+    "backoffs": 0,
+    "last_write_age_s": 2.1
+  },
+  "settings_read": {
+    "active": false,
+    "done": false,
+    "part": "serial number",
+    "step": 0,
+    "progress": 0,
+    "read": 0,
+    "unsupported": 0,
+    "failed": 0
+  },
+  "write": {
+    "active": false,
+    "done": false,
+    "failed": false,
+    "step": "settings",
+    "progress": 0,
+    "settings_written": 0,
+    "records_written": 0
+  },
+  "mqtt": {
+    "state": "connected",
+    "broker": "mqtt.example:1883",
+    "node": "vebus_listener_aabbcc",
+    "state_topic": "vebus_listener/state",
+    "status_topic": "vebus_listener/status",
+    "command_topic": "vebus_listener/<key>/set",
+    "published": 1798,
+    "commands": 0,
+    "refused": 0,
+    "error": "",
+    "last_command": "",
+    "victron_gx": {
+      "installation_id": "001122aabbcc",
+      "read_only": true,
+      "sensors": 17,
+      "published": 10177,
+      "read_requests": 69,
+      "refused_requests": 0,
+      "outbox_bytes": 886
+    }
+  },
+  "ess": {
+    "run": true,
+    "ctl": "writing",
+    "mode": 1,
+    "mode_name": "optimized without BatteryLife",
+    "state": 10,
+    "state_name": "self-consumption",
+    "why": "grid setpoint, export 15 W",
+    "setpoint_w": 15,
+    "target_w": 15,
+    "flags": 4,
+    "multi_flags": 8196,
+    "schedule": -1,
+    "charging": false,
+    "capped": false,
+    "active_soc_limit": 0.0,
+    "soc_limit": 10.0,
+    "reached": 0,
+    "soc": 11.0,
+    "clock": "2026-11-01 10:35:04 GMT",
+    "clock_valid": true
+  }
+}

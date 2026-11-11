@@ -54,6 +54,12 @@ R"HTML(
 <label class="s"><input type="checkbox" id="password_clear"> clear it</label>
 <span class="hint" id="pw-hint">Leave the password blank to keep the one stored on the ESP32.</span></div>
 </div>
+<h2>External battery</h2>
+<div class="card">
+<div class="row"><label class="name" for="external_input">Use external battery data</label><input type="checkbox" id="external_input" name="external_input">
+<span class="hint">Receive fresh battery SOC and external charging current over MQTT.</span></div>
+<div class="row"><span class="name">External battery input topic</span><code id="battery-input-topic" dir="ltr">–</code></div>
+</div>
 <details class="topics" id="topics"><summary>Topics and discovery</summary>
 <div class="card">
 <div class="row"><label class="name" for="base">Base topic</label><input type="text" id="base" name="base" maxlength="47" spellcheck="false" required pattern="[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*"></div>
@@ -71,7 +77,7 @@ R"HTML(
 const $=id=>document.getElementById(id),F=$("f"),E=k=>F.elements[k];
 const tr=text=>window.bzText?.(text)??text;
 const format=(template,values)=>window.bzFormat?.(template,values)??template.replace(/\{(\w+)\}/g,(_,key)=>values[key]);
-const fieldNames={enabled:"Use MQTT",host:"Broker",port:"port",user:"User name",password:"Password",base:"Base topic",discovery:"Home Assistant discovery",prefix:"prefix",interval_s:"Publish every"};
+const fieldNames={enabled:"Use MQTT",host:"Broker",port:"port",user:"User name",password:"Password",base:"Base topic",discovery:"Home Assistant discovery",prefix:"prefix",interval_s:"Publish every",external_input:"Use external battery data"};
 const refusalReasons={"user name or password not accepted":"User name or password not accepted","client id rejected":"Client ID rejected",refused:"Connection refused"};
 function connectionError(error){
     const refused=/^the broker refused the connection: (.+) \(code (\d+)\)$/.exec(error);
@@ -88,19 +94,21 @@ function saveError(error){
 function fill(j){const s=j.settings;
 E("enabled").checked=!!s.enabled;E("host").value=s.host;E("port").value=s.port;E("user").value=s.user;E("password").value="";
 $("password_clear").checked=false;E("password").placeholder=tr(s.password_set?"unchanged":"none");
-E("base").value=s.base;E("discovery").checked=!!s.discovery;E("prefix").value=s.prefix;E("interval_s").value=s.interval_s}
+E("base").value=s.base;E("discovery").checked=!!s.discovery;E("prefix").value=s.prefix;E("interval_s").value=s.interval_s;
+E("external_input").checked=!!j.battery_input?.enabled}
 function live(st){
  $("controller-id").textContent=st.victron_gx?.installation_id||"–";
 $("now").textContent=tr({connected:"Connected",connecting:"Connecting…","not connected":"Not connected",off:"MQTT is off","no broker set":"No broker set"}[st.state]||st.state);
 $("now").className="v"+(st.state=="connected"?" good":st.state=="off"?"":" warn");
 $("connection-error").textContent=st.state=="off"?"":connectionError(st.error||"")}
 async function load(full){const r=await fetch("/api/mqtt",{cache:"no-store"});if(!r.ok)throw Error("MQTT settings unavailable");
-const j=await r.json();if(full)fill(j);live(j.status)}
+const j=await r.json();if(full)fill(j);live(j.status);$("battery-input-topic").textContent=j.battery_input?.topic||"–"}
 function offline(){$("now").textContent="Controller unavailable";$("now").className="v warn";$("connection-error").textContent=""}
 F.addEventListener("submit",async e=>{e.preventDefault();
 const bad=[...F.elements].find(x=>x.willValidate&&!x.checkValidity());
 if(bad){const details=bad.closest("details");if(details)details.open=true;bad.focus();$("msg").textContent="Check the highlighted field";return}
 const b=new URLSearchParams();b.set("enabled",E("enabled").checked?1:0);b.set("discovery",E("discovery").checked?1:0);
+b.set("external_input",E("external_input").checked?1:0);
 ["host","port","user","base","prefix","interval_s"].forEach(k=>b.set(k,E(k).value.trim()));
 if(E("password").value)b.set("password",E("password").value);if($("password_clear").checked)b.set("password_clear",1);
 $("msg").textContent="saving…";

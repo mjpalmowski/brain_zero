@@ -15,5 +15,7 @@ void begin(const ha::Settings &s);          // from setup(), after Wi-Fi has bee
 void apply(const ha::Settings &s);          // new settings from the page: reconnect with them
 void loop();                                // often, from the Arduino loop
 size_t status_json(char *out, size_t cap);  // {"state":"connected",...} for the pages
+// Optional measurements use this fixed, per-controller base-topic suffix.
+const char *battery_topic();
 
 }  // namespace mqtt_link

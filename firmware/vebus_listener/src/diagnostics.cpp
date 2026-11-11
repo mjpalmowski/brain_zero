@@ -22,9 +22,16 @@ size_t to_json(const Cache &v, char *out, size_t cap) {
     };
     auto number=[&](float x){if(isfinite(x))add("%.2f",double(x));else add("null");};
     add("{\"policy_age_s\":");number(v.policy_at<0||v.now<v.policy_at?-1:float(v.now-v.policy_at)/1e6f);
-    add(",\"battery\":{\"pace_valid\":%s,\"pace_age_s\":",v.pace_valid?"true":"false");
-    number(v.pace_age_ms==UINT32_MAX?-1:float(v.pace_age_ms)/1000.f);
-    add(",\"pace_soc\":");if(v.pace_valid)number(v.pace_soc);else add("null");
+    const auto &battery=v.external_battery;
+    add(",\"battery\":{\"external_enabled\":%s,\"external_connected\":%s,\"external_valid\":%s,\"external_age_s\":",
+        battery.enabled?"true":"false",battery.connected?"true":"false",battery.soc_valid?"true":"false");
+    number(battery.soc_age_s);
+    add(",\"external_soc\":");if(battery.soc_valid)number(battery.soc);else add("null");
+    add(",\"external_voltage\":");if(battery.voltage_valid)number(battery.voltage);else add("null");
+    add(",\"external_current_valid\":%s,\"external_current_a\":",battery.current_valid?"true":"false");
+    if(battery.current_valid)number(battery.external_current_a);else add("null");
+    add(",\"external_current_age_s\":");number(battery.current_age_s);
+    add(",\"input_accepted\":%u,\"input_refused\":%u",battery.accepted,battery.refused);
     add(",\"inverter_soc\":");if(v.own_soc_valid)number(v.own_soc);else add("null");
     add(",\"sync_target\":");number(v.sync_target);
     add(",\"sync_age_s\":");number(v.sync_age_s);

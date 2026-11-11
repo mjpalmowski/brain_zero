@@ -9,8 +9,8 @@ namespace gx {
 struct Identity { char installation[13] = ""; char firmware[48] = ""; };
 struct Snapshot {
     vebus::State bus;
-    bool pace_valid = false;
-    float pace_soc = 0, pace_voltage = 0;
+    bool external_soc_valid = false, external_voltage_valid = false;
+    float external_soc = 0, external_voltage = 0;
     uint32_t utc = 0;
     int64_t now = 0;
 };

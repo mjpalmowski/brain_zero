@@ -3,7 +3,6 @@
 //   /                the dashboard, polling /api/state, the decoded state as JSON
 //   /ess             the ESS settings (Venus's ESS menu), reading GET /api/ess and saving with
 //                    POST /api/ess, form fields as in settings_from_form() in web.cpp
-//   The optional site build also retains the private Home Assistant charging APIs.
 //   /inverter        Venus's operating controls: GET /api/inverter, POST with exactly one control
 //                    Stored charger parameters: GET/POST /api/charger, POST /api/charger/read
 //   /settings        Wi-Fi, Remote Console access, and language
@@ -21,6 +20,8 @@
 #include <stdint.h>
 
 #include "ess_policy.h"
+#include "ess_lease.h"
+#include "external_battery.h"
 #include "inverter_controls.h"
 
 class String;
@@ -105,3 +106,11 @@ size_t describe(char *out, size_t cap);  // "wifi=..." for the status line
 
 bool listener_ess_set(const ess::Settings &settings, char *why, size_t cap, bool save_now,
                       bool legacy_zone = false);
+void listener_battery_input(external_battery::View &out);
+bool listener_battery_input_enabled(bool value, char *why, size_t cap);
+void listener_battery_input_connection(bool connected);
+bool listener_battery_input_message(const char *payload, size_t size, bool retained,
+                                    int64_t queued_at, const char **why);
+void listener_ess_lease(ess_lease::View &out);
+const char *listener_ess_lease_set(const char *id, uint32_t ttl_s, int charge_w);
+const char *listener_ess_lease_clear(const char *id);

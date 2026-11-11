@@ -18,7 +18,7 @@ struct Status {
 bool busy();
 Status status();
 firmware_ota::Status ota_status();
-const char *check(uint32_t running, size_t capacity, bool site);
+const char *check(uint32_t running, size_t capacity);
 const char *stage(const char *tag);
 void poll(bool (*safe_to_stage)());
 void discarded();
