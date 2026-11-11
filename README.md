@@ -82,8 +82,6 @@ With brain_zero connected to your inverter, open **System → Inverter settings*
 
 The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Submissions and their reports are stored privately. No contact details are requested in the app.
 
-An isolated Windows worker collects queued server submissions and opens a synthetic file in VEConfigure. It records settings IDs, limits, defaults, access flags, file offsets and the controls available with those defaults. The worker runs on a five-minute schedule, subject to GitHub runner availability. ESS and settings-write qualification still require developer review.
-
 Developers who want to contribute publicly can select **Download compatibility profile** and attach the resulting `compatibility.json` to the [public GitHub issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub issue submissions run through the [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml).
 
 For public issue submissions, results appear under **Artifacts** on the workflow run. Server submissions return their reports privately to brain_zero. Synthetic files use descriptor defaults and an empty Assistant area.
