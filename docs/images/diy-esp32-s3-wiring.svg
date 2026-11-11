@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1130" viewBox="0 0 1600 1130" role="img" aria-labelledby="title desc">
+  <title id="title">5 V brain_zero DIY connection diagram</title>
+  <desc id="desc">USB powers an ESP32-S3 development board. Its 3.3 V output powers a THVD1450 RS485 module. GPIO17 connects to DI, GPIO18 to RO, GPIO16 to DE, and receiver enable connects separately to ground. A and B connect to VE.Bus contacts 4 and 5; contact 3 joins common ground. DI has a ten kilohm pull-up and DE a ten kilohm pull-down. A one hundred nanofarad supply capacitor belongs close to the transceiver.</desc>
+  <defs>
+    <marker id="orange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9 Z" fill="#b56700" /></marker>
+    <marker id="green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9 Z" fill="#137344" /></marker>
+    <marker id="blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9 Z" fill="#1767b2" /></marker>
+    <marker id="purple" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9 Z" fill="#7754a6" /></marker>
+    <marker id="gray" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9 Z" fill="#526275" /></marker>
+    </defs>
+  <rect width="1600" height="1130" fill="#f4f7fb" />
+  <text x="70" y="55" font-family="Arial" fill="#17283d" font-size="38" font-weight="700">brain_zero DIY · ESP32-S3 + RS485</text>
+  <rect x="70" y="95" width="430" height="85" rx="14" fill="#e4ecf4" stroke="#aebdcc" stroke-width="2" />
+  <text x="95" y="130" font-family="Arial" fill="#17283d" font-size="27" font-weight="700">Regulated 5 V USB supply</text>
+  <text x="95" y="160" font-family="Arial" fill="#17283d" font-size="21">1 A or higher · USB is the power input</text>
+  <path d="M180 180 V243" fill="none" stroke="#526275" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="200" y="222" font-family="Arial" fill="#17283d" font-size="21">USB</text>
+  <text x="750" y="132" font-family="Arial" fill="#17283d" font-size="22">Power the RS485 module from 3V3.</text>
+  <text x="750" y="165" font-family="Arial" fill="#17283d" font-size="22">Keep /RE separate from DE.</text>
+  <rect x="70" y="245" width="360" height="655" rx="18" fill="#fff" stroke="#aebdcc" stroke-width="2" />
+  <rect x="750" y="245" width="385" height="655" rx="18" fill="#fff" stroke="#aebdcc" stroke-width="2" />
+  <rect x="1330" y="245" width="220" height="655" rx="18" fill="#fff" stroke="#aebdcc" stroke-width="2" />
+  <text x="100" y="292" font-family="Arial" fill="#17283d" font-size="27" font-weight="700">ESP32-S3 DevKit</text>
+  <text x="100" y="327" font-family="Arial" fill="#17283d" font-size="21">WROOM-1 · 8 MB flash</text>
+  <text x="100" y="362" font-family="Arial" fill="#17283d" font-size="21">Onboard 3.3 V regulator</text>
+  <text x="775" y="292" font-family="Arial" fill="#17283d" font-size="27" font-weight="700">RS485 module</text>
+  <text x="775" y="327" font-family="Arial" fill="#17283d" font-size="21">THVD1450 · manual direction</text>
+  <text x="1355" y="292" font-family="Arial" fill="#17283d" font-size="27" font-weight="700">VE.Bus</text>
+  <text x="1355" y="327" font-family="Arial" fill="#17283d" font-size="21">RJ45 breakout</text>
+  <text x="1355" y="360" font-family="Arial" fill="#17283d" font-size="21">Contact numbers</text>
+  <text x="405" y="418" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">3V3</text>
+  <text x="405" y="508" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">GPIO17 · TX</text>
+  <text x="405" y="598" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">GPIO18 · RX</text>
+  <text x="405" y="688" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">GPIO16</text>
+  <text x="405" y="858" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">GND</text>
+  <text x="775" y="418" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">VCC · 3.3 V</text>
+  <text x="775" y="508" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">D / DI</text>
+  <text x="775" y="598" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">R / RO</text>
+  <text x="775" y="688" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">DE</text>
+  <text x="775" y="773" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">/RE · always LOW</text>
+  <text x="775" y="858" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">GND</text>
+  <text x="1110" y="508" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">A / D+</text>
+  <text x="1110" y="598" text-anchor="end" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">B / D−</text>
+  <text x="1355" y="508" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">4 · A / D+</text>
+  <text x="1355" y="598" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">5 · B / D−</text>
+  <text x="1355" y="858" font-family="Arial" fill="#17283d" font-size="25" font-weight="700">3 · GND</text>
+  <text x="1355" y="693" font-family="Arial" fill="#17283d" font-size="21">Leave contacts</text>
+  <text x="1355" y="725" font-family="Arial" fill="#17283d" font-size="21">1, 2, 6, 7, 8</text>
+  <text x="1355" y="757" font-family="Arial" fill="#17283d" font-size="21">unconnected.</text>
+  <path d="M430 410 H748" stroke="#b56700" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M430 500 H748" stroke="#137344" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M750 590 H432" stroke="#1767b2" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M430 680 H748" stroke="#7754a6" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M1135 500 H1330" stroke="#137344" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M1135 590 H1330" stroke="#1767b2" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="1228" y="465" text-anchor="middle" font-family="Arial" fill="#17283d" font-size="21">Twisted pair</text>
+  <path d="M540 410 V438 M540 476 V500" stroke="#b56700" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="529" y="438" width="22" height="38" fill="#fff" stroke="#b56700" stroke-width="3" />
+  <text x="565" y="447" font-family="Arial" fill="#17283d" font-size="21">R1</text>
+  <text x="565" y="475" font-family="Arial" fill="#17283d" font-size="21">10 kΩ</text>
+  <circle cx="540" cy="410" r="6" fill="#b56700" />
+  <circle cx="540" cy="500" r="6" fill="#137344" />
+  <path d="M645 680 V773 M645 827 V965" stroke="#7754a6" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="634" y="773" width="22" height="54" fill="#fff" stroke="#7754a6" stroke-width="3" />
+  <text x="615" y="789" text-anchor="end" font-family="Arial" fill="#17283d" font-size="21">R2 · 10 kΩ</text>
+  <text x="615" y="820" text-anchor="end" font-family="Arial" fill="#17283d" font-size="21">DE default off</text>
+  <circle cx="645" cy="680" r="6" fill="#7754a6" />
+  <path d="M430 850 H470 V965 H1260 V850 H1330" fill="none" stroke="#526275" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M750 765 H700 V965 M750 850 H700" fill="none" stroke="#526275" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="700" cy="850" r="6" fill="#526275" />
+  <circle cx="700" cy="965" r="6" fill="#526275" />
+  <circle cx="645" cy="965" r="6" fill="#526275" />
+  <text x="870" y="995" text-anchor="middle" font-family="Arial" fill="#17283d" font-size="21">Common ground · this circuit is not galvanically isolated</text>
+  <text x="70" y="1045" font-family="Arial" fill="#17283d" font-size="22">C1: 100 nF between module VCC and GND, close to the IC.</text>
+  <text x="70" y="1082" font-family="Arial" fill="#17283d" font-size="22">Disable module A–B termination and external A/B bias. Keep the logic resistors shown.</text>
+  <text x="1070" y="1045" font-family="Arial" fill="#17283d" font-size="21">Logical wiring, not a plug view.</text>
+  <text x="1070" y="1082" font-family="Arial" fill="#17283d" font-size="21">Use printed contact numbers.</text>
+<polygon points="170,225 190,225 180,243" fill="#526275" /><polygon points="730,400 730,420 748,410" fill="#b56700" /><polygon points="730,490 730,510 748,500" fill="#137344" /><polygon points="450,580 450,600 432,590" fill="#1767b2" /><polygon points="730,670 730,690 748,680" fill="#7754a6" /></svg>

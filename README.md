@@ -72,6 +72,8 @@ Use the base and lid from the same version. See the [Bambu Studio placement guid
 
 ### DIY hardware
 
+Follow the [5 V ESP32-S3 DIY build tutorial](docs/diy-esp32-s3.md) for parts, a connection diagram, USB programming and setup with a 3.3 V RS485 module.
+
 For a DIY hardware solution, see [pv-baxi/esp32ess](https://github.com/pv-baxi/esp32ess). Its [hardware guide](https://github.com/pv-baxi/esp32ess/blob/main/docs/README.md) describes an ESP32-to-VE.Bus interface for a single MultiPlus-II. It’s a separate project with its own firmware.
 
 ## Share a compatibility profile
