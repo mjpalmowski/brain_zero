@@ -23,7 +23,7 @@ ol{padding-left:22px;margin:0 0 12px}li{padding-left:3px;margin:6px 0}.notice{ma
 .good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.file{margin:16px 0 0;padding:12px 14px;background:var(--bg);border-radius:8px;overflow-wrap:anywhere}.filename{font-weight:600}
 button,.button{font:inherit;font-weight:600;color:var(--ink);padding:10px 18px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;min-height:44px}
 button.primary{background:#2463eb;border-color:#2463eb;color:white}button:disabled{opacity:.45;cursor:default}button:not(:disabled):hover,.button:hover{filter:brightness(.94)}
-.button{text-decoration:none}.profile-submit-note{margin:12px 0 0}
+.button{text-decoration:none}.profile-submit-note{margin:12px 0 16px}.model-label{display:block;font-weight:600;margin-bottom:6px}input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;min-height:44px}
 :focus-visible{outline:3px solid var(--a);outline-offset:3px}input[type=file]{display:block;width:100%;max-width:100%;font:inherit;color:var(--muted)}
 input::file-selector-button{font:inherit;color:var(--ink);padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-right:12px;cursor:pointer;min-height:44px}
 progress{display:block;width:100%;height:8px;accent-color:#2463eb;margin-top:16px}details{margin:12px 0 16px}summary{cursor:pointer;color:var(--a);font-size:14px}
@@ -71,12 +71,13 @@ R"HTML(
 <p class="hint" style="margin:16px 0 0">brain_zero checks compatibility, applies the changes and reads them back from the MultiPlus to confirm. Protected changes use the authorization saved by VEConfigure in your file.</p>
 </section>
 <section class="card" aria-labelledby="profile-title">
-<h2 id="profile-title">Compatibility profile</h2>
-<p class="hint">Share your inverter’s firmware and settings limits to help us verify compatibility.</p>
-<div class="bar"><button class="primary" id="profile" disabled>Download compatibility profile</button>
-<button id="submit" disabled>Submit to developer</button></div>
-<p class="hint profile-submit-note">Submit your compatibility profile to brain-zero.com. No GitHub account is needed.</p>
-<p class="hint"><a href="https://brain-zero.com/compatibility/" target="_blank" rel="noopener noreferrer">Open the submission page</a></p>
+<h2 id="profile-title">Inverter not supported?</h2>
+<p>Submit your inverter data and we’ll work on adding support.</p>
+<label class="model-label" for="submit-model">Inverter model</label>
+<input type="text" id="submit-model" maxlength="160" autocomplete="off" aria-describedby="submit-privacy">
+<p class="hint profile-submit-note" id="submit-privacy">By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.</p>
+<div class="bar"><button class="primary" id="submit" disabled>Submit to developer</button>
+<button id="profile" disabled>Download compatibility profile</button></div>
 <progress id="profile-progress" max="100" value="0" aria-label="Reading settings" hidden></progress>
 <div class="notice hint" id="profile-msg" role="status" aria-live="polite"></div>
 <progress id="submit-progress" max="100" value="0" aria-label="Reading settings" hidden></progress>
@@ -101,47 +102,55 @@ const downloads={
     submit:{label:"Submit to developer",url:"/api/compatibility.json",
         incomplete:"Could not read a complete compatibility profile. {reason}"},
 };
-const submissionOrigin="https://brain-zero.com";
+const submissionEndpoint="https://brain-zero.com/api/compatibility";
 let submission=null;
 function finishSubmission(text,kind="hint"){
-    if(submission)clearTimeout(submission.timeout);
     submission=null;
     message("submit-msg",text,kind);
     render();
 }
-function sendSubmission(){
-    if(!submission?.ready||!submission.profile)return;
-    if(submission.window.closed){
-        finishSubmission("Open the submission page and upload compatibility.json.","warn");
-        return;
+async function sendSubmission(profile){
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),30000);
+    try{
+        submission.sending=true;
+        render();
+        message("submit-msg","Submitting your inverter data…");
+        const response=await fetch(submissionEndpoint,{method:"POST",mode:"cors",credentials:"omit",cache:"no-store",redirect:"error",
+            headers:{"Content-Type":"application/json"},body:JSON.stringify({model:submission.model,consent:true,profile}),signal:controller.signal});
+        const text=await response.text();
+        if(text.length>2048)throw Error("The submission server returned an invalid response. Please try again.");
+        let result;
+        try{result=JSON.parse(text)}catch{throw Error("The submission server returned an invalid response. Please try again.")}
+        if(response.status!==202||result?.ok!==true||result.status!=="queued"||!/^[0-9a-f]{32}$/.test(result.receipt||"")){
+            if(response.status===429)throw Error("Too many submissions. Please try again later.");
+            throw Error("The submission could not be accepted. Please try again.");
+        }
+        finishSubmission(fmt("Submission received. Reference {receipt}. We’ll work on adding support for your inverter.",{receipt:result.receipt}),"good");
+    }catch(error){
+        finishSubmission(error.name==="AbortError"?"Submission timed out. Check your internet connection and try again.":
+            error instanceof TypeError?"Could not send your inverter data. Check your internet connection and try again.":
+            error.message||"Could not send your inverter data. Check your internet connection and try again.","bad");
+    }finally{
+        clearTimeout(timeout);
     }
-    submission.window.postMessage({type:"brain-zero-profile",nonce:submission.nonce,profile:submission.profile},submissionOrigin);
 }
-window.addEventListener("message",event=>{
-    if(!submission||event.origin!==submissionOrigin||event.source!==submission.window||
-        event.data?.nonce!==submission.nonce)return;
-    if(event.data.type==="brain-zero-profile-ready"){
-        submission.ready=true;
-        sendSubmission();
-    }else if(event.data.type==="brain-zero-profile-received"&&submission.profile){
-        finishSubmission("Compatibility profile ready. Review it on brain-zero.com.","good");
-    }
-});
 function message(id,text,kind="hint"){const el=$(id);el.textContent=t(text);el.className="notice "+kind}
 async function json(path,options){const r=await fetch(path,{cache:"no-store",...options});const j=await r.json();if(!r.ok||j.ok===false)throw Error(j.error||"The request was refused.");return j}
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())}
 function save(blob,name){const a=document.createElement("a"),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1000)}
 function renderDownloads(busy){
     for(const [id,download] of Object.entries(downloads)){
-        const reading=pendingDownload===id;
-        $(id).disabled=!connected||busy||(id==="submit"&&!!submission);
-        $(id).textContent=t(reading?"Reading settings…":download.label);
+        const reading=pendingDownload===id&&!(id==="submit"&&submission?.sending);
+        $(id).disabled=!connected||busy||!!submission;
+        $(id).textContent=t(reading?"Reading settings…":id==="submit"&&submission?"Submitting…":download.label);
         $(id+"-progress").hidden=!reading;
         $(id+"-progress").value=reading&&data?.active?data.progress:0;
         if(reading&&data?.active){
             message(id+"-msg",fmt("Reading settings from the MultiPlus… {progress}%",{progress:data.progress}));
         }
     }
+    $("submit-model").disabled=busy||!!submission;
+    if(!$("submit-model").value&&!submission&&typeof data?.setup?.model==="string")$("submit-model").value=data.setup.model;
 }
 async function finishDownload(id){
     const download=downloads[id],channel=id+"-msg";
@@ -159,12 +168,10 @@ async function finishDownload(id){
         }
         if(id==="submit"){
             const profile=await response.json();
-            if(!submission)throw Error("Open the submission page and upload compatibility.json.");
+            if(!submission)throw Error("The submission could not be accepted. Please try again.");
             if(!profile?.profile||typeof profile.grid!=="string"||
                 Object.keys(profile).sort().join(",")!=="grid,profile")throw Error("The request was refused.");
-            submission.profile=profile;
-            message(channel,"Preparing the submission…");
-            sendSubmission();
+            await sendSubmission(profile);
         }else{
             save(await response.blob(),download.filename());
             message(channel,download.success,"good");
@@ -202,7 +209,7 @@ function renderSetup(busy,canUpload){
     const body=rows.map(([label,result])=>'<tr><th scope="row">'+esc(t(label))+'</th><td class="value">'+esc(result)+'</td></tr>').join("");
     if($("setup-rows").innerHTML!==body)$("setup-rows").innerHTML=body;
 }
-function render(){const busy=action||pendingDownload||pendingInspection||!!(data&&data.active)||!!(up&&up.busy);
+function render(){const busy=!!(action||pendingDownload||pendingInspection||data&&data.active||up&&up.busy);
 const canUpload=connected&&data?.setup?.can_upload===true;
 const currentSerial=data?.serial&&data.setup?.status!=="stale"&&(!data.inspection||data.setup?.status==="ready");
 $("device").textContent=connected?(currentSerial?fmt("Serial {serial} · Firmware {firmware}",data):"Connected to brain_zero"):"Connecting to brain_zero…";
@@ -265,20 +272,17 @@ for(const id of Object.keys(downloads).filter(id=>id!=="submit")){
 }
 $("submit").addEventListener("click",()=>{
     if($("submit").disabled)return;
-    const nonce=Array.from(crypto.getRandomValues(new Uint8Array(16)),byte=>byte.toString(16).padStart(2,"0")).join("");
-    const target=window.open(submissionOrigin+"/compatibility/#from-controller="+nonce,"_blank");
-    if(!target){message("submit-msg","Open the submission page and upload compatibility.json.","warn");return}
-    submission={window:target,nonce,ready:false,profile:null,timeout:setTimeout(()=>{
-        if(pendingDownload==="submit")pendingDownload=null;
-        finishSubmission("The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.","warn");
-    },300000)};
+    const model=$("submit-model").value.trim();
+    if(!model||model.length>160||/[\x00-\x1f\x7f]/.test(model)){
+        message("submit-msg","Enter the inverter model using at most 160 characters.","bad");$("submit-model").focus();return;
+    }
+    submission={model};
     run(async()=>{
         await json("/api/settings/read",{method:"POST"});
         pendingDownload="submit";
         message("submit-msg","Reading settings from the MultiPlus…");
     },"submit-msg").then(()=>{
-        if(submission&&!pendingDownload&&!submission.profile){
-            clearTimeout(submission.timeout);
+        if(submission&&!pendingDownload){
             submission=null;
             render();
         }

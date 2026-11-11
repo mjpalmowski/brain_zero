@@ -26,7 +26,6 @@ from validate_compatibility import validate_profile
 MAX_REQUEST_BYTES = 280 * 1024
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 LEASE_SECONDS = 15 * 60
-DEFAULT_ORIGINS = ("https://brain-zero.com", "https://www.brain-zero.com")
 PATH = "/api/compatibility"
 CLAIM_PATH = "/api/internal/compatibility/claim"
 COMPLETE_PATH = "/api/internal/compatibility/complete"
@@ -229,9 +228,34 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(encoded)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
+        # Public, credential-free intake is called directly by local controller
+        # pages and mobile webviews. Only validated sanitized profiles are
+        # accepted. Internal worker endpoints never receive these CORS headers.
+        if self.path == PATH:
+            self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(encoded)
+        self.close_connection = True
+
+    def do_OPTIONS(self):
+        if self.path != PATH:
+            self.reply(404, {"ok": False, "error": "Not found."})
+            return
+        method = self.headers.get("Access-Control-Request-Method", "")
+        headers = {header.strip().lower() for header in
+                   self.headers.get("Access-Control-Request-Headers", "").split(",") if header.strip()}
+        if method != "POST" or not headers <= {"content-type"}:
+            self.reply(403, {"ok": False, "error": "Only JSON profile submissions are allowed."})
+            return
+        self.send_response(204)
+        self.send_header("Content-Length", "0")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "POST")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Max-Age", "600")
+        self.send_header("Connection", "close")
+        self.end_headers()
         self.close_connection = True
 
     def do_GET(self):
@@ -245,12 +269,9 @@ class Handler(BaseHTTPRequestHandler):
             internal = self.path in (CLAIM_PATH, COMPLETE_PATH)
             if self.path != PATH and not internal:
                 raise SubmissionError("Not found.", 404)
-            origin = self.headers.get("Origin")
-            if not internal and origin and origin not in self.server.allowed_origins:
-                raise SubmissionError("Open the upload page on brain-zero.com.", 403)
             claims = self.authenticate_worker() if internal else None
             if self.headers.get_content_type() != "application/json":
-                raise SubmissionError("Upload JSON using the compatibility form.", 415)
+                raise SubmissionError("Send a JSON compatibility profile.", 415)
             if self.headers.get("Transfer-Encoding"):
                 raise SubmissionError("The upload must include its content length.", 411)
             length = self.headers.get("Content-Length", "")
@@ -305,21 +326,17 @@ def verify_worker_token(token):
     return verify_token(token)
 
 
-def create_server(address, directory, origins=DEFAULT_ORIGINS, verify_oidc=verify_worker_token):
+def create_server(address, directory, verify_oidc=verify_worker_token):
     server = ThreadingHTTPServer(address, Handler)
     server.daemon_threads = True
     server.queue = Queue(directory)
-    server.allowed_origins = frozenset(origins)
     server.verify_oidc = verify_oidc
     return server
 
 
 def main():
-    origins = tuple(filter(None, os.environ.get("INTAKE_ORIGINS", ",".join(DEFAULT_ORIGINS)).split(",")))
-    if not origins:
-        raise SystemExit("INTAKE_ORIGINS must include the website's HTTPS origin.")
     server = create_server(("0.0.0.0", int(os.environ.get("PORT", "8080"))),
-                           os.environ.get("INTAKE_SPOOL", "/var/lib/brain-zero-intake"), origins)
+                           os.environ.get("INTAKE_SPOOL", "/var/lib/brain-zero-intake"))
     try:
         server.serve_forever()
     finally:

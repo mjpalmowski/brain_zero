@@ -74,14 +74,15 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 
 brain_zero can create a shareable compatibility profile directly from your inverter. We aim to add support within **48 hours** of receiving a valid `compatibility.json`, once we’ve verified ESS control and stored inverter settings writes for your exact model and firmware.
 
-1. With brain_zero connected to your inverter, open **System → Inverter settings** and select **Download compatibility profile**. This reads the inverter and saves `compatibility.json` directly to your computer.
-2. Upload the file at [brain-zero.com/compatibility](https://brain-zero.com/compatibility/), enter your inverter model, and submit. No GitHub account is needed. New builds also have **Submit to developer**, which opens the form and transfers a fresh profile for review.
+**Inverter not supported?** Submit your inverter data from inside brain_zero and we’ll work on adding support.
 
-The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Server submissions and their reports are stored privately. Contact email is optional.
+With brain_zero connected to your inverter, open **System → Inverter settings**, enter your inverter model, and select **Submit to developer**. The app reads a fresh sanitized compatibility profile, sends it directly to our server, and shows your submission reference. No file download, website form or GitHub account is needed. Reading and submitting the profile does not change inverter settings.
+
+The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Submissions and their reports are stored privately. No contact details are requested in the app.
 
 An isolated Windows worker collects queued server submissions and opens a synthetic file in VEConfigure. It records settings IDs, limits, defaults, access flags, file offsets and the controls available with those defaults. The worker runs on a five-minute schedule, subject to GitHub runner availability. ESS and settings-write qualification still require developer review.
 
-Developers can also submit a profile through the [public GitHub issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub issue submissions run through the [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml).
+Developers who want to contribute publicly can select **Download compatibility profile** and attach the resulting `compatibility.json` to the [public GitHub issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub issue submissions run through the [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml).
 
 For public issue submissions, results appear under **Artifacts** on the workflow run. Server submissions return their reports privately to brain_zero. Synthetic files use descriptor defaults and an empty Assistant area.
 

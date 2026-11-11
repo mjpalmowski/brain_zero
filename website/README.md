@@ -1,9 +1,17 @@
 # Website compatibility intake
 
-The main website serves the upload form at `/compatibility/`. Older firmware can
-download `compatibility.json` for file selection. The local web app can also send
-a freshly read profile to the form through a nonce-bound opener handshake. The
-visitor reviews the model, optional email and consent before submitting.
+The brain_zero web app submits a freshly read sanitized compatibility profile
+directly to `POST https://brain-zero.com/api/compatibility`. The visitor enters
+the inverter model and chooses **Submit to developer** inside the app. Progress,
+errors and the submission reference stay in the app; there is no website form.
+The main website directs visitors to **System → Inverter settings → Submit to
+developer**. Public GitHub issues remain an optional developer contribution path.
+
+The public intake endpoint accepts browser CORS requests without credentials so
+the controller’s local web interface can use HTTPS directly. Its envelope contains
+the model, explicit consent and the sanitized profile. The controller does not
+perform the external TLS upload or hold a developer API credential. Internal
+worker endpoints keep their separate GitHub OIDC authentication.
 
 The Python service accepts only validated compatibility profiles, writes a
 private atomic queue entry and prepares the synthetic VEConfigure fixture. It

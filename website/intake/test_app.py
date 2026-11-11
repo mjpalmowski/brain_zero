@@ -32,23 +32,26 @@ class IntakeTest(unittest.TestCase):
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
 
-    def request(self, path, body, *, token=None, origin=None, content_type="application/json"):
+    def request(self, path, body, *, token=None, origin=None, content_type="application/json",
+                method="POST", request_headers=None, include_headers=False):
         connection = http.client.HTTPConnection(*self.server.server_address, timeout=3)
         headers = {"Content-Type": content_type}
         if token:
             headers["Authorization"] = "Bearer " + token
         if origin:
             headers["Origin"] = origin
+        headers.update(request_headers or {})
         raw = app.canonical_json(body) if not isinstance(body, bytes) else body
-        connection.request("POST", path, raw, headers)
+        connection.request(method, path, raw, headers)
         response = connection.getresponse()
         value = response.read()
         result = json.loads(value) if value else None
+        response_headers = dict(response.getheaders())
         connection.close()
-        return response.status, result
+        return (response.status, result, response_headers) if include_headers else (response.status, result)
 
     def accept(self):
-        status, result = self.request(app.PATH, submission(), origin=app.DEFAULT_ORIGINS[0])
+        status, result = self.request(app.PATH, submission(), origin="http://brain-zero.local")
         self.assertEqual(status, 202)
         return result
 
@@ -78,10 +81,53 @@ class IntakeTest(unittest.TestCase):
         self.assertEqual(status, 413)
         self.assertEqual(list(Path(self.directory.name).iterdir()), [])
 
-    def test_rejects_cross_origin_and_non_json(self):
-        self.assertEqual(self.request(app.PATH, submission(), origin="https://unrelated.example")[0], 403)
+    def test_rejects_non_json(self):
         self.assertEqual(self.request(app.PATH, submission(), content_type="text/plain")[0], 415)
         self.assertEqual(list(Path(self.directory.name).iterdir()), [])
+
+    def test_local_web_app_can_preflight_and_submit_without_credentials(self):
+        for origin in ("http://192.168.68.94", "http://vebus-listener.local", "capacitor://localhost"):
+            with self.subTest(origin=origin):
+                status, body, headers = self.request(
+                    app.PATH, b"", origin=origin, method="OPTIONS", include_headers=True,
+                    request_headers={"Access-Control-Request-Method": "POST",
+                                     "Access-Control-Request-Headers": "content-type"})
+                self.assertEqual((status, body), (204, None))
+                self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
+                self.assertEqual(headers["Access-Control-Allow-Methods"], "POST")
+                self.assertEqual(headers["Access-Control-Allow-Headers"], "Content-Type")
+                self.assertNotIn("Access-Control-Allow-Credentials", headers)
+                status, result, headers = self.request(
+                    app.PATH, submission(email=""), origin=origin, include_headers=True)
+                self.assertEqual(status, 202)
+                self.assertTrue(result["ok"])
+                self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
+                self.assertNotIn("Access-Control-Allow-Credentials", headers)
+
+    def test_invalid_profile_remains_readable_to_local_app(self):
+        status, result, headers = self.request(
+            app.PATH, submission(consent=False), origin="http://192.168.68.94", include_headers=True)
+        self.assertEqual(status, 400)
+        self.assertFalse(result["ok"])
+        self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
+        self.assertEqual(list(Path(self.directory.name).iterdir()), [])
+
+    def test_preflight_cannot_enable_worker_or_credential_requests(self):
+        for headers in ({"Access-Control-Request-Method": "DELETE"},
+                        {"Access-Control-Request-Method": "POST",
+                         "Access-Control-Request-Headers": "Content-Type, Authorization"}):
+            status, _, response = self.request(app.PATH, b"", method="OPTIONS", include_headers=True,
+                                               request_headers=headers)
+            self.assertEqual(status, 403)
+            self.assertNotIn("Access-Control-Allow-Methods", response)
+        for route in (app.CLAIM_PATH, app.COMPLETE_PATH):
+            status, _, headers = self.request(route, b"", method="OPTIONS", include_headers=True,
+                                               request_headers={"Access-Control-Request-Method": "POST"})
+            self.assertEqual(status, 404)
+            self.assertNotIn("Access-Control-Allow-Origin", headers)
+            status, _, headers = self.request(route, {}, origin="http://brain-zero.local", include_headers=True)
+            self.assertEqual(status, 401)
+            self.assertNotIn("Access-Control-Allow-Origin", headers)
 
     def test_worker_identity_claim_retry_and_completion(self):
         receipt = self.accept()["receipt"]

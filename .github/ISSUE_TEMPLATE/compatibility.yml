@@ -5,7 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        In brain_zero, go to **System → Inverter settings → Download compatibility profile**. Attach the downloaded `compatibility.json` below.
+        The simplest way to request support is **System → Inverter settings → Submit to developer** inside brain_zero. It submits privately without a GitHub account or file download.
+
+        To contribute publicly through this issue instead, choose **Download compatibility profile** on the same page and attach the downloaded `compatibility.json` below.
 
         This issue is public. Share only `compatibility.json` and keep the original `.rvsc` private. The workflow uses your profile to open a synthetic file in VEConfigure and inspect the settings for your model and firmware. Once ESS and VEConfigure checks pass, we’ll add that combination to the fully supported list.
   - type: input
