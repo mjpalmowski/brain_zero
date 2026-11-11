@@ -1,0 +1,55 @@
+name: Private server compatibility intake
+run-name: Private server compatibility intake
+
+on:
+  schedule:
+    - cron: '2-57/5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: private-server-compatibility
+  cancel-in-progress: false
+
+jobs:
+  process:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the approved worker
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Claim one private submission
+        id: claim
+        shell: pwsh
+        run: |
+          python -B tools/server_compatibility.py claim --work-dir intake-private
+          exit $LASTEXITCODE
+
+      - name: Install the reference VEConfigure
+        if: steps.claim.outputs.claimed == 'true'
+        timeout-minutes: 4
+        shell: pwsh
+        run: '& .github/scripts/install-veconfigure.ps1'
+
+      - name: Inspect the private model profile
+        if: steps.claim.outputs.claimed == 'true'
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          python -B tools/server_compatibility.py process --work-dir intake-private --exe "$env:VE_CONFIG_EXE"
+          exit $LASTEXITCODE
+
+      - name: Return the private report
+        if: ${{ always() && steps.claim.outputs.claimed == 'true' }}
+        shell: pwsh
+        run: |
+          python -B tools/server_compatibility.py complete --work-dir intake-private
+          exit $LASTEXITCODE
