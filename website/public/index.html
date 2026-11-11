@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="Plug into your inverter’s VE.Bus RJ45 port—no separate power supply needed. Local ESS control, phone settings and optional native Home Assistant integration.">
+  <meta name="theme-color" content="#14221f">
+  <title>brain_zero — A new Wi-Fi dongle for Victron inverters</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="assets/model-viewer-4.4.0.min.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header><a class="brand" href="#" aria-label="brain_zero home"><img src="assets/wordmark.svg" alt="brain_zero" width="210" height="56"><span>happier with less</span></a><span class="preview">Preview</span></header>
+  <main id="main">
+    <div class="pitch">
+      <h1>A new Wi-Fi dongle<br><em>for Victron inverters.</em></h1>
+      <p class="connection">Plug into your inverter’s VE.Bus RJ45 port.</p>
+      <p class="standalone">No Cerbo, No Raspi, No MK3, No separate power supply needed.</p>
+      <ul class="benefits">
+        <li>Download &amp; upload your MultiPlus-II settings file.</li>
+        <li>Adjust charging voltage from your phone.</li>
+        <li>Run ESS and schedules—even when Wi-Fi drops.</li>
+      </ul>
+      <div class="integration"><p>Native Home Assistant integration (optional).</p><button class="dashboard-link" type="button" id="show-dashboard">Dashboard example ↗</button></div>
+      <p class="compatibility-warning"><strong>Supports single inverter installations</strong><br><a href="#compatibility">Check your inverter and firmware ↓</a></p>
+      <div class="purchase">
+        <div class="purchase-options" role="group" aria-label="Buy hardware">
+          <button class="buy" type="button" data-dialog="buy"><span class="offer-name">Board only</span><span><strong class="offer-price">€39.99</strong> <span aria-hidden="true">↗</span></span></button>
+          <button class="buy" type="button" data-dialog="buy"><span class="offer-name">Enclosure only</span><span><strong class="offer-price">€19.99</strong> <span aria-hidden="true">↗</span></span></button>
+          <button class="buy bundle" type="button" data-dialog="buy" aria-describedby="bundle-contents"><span class="offer-name">Bundle</span><span><strong class="offer-price">€49.99</strong> <span aria-hidden="true">↗</span></span></button>
+        </div>
+        <p class="shipping"><strong>The board comes with brain_zero software pre-installed.</strong> The <a class="dashboard-link" href="https://github.com/mjpalmowski/brain_zero/tree/main/firmware/vebus_listener">firmware source</a> lives in the GitHub repo. Download updates from <a class="dashboard-link" href="https://github.com/mjpalmowski/brain_zero/releases">GitHub Releases</a> and install them over Wi-Fi from <strong>System → Firmware update</strong>.</p>
+        <p class="shipping"><span id="bundle-contents">Bundle includes the board, enclosure and a 15 cm RJ45 cable.</span> Shipping across Europe included.</p>
+      </div>
+      <p class="open-pitch">Open hardware for open software.<br>Open your mind and own your stuff.</p>
+      <p class="open-pitch">Android and iOS apps are in development.</p>
+      <div class="project-links"><a href="https://github.com/mjpalmowski/brain_zero">Join the developers <span>GitHub project ↗</span></a><a href="assets/brain-zero-case-c8-prototype.zip" download>Print your housing <span>STL files ↓</span></a></div>
+    </div>
+    <figure class="hardware-visual">
+      <div class="hardware-switch" role="group" aria-label="Hardware view">
+        <button type="button" data-hardware-view="photo" aria-pressed="true">Photo</button>
+        <button type="button" data-hardware-view="exploded" aria-pressed="false">Exploded</button>
+        <button type="button" data-hardware-view="pcb" aria-pressed="false">PCB</button>
+        <button type="button" data-hardware-view="case" aria-pressed="false">Case</button>
+      </div>
+      <div class="hardware-stage">
+        <img id="hardware-photo" src="assets/brain-zero-hardware.webp" alt="brain_zero in its black housing on top of a blue inverter, with a yellow RJ45 cable plugged into the dongle" width="1122" height="1402" fetchpriority="high">
+        <model-viewer id="hardware-exploded" src="assets/assembly-c8-exploded.glb" alt="Interactive exploded view of brain_zero: Rev C PCB installed inside the C8 case base, with the lid lifted above it" camera-controls camera-orbit="-35deg 55deg auto" field-of-view="30deg" interaction-prompt="none" touch-action="pan-y" shadow-intensity="0.7" exposure="1.15" loading="lazy" hidden><img slot="poster" src="assets/assembly-c8-exploded.jpg" alt="Actual Rev C PCB seated inside the C8 base, with the matching lid raised above it" width="523" height="378"></model-viewer>
+        <model-viewer id="hardware-pcb" src="assets/board-rev-c.glb" alt="Interactive 3D model of the brain_zero Rev C PCB with all 31 fitted components and the brain_zero silkscreen logo" camera-controls camera-orbit="-35deg 55deg auto" field-of-view="30deg" interaction-prompt="none" touch-action="pan-y" shadow-intensity="0.7" exposure="1.15" loading="lazy" hidden><img slot="poster" src="assets/board-rev-c-3d.png" alt="brain_zero Rev C PCB with all fitted components and the brain_zero silkscreen logo" width="1800" height="1300"></model-viewer>
+        <model-viewer id="hardware-case" src="assets/case-c8.glb" alt="Interactive 3D model of the existing C8 case base and lid, assembled from the downloadable STL files" camera-controls camera-orbit="-35deg 55deg auto" field-of-view="30deg" interaction-prompt="none" touch-action="pan-y" shadow-intensity="0.7" exposure="1.15" loading="lazy" hidden><img slot="poster" src="assets/case-c8-3d.png" alt="brain_zero C8 enclosure, made from the existing base and lid STL files" width="1800" height="1300"></model-viewer>
+      </div>
+      <figcaption aria-live="polite"><span id="hardware-caption">brain_zero in its housing</span><span id="hardware-note">VE.Bus RJ45 · Power and data</span><div class="hardware-downloads" id="case-downloads" hidden><a href="assets/brain-zero-base-c8.stl" download>Base STL ↓</a><a href="assets/brain-zero-lid-c8.stl" download>Lid STL ↓</a></div></figcaption>
+    </figure>
+    <section id="compatibility" class="compatibility" aria-labelledby="compatibility-title">
+      <div class="compatibility-intro">
+        <h2 id="compatibility-title">Compatible inverters</h2>
+        <p>For a single 230 V Victron MultiPlus-II on VE.Bus. Check your full firmware number in brain_zero Diagnostics or VEConfigure. VE.Direct is not supported.</p>
+      </div>
+      <table aria-label="MultiPlus-II compatibility by firmware">
+        <thead><tr><th scope="col">MultiPlus-II model</th><th scope="col">Firmware</th><th scope="col">Verification</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">48/5000/70-50</th><td><code>2623563</code></td><td>Verified on hardware</td></tr>
+          <tr><th scope="row">48/5000/70-50</th><td><code>2623556</code></td><td>ESS replay only</td></tr>
+          <tr><th scope="row">48/3000/35-32</th><td><code>2629556</code></td><td>Simulator tested</td></tr>
+          <tr><th scope="row">24/3000/70-32</th><td><code>2611552</code></td><td>Simulator tested</td></tr>
+          <tr><th scope="row">48/4k5/55-32</th><td><code>2601560</code></td><td>Simulator tested</td></tr>
+        </tbody>
+      </table>
+      <div class="compatibility-contribute">
+        <p><strong>Your inverter not yet supported?</strong> <a href="/compatibility/">Upload your inverter data to brain_zero</a>. No GitHub account needed.</p>
+        <p class="compatibility-help">In the brain_zero web app, open <strong>System → VEConfigure → Download compatibility profile</strong>, then upload <code>compatibility.json</code> here. New builds can also send it straight to the form with <strong>Submit to developer</strong>.</p>
+        <p class="compatibility-help">We aim to add support within <strong>48 hours</strong> of receiving a valid profile, once your model and firmware pass verification.</p>
+      </div>
+    </section>
+  </main>
+  <footer><p>Independent project. Not affiliated with or endorsed by Victron Energy. Names used only to describe compatibility.</p></footer>
+  <dialog aria-labelledby="dialog-title" id="project-dialog"><button class="close" aria-label="Close dialog" type="button">×</button><h2 id="dialog-title"></h2><p id="dialog-copy"></p><button class="dialog-action" type="button"></button></dialog>
+  <dialog class="dashboard-dialog" aria-labelledby="dashboard-title" id="dashboard-dialog"><button class="close" aria-label="Close dashboard example" type="button">×</button><h2 id="dashboard-title">Home Assistant dashboard example</h2><p>Example setup. Other devices shown require separate integrations.</p><img src="assets/ha-dashboard-example.png" alt="Example brain_zero Home Assistant dashboard showing inverter, battery, household and grid power flows, alongside separately integrated devices" width="1452" height="1482" loading="lazy"><a href="assets/ha-dashboard-example.png" target="_blank" rel="noopener">Open full-size ↗</a></dialog>
+</body>
+</html>

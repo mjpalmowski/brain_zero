@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14221f">
+  <meta name="description" content="Submit your inverter compatibility profile directly to brain_zero. No GitHub account needed.">
+  <title>Submit your inverter data · brain_zero</title>
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/compatibility/upload.css">
+  <script src="/compatibility/upload.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header><a class="brand" href="/" aria-label="brain_zero home"><img src="/assets/wordmark.svg" alt="brain_zero" width="210" height="56"><span>happier with less</span></a><a class="back" href="/#compatibility">Compatible inverters ↗</a></header>
+  <main id="main" class="upload-page">
+    <div class="introduction">
+      <p class="eyebrow">Help support your inverter</p>
+      <h1>Send your inverter data.<br><em>We’ll take it from here.</em></h1>
+      <p>Submit directly from the brain_zero web app. No GitHub account needed.</p>
+      <ol>
+        <li>Open your controller’s <strong>System → VEConfigure</strong> page.</li>
+        <li>Choose <strong>Submit to developer</strong>. Your compatibility profile appears here for review.</li>
+        <li>Enter your inverter model and submit.</li>
+      </ol>
+      <p class="note">On an older build, choose <strong>Download compatibility profile</strong> and select the downloaded <code>compatibility.json</code> below.</p>
+      <p class="note">We aim to verify new model and firmware combinations within 48 hours of a valid submission.</p>
+    </div>
+    <section class="submission" aria-labelledby="submit-title">
+      <h2 id="submit-title">Your compatibility profile</h2>
+      <p id="handoff" class="note" role="status" hidden>Waiting for your controller’s compatibility profile…</p>
+      <form id="submission-form">
+        <label for="profile-file">Compatibility file</label>
+        <input id="profile-file" type="file" accept=".json,application/json" aria-describedby="file-hint">
+        <p id="file-hint" class="note">Select the sanitized compatibility.json from your controller.</p>
+        <dl id="profile-summary" hidden>
+          <dt>Firmware</dt><dd id="firmware"></dd>
+          <dt>Battery voltage</dt><dd id="voltage"></dd>
+          <dt>Settings</dt><dd id="setting-count"></dd>
+        </dl>
+        <label for="model">Inverter model</label>
+        <input id="model" name="model" maxlength="120" minlength="3" required placeholder="MultiPlus-II 48/5000/70-50 230 V" autocomplete="off">
+        <label for="email">Email <span class="optional">(optional)</span></label>
+        <input id="email" name="email" type="email" maxlength="254" autocomplete="email" aria-describedby="email-hint">
+        <p id="email-hint" class="note">For questions about your submission.</p>
+        <label class="consent"><input id="consent" name="consent" type="checkbox" required><span>I agree to send this compatibility profile to brain_zero for compatibility testing.</span></label>
+        <button id="submit" class="submit-button" type="submit" disabled>Submit inverter data</button>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </form>
+      <div id="receipt" class="receipt" hidden>
+        <h3>Submission received</h3>
+        <p>Your profile is queued for automated VEConfigure checks and developer review.</p>
+        <p>Reference <strong id="receipt-id"></strong></p>
+        <a href="/#compatibility">Back to compatible inverters ↗</a>
+      </div>
+      <p class="privacy">The profile contains firmware and setting limits. We store it and the reports privately on our server and process it with an isolated GitHub Actions worker. Your email is used only for this submission.</p>
+    </section>
+  </main>
+  <footer><p>brain_zero · Local control for Victron MultiPlus-II inverter chargers.</p></footer>
+</body>
+</html>

@@ -75,13 +75,15 @@ For a DIY build, the [esp32ess hardware guide](https://github.com/pv-baxi/esp32e
 brain_zero can create a shareable compatibility profile directly from your inverter. We aim to add support within **48 hours** of receiving a valid `compatibility.json`, once we’ve verified ESS control and VEConfigure settings writes for your exact model and firmware.
 
 1. With brain_zero connected to your inverter, open **System → VEConfigure** and select **Download compatibility profile**. This reads the inverter and saves `compatibility.json` directly to your computer.
-2. Select **Submit to developer** on the VEConfigure page to open the public GitHub form. Attach `compatibility.json`, enter your inverter model, and submit the form. Include the full VE.Bus firmware number if you know it.
+2. Upload the file at [brain-zero.com/compatibility](https://brain-zero.com/compatibility/), enter your inverter model, and submit. No GitHub account is needed. New builds also have **Submit to developer**, which opens the form and transfers a fresh profile for review.
 
-Share only `compatibility.json` and keep any `.rvsc` settings backup private. The profile includes the firmware and settings limits we need for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. [Open the compatibility form directly](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml).
+The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Server submissions and their reports are stored privately. Contact email is optional.
 
-GitHub starts the [intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) when you open the issue or update its body. A valid profile produces a settings map with IDs, limits, defaults, access flags, and offsets in a synthetic VEConfigure file. An isolated Windows job opens that file in VEConfigure and records which controls are available with those defaults. It also extracts the reference application's control-to-setting bindings for the configuration tool.
+An isolated Windows worker collects queued server submissions and opens a synthetic file in VEConfigure. It records settings IDs, limits, defaults, access flags, file offsets and the controls available with those defaults. The worker runs on a five-minute schedule, subject to GitHub runner availability. ESS and settings-write qualification still require developer review.
 
-Find the results under **Artifacts** on the workflow run for the issue. The synthetic file uses descriptor defaults and an empty Assistant area. The report does not reproduce your installation's values, and settings-write and ESS qualification are separate checks.
+Developers can also submit a profile through the [public GitHub issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub issue submissions run through the [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml).
+
+For public issue submissions, results appear under **Artifacts** on the workflow run. Server submissions return their reports privately to brain_zero. Synthetic files use descriptor defaults and an empty Assistant area.
 
 <details>
 <summary>Contribute from a VEConfigure backup</summary>

@@ -74,10 +74,13 @@ R"HTML(
 <h2 id="profile-title">Compatibility profile</h2>
 <p class="hint">Share your inverter’s firmware and settings limits to help us verify compatibility.</p>
 <div class="bar"><button class="primary" id="profile" disabled>Download compatibility profile</button>
-<a class="button" href="https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml" target="_blank" rel="noopener noreferrer">Submit to developer</a></div>
-<p class="hint profile-submit-note">Attach compatibility.json to the public GitHub issue form for mjpalmowski/brain_zero. Keep your .rvsc backup private.</p>
+<button id="submit" disabled>Submit to developer</button></div>
+<p class="hint profile-submit-note">Submit your compatibility profile to brain-zero.com. No GitHub account is needed.</p>
+<p class="hint"><a href="https://brain-zero.com/compatibility/" target="_blank" rel="noopener noreferrer">Open the submission page</a></p>
 <progress id="profile-progress" max="100" value="0" aria-label="Reading settings" hidden></progress>
 <div class="notice hint" id="profile-msg" role="status" aria-live="polite"></div>
+<progress id="submit-progress" max="100" value="0" aria-label="Reading settings" hidden></progress>
+<div class="notice hint" id="submit-msg" role="status" aria-live="polite"></div>
 </section>
 <footer>Use <a href="/inverter">Inverter controls</a> or <a href="/ess">ESS settings</a> for everyday adjustments. See <a href="/diagnostics">Diagnostics</a> for connection and VE.Bus health.</footer>
 </main>
@@ -95,7 +98,35 @@ const downloads={
     profile:{label:"Download compatibility profile",url:"/api/compatibility.json",
         filename:()=>"compatibility.json",
         incomplete:"Could not read a complete compatibility profile. {reason}",success:"Compatibility profile downloaded."},
+    submit:{label:"Submit to developer",url:"/api/compatibility.json",
+        incomplete:"Could not read a complete compatibility profile. {reason}"},
 };
+const submissionOrigin="https://brain-zero.com";
+let submission=null;
+function finishSubmission(text,kind="hint"){
+    if(submission)clearTimeout(submission.timeout);
+    submission=null;
+    message("submit-msg",text,kind);
+    render();
+}
+function sendSubmission(){
+    if(!submission?.ready||!submission.profile)return;
+    if(submission.window.closed){
+        finishSubmission("Open the submission page and upload compatibility.json.","warn");
+        return;
+    }
+    submission.window.postMessage({type:"brain-zero-profile",nonce:submission.nonce,profile:submission.profile},submissionOrigin);
+}
+window.addEventListener("message",event=>{
+    if(!submission||event.origin!==submissionOrigin||event.source!==submission.window||
+        event.data?.nonce!==submission.nonce)return;
+    if(event.data.type==="brain-zero-profile-ready"){
+        submission.ready=true;
+        sendSubmission();
+    }else if(event.data.type==="brain-zero-profile-received"&&submission.profile){
+        finishSubmission("Compatibility profile ready. Review it on brain-zero.com.","good");
+    }
+});
 function message(id,text,kind="hint"){const el=$(id);el.textContent=t(text);el.className="notice "+kind}
 async function json(path,options){const r=await fetch(path,{cache:"no-store",...options});const j=await r.json();if(!r.ok||j.ok===false)throw Error(j.error||"The request was refused.");return j}
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())}
@@ -103,7 +134,7 @@ function save(blob,name){const a=document.createElement("a"),url=URL.createObjec
 function renderDownloads(busy){
     for(const [id,download] of Object.entries(downloads)){
         const reading=pendingDownload===id;
-        $(id).disabled=!connected||busy;
+        $(id).disabled=!connected||busy||(id==="submit"&&!!submission);
         $(id).textContent=t(reading?"Reading settings…":download.label);
         $(id+"-progress").hidden=!reading;
         $(id+"-progress").value=reading&&data?.active?data.progress:0;
@@ -115,7 +146,9 @@ function renderDownloads(busy){
 async function finishDownload(id){
     const download=downloads[id],channel=id+"-msg";
     if(data.inspection||!data.file){
-        message(channel,fmt(download.incomplete,{reason:t(data.file_problem)}),"bad");
+        const text=fmt(download.incomplete,{reason:t(data.file_problem)});
+        if(id==="submit")finishSubmission(text,"bad");
+        else message(channel,text,"bad");
         return;
     }
     try{
@@ -124,10 +157,21 @@ async function finishDownload(id){
             const result=await response.json().catch(()=>({}));
             throw Error(result.error||"Download failed.");
         }
-        save(await response.blob(),download.filename());
-        message(channel,download.success,"good");
+        if(id==="submit"){
+            const profile=await response.json();
+            if(!submission)throw Error("Open the submission page and upload compatibility.json.");
+            if(!profile?.profile||typeof profile.grid!=="string"||
+                Object.keys(profile).sort().join(",")!=="grid,profile")throw Error("The request was refused.");
+            submission.profile=profile;
+            message(channel,"Preparing the submission…");
+            sendSubmission();
+        }else{
+            save(await response.blob(),download.filename());
+            message(channel,download.success,"good");
+        }
     }catch(error){
-        message(channel,error.message||"Download failed. Please try again.","bad");
+        if(id==="submit")finishSubmission(error.message||"Download failed. Please try again.","bad");
+        else message(channel,error.message||"Download failed. Please try again.","bad");
     }
 }
 function value(id,raw){const s=data&&data.settings.find(s=>s[0]===id),n=N[id];if(!s||s[1]!==2||!n)return fmt("{value} (raw)",{value:raw});
@@ -212,13 +256,34 @@ if(!connected||pendingDownload||pendingInspection||data&&data.active||up&&up.bus
 else if(!document.hidden&&data?.setup?.status==="ready")timer=setTimeout(refresh,5000)}})();return refreshing}
 async function run(task,channel="upload-msg"){if(action)return;action=true;message(channel,"");render();try{await refreshing;await task()}catch(e){message(channel,e.message||"Could not reach brain_zero.","bad")}finally{action=false;await refresh()}}
 $("inspect").addEventListener("click",()=>run(async()=>{await json("/api/settings/read?inspect=1",{method:"POST"});pendingInspection=true},"inspect-msg"));
-for(const id of Object.keys(downloads)){
+for(const id of Object.keys(downloads).filter(id=>id!=="submit")){
     $(id).addEventListener("click",()=>run(async()=>{
         await json("/api/settings/read",{method:"POST"});
         pendingDownload=id;
         message(id+"-msg","Reading settings from the MultiPlus…");
     },id+"-msg"));
 }
+$("submit").addEventListener("click",()=>{
+    if($("submit").disabled)return;
+    const nonce=Array.from(crypto.getRandomValues(new Uint8Array(16)),byte=>byte.toString(16).padStart(2,"0")).join("");
+    const target=window.open(submissionOrigin+"/compatibility/#from-controller="+nonce,"_blank");
+    if(!target){message("submit-msg","Open the submission page and upload compatibility.json.","warn");return}
+    submission={window:target,nonce,ready:false,profile:null,timeout:setTimeout(()=>{
+        if(pendingDownload==="submit")pendingDownload=null;
+        finishSubmission("The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.","warn");
+    },300000)};
+    run(async()=>{
+        await json("/api/settings/read",{method:"POST"});
+        pendingDownload="submit";
+        message("submit-msg","Reading settings from the MultiPlus…");
+    },"submit-msg").then(()=>{
+        if(submission&&!pendingDownload&&!submission.profile){
+            clearTimeout(submission.timeout);
+            submission=null;
+            render();
+        }
+    });
+});
 $("upfile").addEventListener("change",()=>{const f=$("upfile").files[0];if(!f)return;
 if(!/\.rvsc$/i.test(f.name)){message("upload-msg","Choose the .rvsc file saved by VEConfigure.","bad");$("upfile").value="";return}
 run(async()=>{const fd=new FormData();fd.append("file",f,f.name);await json("/api/upload",{method:"POST",body:fd})})});

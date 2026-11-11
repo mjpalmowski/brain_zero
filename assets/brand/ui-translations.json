@@ -176,6 +176,7 @@
     "Communication error",
     "Compatibility profile",
     "Compatibility profile downloaded.",
+    "Compatibility profile ready. Review it on brain-zero.com.",
     "Configuration mismatch",
     "Confirm password",
     "Confirmed Ignore AC operation only. Raises AC-out to about 53 Hz, affecting every connected appliance. Restores automatically on timeout, reconnection, charging or a protection event. Readback confirms the inverter flag; solar restart may take longer.",
@@ -562,6 +563,8 @@
     "Open a copy in",
     "Open the controller using its local address.",
     "Open the firmware page using the controller's local address.",
+    "Open the submission page",
+    "Open the submission page and upload compatibility.json.",
     "Operating controls",
     "Operating mode",
     "Operating mode changed or stale: accepting grid",
@@ -614,6 +617,7 @@
     "PowerAssist settings",
     "PowerAssist settings read from the inverter",
     "PowerAssist settings unavailable",
+    "Preparing the submission…",
     "Preview release {tag} · {bytes} bytes.",
     "Previous Wi-Fi network restored.",
     "Protected settings will use the file’s embedded VEConfigure authorization.",
@@ -834,6 +838,7 @@
     "Stored relay-test report",
     "Stored report",
     "Submit to developer",
+    "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.",
     "Sunday",
     "Switch to grid at",
     "Switch to inverter only? The battery will supply AC-out loads.",
@@ -862,6 +867,7 @@
     "The inverter refused a charger-setting write; reload to check stored values",
     "The request was refused.",
     "The stored report may describe an old fault. Its report ID is not a lifetime fault count, and the inverter does not provide an occurrence date here. Current LED indications, the diagnostic snapshot and stored history are separate.",
+    "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.",
     "There is no connection test.",
     "These values are saved in the inverter. Actual charging can be limited by ESS, a BMS, temperature or the AC supply. Readback confirms the stored settings, not the instantaneous battery voltage or current.",
     "This ESP32",
@@ -2626,7 +2632,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · teruglees geverifieer",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Versoenbaarheidsprofiel gereed. Gaan dit op brain-zero.com na.",
+      "Open the submission page": "Maak die indieningsbladsy oop",
+      "Open the submission page and upload compatibility.json.": "Maak die indieningsbladsy oop en laai compatibility.json op.",
+      "Preparing the submission…": "Besig om die indiening voor te berei…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Dien jou versoenbaarheidsprofiel by brain-zero.com in. Geen GitHub-rekening is nodig nie.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Die indieningsbladsy het nie gereageer nie. Laai compatibility.json af en laai dit op brain-zero.com op."
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -3940,7 +3952,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · zpětně ověřeno",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Profil kompatibility je připraven. Zkontrolujte jej na brain-zero.com.",
+      "Open the submission page": "Otevřít stránku pro odeslání",
+      "Open the submission page and upload compatibility.json.": "Otevřete stránku pro odeslání a nahrajte compatibility.json.",
+      "Preparing the submission…": "Připravuje se odeslání…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Odešlete svůj profil kompatibility na brain-zero.com. Účet GitHub není potřeba.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Stránka pro odeslání neodpověděla. Stáhněte compatibility.json a nahrajte jej na brain-zero.com."
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5254,7 +5272,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · tilbagelæsning bekræftet",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Kompatibilitetsprofilen er klar. Gennemgå den på brain-zero.com.",
+      "Open the submission page": "Åbn indsendelsessiden",
+      "Open the submission page and upload compatibility.json.": "Åbn indsendelsessiden, og upload compatibility.json.",
+      "Preparing the submission…": "Forbereder indsendelsen…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Indsend din kompatibilitetsprofil på brain-zero.com. En GitHub-konto er ikke nødvendig.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Indsendelsessiden svarede ikke. Download compatibility.json, og upload filen på brain-zero.com."
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -6568,7 +6592,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · Rücklesung verifiziert",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Kompatibilitätsprofil ist bereit. Prüfen Sie es auf brain-zero.com.",
+      "Open the submission page": "Seite zum Einreichen öffnen",
+      "Open the submission page and upload compatibility.json.": "Öffnen Sie die Seite zum Einreichen und laden Sie compatibility.json hoch.",
+      "Preparing the submission…": "Einreichung wird vorbereitet…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Senden Sie Ihr Kompatibilitätsprofil an brain-zero.com. Ein GitHub-Konto ist dafür nicht erforderlich.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Die Seite zum Einreichen hat nicht geantwortet. Laden Sie compatibility.json herunter und auf brain-zero.com hoch."
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -7882,7 +7912,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · lectura verificada",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "El perfil de compatibilidad está listo. Revíselo en brain-zero.com.",
+      "Open the submission page": "Abrir la página de envío",
+      "Open the submission page and upload compatibility.json.": "Abra la página de envío y cargue compatibility.json.",
+      "Preparing the submission…": "Preparando el envío…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Envíe su perfil de compatibilidad a brain-zero.com. No necesita una cuenta de GitHub.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La página de envío no ha respondido. Descargue compatibility.json y cárguelo en brain-zero.com."
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9196,7 +9232,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · relecture vérifiée",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Le profil de compatibilité est prêt. Vérifiez-le sur brain-zero.com.",
+      "Open the submission page": "Ouvrir la page d’envoi",
+      "Open the submission page and upload compatibility.json.": "Ouvrez la page d’envoi et téléversez compatibility.json.",
+      "Preparing the submission…": "Préparation de l’envoi…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Envoyez votre profil de compatibilité sur brain-zero.com. Aucun compte GitHub n’est nécessaire.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La page d’envoi n’a pas répondu. Téléchargez compatibility.json et téléversez-le sur brain-zero.com."
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -10510,7 +10552,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · rilettura verificata",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Profilo di compatibilità pronto. Lo controlli su brain-zero.com.",
+      "Open the submission page": "Apri la pagina di invio",
+      "Open the submission page and upload compatibility.json.": "Apra la pagina di invio e carichi compatibility.json.",
+      "Preparing the submission…": "Preparazione dell’invio…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Invii il profilo di compatibilità a brain-zero.com. Non serve un account GitHub.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "La pagina di invio non ha risposto. Scarichi compatibility.json e lo carichi su brain-zero.com."
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -11824,7 +11872,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · リードバック検証済み",
       "{value} · {status}": "{value}・{status}",
-      "{value} · {status} · {age}": "{value}・{status}・{age}"
+      "{value} · {status} · {age}": "{value}・{status}・{age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "互換性プロファイルの準備ができました。brain-zero.com で確認してください。",
+      "Open the submission page": "送信ページを開く",
+      "Open the submission page and upload compatibility.json.": "送信ページを開き、compatibility.json をアップロードしてください。",
+      "Preparing the submission…": "送信を準備しています…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "互換性プロファイルを brain-zero.com に送信します。GitHub アカウントは不要です。",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "送信ページから応答がありません。compatibility.json をダウンロードし、brain-zero.com にアップロードしてください。"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -13138,7 +13192,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · teruglezen geverifieerd",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Het compatibiliteitsprofiel is gereed. Controleer het op brain-zero.com.",
+      "Open the submission page": "Open de inzendpagina",
+      "Open the submission page and upload compatibility.json.": "Open de inzendpagina en upload compatibility.json.",
+      "Preparing the submission…": "De inzending wordt voorbereid…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Verstuur uw compatibiliteitsprofiel via brain-zero.com. Een GitHub-account is niet nodig.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "De inzendpagina heeft niet gereageerd. Download compatibility.json en upload het op brain-zero.com."
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -14452,7 +14512,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · odczyt zweryfikowany",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Profil zgodności jest gotowy. Sprawdź go na brain-zero.com.",
+      "Open the submission page": "Otwórz stronę przesyłania",
+      "Open the submission page and upload compatibility.json.": "Otwórz stronę przesyłania i prześlij plik compatibility.json.",
+      "Preparing the submission…": "Przygotowywanie zgłoszenia…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Prześlij profil zgodności na brain-zero.com. Konto GitHub nie jest potrzebne.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Strona przesyłania nie odpowiedziała. Pobierz compatibility.json i prześlij go na brain-zero.com."
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -15766,7 +15832,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · leitura verificada",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "O perfil de compatibilidade está pronto. Reveja-o em brain-zero.com.",
+      "Open the submission page": "Abrir a página de envio",
+      "Open the submission page and upload compatibility.json.": "Abra a página de envio e carregue compatibility.json.",
+      "Preparing the submission…": "A preparar o envio…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Envie o seu perfil de compatibilidade para brain-zero.com. Não precisa de uma conta GitHub.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "A página de envio não respondeu. Transfira compatibility.json e carregue-o em brain-zero.com."
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -17080,7 +17152,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · обратная связь проверена",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Профиль совместимости готов. Проверьте его на brain-zero.com.",
+      "Open the submission page": "Открыть страницу отправки",
+      "Open the submission page and upload compatibility.json.": "Откройте страницу отправки и загрузите compatibility.json.",
+      "Preparing the submission…": "Подготовка к отправке…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Отправьте профиль совместимости на brain-zero.com. Учётная запись GitHub не требуется.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Страница отправки не ответила. Скачайте compatibility.json и загрузите его на brain-zero.com."
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -18394,7 +18472,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · readback verificat",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Profilul de compatibilitate este gata. Verificați-l pe brain-zero.com.",
+      "Open the submission page": "Deschide pagina de trimitere",
+      "Open the submission page and upload compatibility.json.": "Deschideți pagina de trimitere și încărcați compatibility.json.",
+      "Preparing the submission…": "Se pregătește trimiterea…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Trimiteți profilul de compatibilitate pe brain-zero.com. Nu este necesar un cont GitHub.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Pagina de trimitere nu a răspuns. Descărcați compatibility.json și încărcați-l pe brain-zero.com."
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -19708,7 +19792,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · återläsning verifierad",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Kompatibilitetsprofilen är klar. Granska den på brain-zero.com.",
+      "Open the submission page": "Öppna sidan för inskickning",
+      "Open the submission page and upload compatibility.json.": "Öppna sidan för inskickning och ladda upp compatibility.json.",
+      "Preparing the submission…": "Förbereder inskickningen…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Skicka din kompatibilitetsprofil via brain-zero.com. Inget GitHub-konto behövs.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Sidan för inskickning svarade inte. Hämta compatibility.json och ladda upp filen på brain-zero.com."
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -21022,7 +21112,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · ยืนยันการอ่านกลับแล้ว",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "โปรไฟล์ความเข้ากันได้พร้อมแล้ว ตรวจสอบได้ที่ brain-zero.com",
+      "Open the submission page": "เปิดหน้าส่งข้อมูล",
+      "Open the submission page and upload compatibility.json.": "เปิดหน้าส่งข้อมูลและอัปโหลด compatibility.json",
+      "Preparing the submission…": "กำลังเตรียมการส่งข้อมูล…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "ส่งโปรไฟล์ความเข้ากันได้ของคุณไปที่ brain-zero.com โดยไม่ต้องมีบัญชี GitHub",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "หน้าส่งข้อมูลไม่ตอบสนอง ดาวน์โหลด compatibility.json แล้วอัปโหลดที่ brain-zero.com"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -22336,7 +22432,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · tekrar okuma doğrulandı",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Uyumluluk profili hazır. brain-zero.com üzerinde inceleyin.",
+      "Open the submission page": "Gönderim sayfasını aç",
+      "Open the submission page and upload compatibility.json.": "Gönderim sayfasını açın ve compatibility.json dosyasını yükleyin.",
+      "Preparing the submission…": "Gönderim hazırlanıyor…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Uyumluluk profilinizi brain-zero.com üzerinden gönderin. GitHub hesabı gerekmez.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Gönderim sayfası yanıt vermedi. compatibility.json dosyasını indirin ve brain-zero.com üzerinden yükleyin."
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -23650,7 +23752,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · повторне читання перевірено",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "Профіль сумісності готовий. Перевірте його на brain-zero.com.",
+      "Open the submission page": "Відкрити сторінку надсилання",
+      "Open the submission page and upload compatibility.json.": "Відкрийте сторінку надсилання та завантажте compatibility.json.",
+      "Preparing the submission…": "Підготовка до надсилання…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "Надішліть профіль сумісності на brain-zero.com. Обліковий запис GitHub не потрібен.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "Сторінка надсилання не відповіла. Збережіть compatibility.json і завантажте його на brain-zero.com."
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -24964,7 +25072,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · 回读已验证",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "兼容性配置文件已准备好，请在 brain-zero.com 上检查。",
+      "Open the submission page": "打开提交页面",
+      "Open the submission page and upload compatibility.json.": "打开提交页面并上传 compatibility.json。",
+      "Preparing the submission…": "正在准备提交…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "在 brain-zero.com 上提交您的兼容性配置文件，无需 GitHub 帐号。",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "提交页面未响应。请下载 compatibility.json 并上传到 brain-zero.com。"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -26278,7 +26392,13 @@
       "{value} {unit}": "{value} {unit}",
       "{value} {unit} · readback verified": "{value} {unit} · تم التحقق من القراءة",
       "{value} · {status}": "{value} · {status}",
-      "{value} · {status} · {age}": "{value} · {status} · {age}"
+      "{value} · {status} · {age}": "{value} · {status} · {age}",
+      "Compatibility profile ready. Review it on brain-zero.com.": "ملف التوافق جاهز. راجعه على brain-zero.com.",
+      "Open the submission page": "افتح صفحة الإرسال",
+      "Open the submission page and upload compatibility.json.": "افتح صفحة الإرسال وارفع compatibility.json.",
+      "Preparing the submission…": "جارٍ التحضير للإرسال…",
+      "Submit your compatibility profile to brain-zero.com. No GitHub account is needed.": "أرسل ملف التوافق إلى brain-zero.com. لا تحتاج إلى حساب GitHub.",
+      "The submission page did not respond. Download compatibility.json and upload it on brain-zero.com.": "لم تستجب صفحة الإرسال. نزّل compatibility.json وارفعه على brain-zero.com."
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."
