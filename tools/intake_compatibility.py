@@ -3,24 +3,50 @@
 import argparse
 import hashlib
 from http.client import HTTPException
+from io import BytesIO
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 from urllib.error import URLError
 from urllib.parse import unquote, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from zipfile import BadZipFile, LargeZipFile, ZIP_DEFLATED, ZIP_STORED, ZipFile
+from zlib import error as ZlibError
 
+from export_compatibility import MAX_BACKUP_BYTES, export_compatibility
 from validate_compatibility import MAX_PROFILE_BYTES, validate_profile
 
 
-PROFILE_FIELD = "Downloaded compatibility profile"
+PROFILE_FIELD = "Settings file or compatibility profile"
+PROFILE_FIELDS = (PROFILE_FIELD, "Downloaded compatibility profile")
+MAX_ZIP_BYTES = MAX_BACKUP_BYTES + 64 * 1024
+ATTACHMENT_URL = (
+    r"https://github\.com/user-attachments/files/"
+    r"[1-9][0-9]{0,19}/([A-Za-z0-9._%()+-]{1,190}\.(?:json|rvsc|zip))"
+)
 ATTACHMENT = re.compile(
-    r"\[[^\]\r\n]{1,200}\]\((https://github\.com/user-attachments/files/"
-    r"[1-9][0-9]{0,19}/([A-Za-z0-9._%()+-]{1,190}\.json))\)",
+    r"\[[^\]\r\n]{1,200}\]\((" + ATTACHMENT_URL + r")\)",
     re.IGNORECASE | re.ASCII,
 )
+URL = re.compile(ATTACHMENT_URL, re.IGNORECASE | re.ASCII)
+
+
+def attachment_kind(url):
+    """Validate the public attachment URL, including its decoded filename."""
+    match = URL.fullmatch(url)
+    if not match:
+        raise ValueError("Use a GitHub attachment ending in .json, .rvsc or .zip.")
+    filename = unquote(match[1])
+    if not re.fullmatch(r"[^/\\:\x00-\x1f\x7f]+\.(?:json|rvsc|zip)", filename, re.IGNORECASE):
+        raise ValueError("The attachment filename is invalid.")
+    return filename.rsplit(".", 1)[1].lower()
+
+
+def attachment_limit(kind):
+    return {"json": MAX_PROFILE_BYTES, "rvsc": MAX_BACKUP_BYTES, "zip": MAX_ZIP_BYTES}[kind]
 
 
 def issue_number(value):
@@ -45,18 +71,64 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def download_profile(url):
-    # Only the form's validated GitHub attachment URL reaches this function.
-    # The request is anonymous, including after redirects.
-    request = Request(url, headers={"Accept": "application/json, application/octet-stream",
+    # The request is anonymous, including after redirects. Check the URL here
+    # too so alternate callers cannot turn the downloader into an arbitrary GET.
+    limit = attachment_limit(attachment_kind(url))
+    request = Request(url, headers={"Accept": "application/json, application/zip, application/octet-stream",
                                     "User-Agent": "brain-zero-compatibility-intake"})
     try:
         with build_opener(AttachmentRedirect()).open(request, timeout=15) as response:
-            raw = response.read(MAX_PROFILE_BYTES + 1)
+            raw = response.read(limit + 1)
     except (URLError, OSError, HTTPException) as error:
         raise ValueError("Could not download the public attachment from GitHub.") from error
-    if len(raw) > MAX_PROFILE_BYTES:
-        raise ValueError("The attachment exceeds the 256 KiB profile size limit.")
+    if len(raw) > limit:
+        raise ValueError("The attachment exceeds its size limit.")
     return raw
+
+
+def zipped_backup(raw):
+    """Read one small regular RVSC member in memory; never extract the ZIP."""
+    try:
+        with ZipFile(BytesIO(raw)) as archive:
+            members = archive.infolist()
+            if len(members) != 1:
+                raise ValueError("The ZIP must contain exactly one .rvsc file and no other entries.")
+            member = members[0]
+            name = member.filename
+            mode = stat.S_IFMT(member.external_attr >> 16)
+            if (member.orig_filename != name or
+                    not re.fullmatch(r"[^/\\:\x00-\x1f\x7f]+\.rvsc", name, re.IGNORECASE) or
+                    member.is_dir() or member.external_attr & 0x10 or
+                    mode not in (0, stat.S_IFREG)):
+                raise ValueError("The ZIP must contain one regular .rvsc file without folders or paths.")
+            if member.flag_bits & 1:
+                raise ValueError("Encrypted ZIP files are not supported.")
+            if member.compress_type not in (ZIP_STORED, ZIP_DEFLATED):
+                raise ValueError("Use a standard stored or deflated ZIP file.")
+            if not 0 < member.file_size <= MAX_BACKUP_BYTES:
+                raise ValueError("The .rvsc inside the ZIP exceeds the 128 KiB backup size limit or is empty.")
+            with archive.open(member) as backup:
+                data = backup.read(MAX_BACKUP_BYTES + 1)
+            if len(data) != member.file_size or len(data) > MAX_BACKUP_BYTES:
+                raise ValueError("The .rvsc inside the ZIP has an invalid size.")
+            return data
+    except (BadZipFile, LargeZipFile, OSError, EOFError, RuntimeError, NotImplementedError, ZlibError):
+        # ZIP exceptions can contain member filenames. Keep those, and any
+        # original backup content, out of review reports and workflow logs.
+        raise ValueError("The ZIP is invalid, damaged or unsupported.") from None
+
+
+def sanitize_attachment(raw, kind):
+    """Return only validated public metadata, discarding private backup fields."""
+    if kind not in ("json", "rvsc", "zip"):
+        raise ValueError("Unsupported attachment type.")
+    if len(raw) > attachment_limit(kind):
+        raise ValueError("The attachment exceeds its size limit.")
+    if kind == "json":
+        return validate_profile(raw)
+    backup = zipped_backup(raw) if kind == "zip" else raw
+    bundle = export_compatibility(backup)
+    return validate_profile(json.dumps(bundle, allow_nan=False).encode("utf-8"))
 
 
 def load_issue(repository, number):
@@ -85,11 +157,13 @@ def submission(body):
 
     if sections.get("Inverter model", "") in ("", "_No response_"):
         raise ValueError("Enter the inverter model using the compatibility issue form.")
-    match = ATTACHMENT.fullmatch(sections.get(PROFILE_FIELD, ""))
+    fields = [field for field in PROFILE_FIELDS if field in sections]
+    if len(fields) != 1:
+        raise ValueError("Use exactly one settings file or compatibility profile field.")
+    match = ATTACHMENT.fullmatch(sections[fields[0]])
     if not match:
-        raise ValueError("Attach exactly one JSON file in the compatibility profile field.")
-    if not re.fullmatch(r"[^/\\:\x00-\x1f\x7f]+\.json", unquote(match[2]), re.IGNORECASE):
-        raise ValueError("The attachment filename is invalid.")
+        raise ValueError("Attach exactly one JSON profile or a ZIP containing one .rvsc backup.")
+    attachment_kind(match[1])
 
     declared_firmware = sections.get("Firmware shown by Victron", "")
     if declared_firmware in ("", "_No response_"):
@@ -111,10 +185,13 @@ def process(issue, repository, output_dir):
     output_dir.mkdir(parents=True, exist_ok=False)
     try:
         url, declared_firmware = submission(issue.get("body") or "")
+        kind = attachment_kind(url)
         raw = download_profile(url)
-        report.update(attachment_url=url, attachment_bytes=len(raw),
+        report.update(attachment_type=kind, attachment_bytes=len(raw),
                       attachment_sha256=hashlib.sha256(raw).hexdigest())
-        fixture, details = validate_profile(raw)
+        if kind == "json":
+            report["attachment_url"] = url
+        fixture, details = sanitize_attachment(raw, kind)
         if declared_firmware is not None and declared_firmware != details["firmware"]:
             raise ValueError("The firmware entered on the issue differs from the attachment.")
     except ValueError as error:
@@ -163,7 +240,7 @@ def main():
         if event.get("action") == "edited" and "body" not in event.get("changes", {}):
             return 0
         if not ((issue.get("title") or "").casefold().startswith("[compatibility]") or
-                f"### {PROFILE_FIELD}" in (issue.get("body") or "")):
+                any(f"### {field}" in (issue.get("body") or "") for field in PROFILE_FIELDS)):
             return 0
     else:
         parser.error("Unsupported intake trigger.")

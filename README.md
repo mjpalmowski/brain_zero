@@ -82,14 +82,31 @@ With brain_zero connected to your inverter, open **System → Inverter settings*
 
 The profile includes firmware and settings limits for testing. It leaves out your serial number, unit ID, embedded credentials, saved settings and Assistant contents. Submissions and their reports are stored privately. No contact details are requested in the app.
 
-Developers who want to contribute publicly can select **Download compatibility profile** and attach the resulting `compatibility.json` to the [public GitHub issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub issue submissions run through the [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml).
+### Submit a VEConfigure backup through an issue
 
-For public issue submissions, results appear under **Artifacts** on the workflow run. Server submissions return their reports privately to brain_zero. Synthetic files use descriptor defaults and an empty Assistant area.
+You can contribute before buying a brain_zero. Put one current `.rvsc` backup in a ZIP and attach it to the [compatibility issue form](https://github.com/mjpalmowski/brain_zero/issues/new?template=compatibility.yml). GitHub accepts ZIP attachments; keep the `.rvsc` file inside unchanged. You can also attach `compatibility.json` from **System → Inverter settings → Download compatibility profile** in brain_zero.
+
+Issues and attachments are public. A `.rvsc` backup can contain serial numbers, access credentials and saved settings. Use a sanitized `compatibility.json` if you prefer to leave those out.
+
+#### Download a current .rvsc backup
+
+For a system connected to VRM through a GX device such as a Cerbo GX:
+
+1. Check that the GX device is online in VRM and its **Settings → VRM online portal → VRM Portal** access mode is **Full**.
+2. Open your installation in [VRM](https://vrm.victronenergy.com/), select **Device list**, and open **Remote VEConfigure** at the bottom.
+3. Choose **Download** and wait for the system to read the inverter's current settings.
+4. Save the downloaded `.rvsc` file unchanged. Put that single file in a ZIP and attach the ZIP to your issue.
+
+Download immediately before submitting, using the inverter's currently installed firmware. Repeat the download after firmware or settings changes. You only need to download the settings for this submission. See [Victron's Remote VEConfigure instructions](https://www.victronenergy.com/media/pg/VRM_Portal_manual/en/remote-veconfigure.html).
+
+If your system has no GX/VRM connection, your installer may be able to provide a current `.rvsc` backup. VEConfigure's local **File → Save As** creates a `.vsc`, which is a different format; changing its extension does not convert it.
+
+The [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) accepts the ZIP or JSON, prepares a sanitized compatibility profile, and produces review reports under **Artifacts** on its workflow run. Server submissions return their reports privately to brain_zero.
 
 <details>
-<summary>Contribute from a VEConfigure backup</summary>
+<summary>Create a sanitized compatibility.json locally (optional)</summary>
 
-If you have an older brain_zero build or use Victron Remote VEConfigure, you can still create the same `compatibility.json` from your `.rvsc`. Open the [local exporter](tools/export_compatibility.py) and select **Download raw file**. Use Python 3.10 or later and replace the example path with your backup path. On Windows, you can use `py -3` in place of `python3`.
+To remove private fields locally before uploading, create `compatibility.json` from your `.rvsc` with the [local exporter](tools/export_compatibility.py). Select **Download raw file** and use Python 3.10 or later with the command below. On Windows, you can use `py -3` in place of `python3`.
 
 ```sh
 python3 export_compatibility.py "path/to/backup.rvsc" --output compatibility.json

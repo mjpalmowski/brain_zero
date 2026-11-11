@@ -1,15 +1,17 @@
-name: MultiPlus-II compatibility profile
-description: Contribute a sanitized profile from a standalone 230 V inverter.
+name: MultiPlus-II compatibility request
+description: Submit a VEConfigure .rvsc backup or a brain_zero compatibility profile.
 title: "[Compatibility] "
 body:
   - type: markdown
     attributes:
       value: |
-        The simplest way to request support is **System → Inverter settings → Submit to developer** inside brain_zero. It submits privately without a GitHub account or file download.
+        Submit a fresh VEConfigure `.rvsc` backup in a ZIP containing that one file, or attach `compatibility.json` from brain_zero. You can submit a backup before buying a brain_zero.
 
-        To contribute publicly through this issue instead, choose **Download compatibility profile** on the same page and attach the downloaded `compatibility.json` below.
+        **Get a current .rvsc:** With your GX device online in VRM, open your installation → **Device list → Remote VEConfigure → Download**. Wait for the live settings read, then save the original `.rvsc`. Download it again after firmware or settings changes. Zip the unmodified file and attach it below. See the [full instructions](https://github.com/mjpalmowski/brain_zero#download-a-current-rvsc-backup).
 
-        This issue is public. Share only `compatibility.json` and keep the original `.rvsc` private. The workflow uses your profile to open a synthetic file in VEConfigure and inspect the settings for your model and firmware. Once ESS and VEConfigure checks pass, we’ll add that combination to the fully supported list.
+        For a sanitized alternative, open **System → Inverter settings → Download compatibility profile** in brain_zero and attach `compatibility.json`.
+
+        GitHub issues and attachments are public. A `.rvsc` backup can contain serial numbers, access credentials and saved settings. Review your file before sharing it.
   - type: input
     id: inverter
     attributes:
@@ -28,16 +30,16 @@ body:
     id: profile
     attributes:
       label: Downloaded compatibility profile
-      description: Attach the compatibility.json file you downloaded from brain_zero.
+      description: Attach a ZIP containing one fresh .rvsc backup, or compatibility.json downloaded from brain_zero.
     validations:
       required: true
-      accept: ".json"
+      accept: ".zip,.json"
   - type: checkboxes
     id: review
     attributes:
       label: Submission review
       options:
-        - label: This profile comes from a standalone 230 V MultiPlus-II.
+        - label: This file comes from a standalone 230 V MultiPlus-II.
           required: true
-        - label: I reviewed the generated profile and agree to share it publicly.
+        - label: I reviewed the attachment and agree to share its contents publicly.
           required: true
