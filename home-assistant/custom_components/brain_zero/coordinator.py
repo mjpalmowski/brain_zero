@@ -94,6 +94,16 @@ class BrainCoordinator(DataUpdateCoordinator):
     def publish(self):
         self.async_set_updated_data(dict(self.snapshot))
 
+    def publish_auxiliary(self):
+        """Notify local plan changes without postponing the controller poll.
+
+        async_set_updated_data resets HA's refresh timer and marks the entire
+        coordinator successful. The 2 s adapter must do neither to the 5 s
+        controller polling loop.
+        """
+        self.data = dict(self.snapshot)
+        self.async_update_listeners()
+
     def cached_snapshot(self):
         """Dashboard reads use this cache, never a second controller poll loop."""
         now = monotonic()

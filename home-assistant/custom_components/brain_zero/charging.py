@@ -198,7 +198,7 @@ class ChargingAdapter:
                     self.c.snapshot[path] = self.view(path)
                     self.c.fetched[path] = monotonic()
                     self.c.missing_site_sections.discard(path)
-                self.c.publish()
+                self.c.publish_auxiliary()
 
     async def save(self):
         if self.store:

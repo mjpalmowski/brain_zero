@@ -159,7 +159,7 @@ def adapter():
     hass = types.SimpleNamespace(config=types.SimpleNamespace(time_zone="Europe/London"))
     entry = types.SimpleNamespace(options={"charging_adapter": True}, entry_id="entry")
     controller = Controller()
-    coordinator = types.SimpleNamespace(hass=hass, entry=entry, api=controller, identity="001122aabbcc",
+    coordinator = types.SimpleNamespace(hass=hass, entry=entry, api=controller, identity="80456b58f348",
                                         snapshot={"ess": {"settings": {"max_charge": 2500}}}, fetched={},
                                         draft={}, draft_base=None, save_options=lambda: None)
     pub, store = Publisher(), Store()
@@ -482,6 +482,25 @@ def test_verified_entities_require_fresh_authenticated_peer_and_soc_status(monke
     clock.update(utc=now + 10, mono=110)
     assert not bridge.view("recharge")["peer"]["matching"]
     assert not bridge.view("recharge")["soc_sync"]["verified"]
+
+
+@run_async
+async def test_fast_adapter_tick_uses_listener_updates_without_rescheduling_poll():
+    bridge, _, _, _ = adapter()
+    bridge.supported = True
+    bridge.c.missing_site_sections = set()
+    updates = []
+    bridge.c.publish_auxiliary = lambda: updates.append(deepcopy(bridge.c.snapshot))
+    def reset_forbidden():
+        raise AssertionError("2 s adapter tick must not reset the 5 s controller timer")
+    bridge.c.publish = reset_forbidden
+    async def no_request():
+        pass
+    bridge.tick = no_request
+    for _ in range(10):
+        await bridge._tick_event(None)
+    assert len(updates) == 10
+    assert all("recharge" in update and "free-power" in update for update in updates)
 
 
 @run_async

@@ -37,6 +37,8 @@ class Coordinator:
         self.last_update_success = True
     def async_set_updated_data(self, data):
         self.data = data
+    def async_update_listeners(self):
+        self.listener_updates = getattr(self, "listener_updates", 0) + 1
 
 
 updates.DataUpdateCoordinator = Coordinator
@@ -165,6 +167,43 @@ def new_coordinator():
             setattr(e, k, copy.deepcopy(v))
     hass = types.SimpleNamespace(config_entries=types.SimpleNamespace(async_update_entry=update))
     return coord.BrainCoordinator(hass, entry, FakeApi())
+
+
+def test_auxiliary_updates_never_reset_poll_timer_or_hide_controller_failure():
+    c = new_coordinator()
+    c.last_update_success = False
+    c.snapshot = {"state": {"heap": 100}, "recharge": {"id": 1}}
+    def reset_forbidden(_data):
+        raise AssertionError("Auxiliary update reset the controller polling timer")
+    c.async_set_updated_data = reset_forbidden
+    for tick in range(10):
+        c.snapshot["recharge"] = {"id": tick}
+        c.publish_auxiliary()
+    assert c.data["recharge"]["id"] == 9
+    assert c.listener_updates == 10
+    assert c.last_update_success is False
+
+
+def test_five_second_poll_progresses_during_two_second_adapter_notifications():
+    async def simulate(publish_name):
+        c = new_coordinator()
+        clock = {"now": 0, "due": 5}
+        def manual_update(data):
+            # HA 2026.11 async_set_updated_data resets the refresh interval.
+            c.data = data
+            clock["due"] = clock["now"] + 5
+        c.async_set_updated_data = manual_update
+        for second in range(1, 31):
+            clock["now"] = second
+            if second % 2 == 0:
+                getattr(c, publish_name)()
+            if second >= clock["due"]:
+                await c._async_update_data()
+                clock["due"] = second + 5
+        return c.api.gets.count("state")
+    assert asyncio.run(simulate("publish_auxiliary")) == 6
+    # Reproduces the prior starvation, so the regression exercises its cause.
+    assert asyncio.run(simulate("publish")) == 0
 
 
 def test_standard_build_keeps_ess_online_without_site_endpoints():
