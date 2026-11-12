@@ -1,0 +1,414 @@
+{
+  "format": "brain-zero-legacy-459-assistant-qualification-v1",
+  "date": "2026-11-12",
+  "privacy": "No owner identifiers, saved settings, credentials, raw RVSC files or program contents included.",
+  "qualified_identity": {
+    "firmware": 2628459,
+    "version_signature": "6b1b2800080d0000",
+    "received_version_bytes": 8,
+    "model_byte": 47,
+    "assistant_records": 64,
+    "assistant_logical_bytes": 4096
+  },
+  "enabled": {
+    "nonempty_assistant_installation": true,
+    "nonempty_assistant_replacement": true,
+    "shorter_nonempty_program_replacement": true,
+    "assistant_removal_or_disable": false,
+    "unknown_ten_byte_identity": false,
+    "shorter_or_empty_live_bank": false
+  },
+  "provenance": {
+    "genuine": "Legacy version bytes, setting/access descriptors and 4096-byte capacity.",
+    "synthetic": "All unit identities, saved values, telemetry and Assistant programs.",
+    "assistant_program_execution_simulated": false,
+    "physical_unit_contacted": false,
+    "historical_physical_version_reply_length_known": false
+  },
+  "reconnection": {
+    "cause": "Stock mk2-dbus exits intentionally after takeover; previous harness omitted its service restart.",
+    "fix": "Opt-in bounded private supervisor restarts only a successful driver exit with its own-generation Daemontools marker.",
+    "old_marker_does_not_authorize_unexpected_exit": true,
+    "supervisor_disabled_reproduces_original_failure": true,
+    "negative_native_exit": -6,
+    "negative_assistant_requests": 0,
+    "simulator_source_sha256": "de1ac0992b0208dd0e11b14591a7057bc96783455401ac9354cf3d38a38e60f5"
+  },
+  "native_venus": {
+    "version": "v3.64",
+    "positive_cases": [
+      {
+        "case": "install",
+        "native_exit": 0,
+        "passed": true,
+        "synthetic_old_program_bytes": 0,
+        "synthetic_target_program_bytes": 128,
+        "assistant_programming_requests": 79,
+        "all_4096_logical_bytes_match": true,
+        "fresh_identity_and_final_flag_match": true,
+        "all_142_supported_saved_settings_unchanged": true,
+        "missing_grid_requests": 0,
+        "isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false,
+          "private_mount_namespace": true,
+          "private_network_namespace": true
+        }
+      },
+      {
+        "case": "replace",
+        "native_exit": 0,
+        "passed": true,
+        "synthetic_old_program_bytes": 192,
+        "synthetic_target_program_bytes": 128,
+        "assistant_programming_requests": 79,
+        "all_4096_logical_bytes_match": true,
+        "fresh_identity_and_final_flag_match": true,
+        "all_142_supported_saved_settings_unchanged": true,
+        "missing_grid_requests": 0,
+        "isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false,
+          "private_mount_namespace": true,
+          "private_network_namespace": true
+        }
+      },
+      {
+        "case": "shrink",
+        "native_exit": 0,
+        "passed": true,
+        "synthetic_old_program_bytes": 192,
+        "synthetic_target_program_bytes": 64,
+        "assistant_programming_requests": 74,
+        "all_4096_logical_bytes_match": true,
+        "fresh_identity_and_final_flag_match": true,
+        "all_142_supported_saved_settings_unchanged": true,
+        "missing_grid_requests": 0,
+        "isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false,
+          "private_mount_namespace": true,
+          "private_network_namespace": true
+        }
+      }
+    ],
+    "removal_observation": {
+      "native_exit": 0,
+      "presence_flag": "F0",
+      "old_program_retained": true,
+      "assistant_programming_requests": 0,
+      "blank_target_matches": false,
+      "qualified": false,
+      "brain_zero_policy": "Refused before unit/program/reset writes."
+    },
+    "independent_all_program_frames_audited": 232,
+    "independent_audit_sha256": "6758a08144a2a5e85d9c3eebd1f5f1125f92e05a4738e333345d47158c276795",
+    "logical_readback_transport": "Fresh raw protocol reads after stopping private driver; not a complete native RVSC download.",
+    "program_wire_padding": {
+      "record_bytes": 64,
+      "chunk_bytes": 11,
+      "chunks_per_record": 6,
+      "legacy_terminal_extra_bytes": "F0 00",
+      "legacy_nonterminal_chunk6_extra_bytes": "Next logical record bytes 9 and 10.",
+      "buffer_reuse_interpretation_is_inferred": true,
+      "physical_extra_byte_semantics_known": false,
+      "modern_serialization_unchanged": true
+    },
+    "whole_upload_byte_sequence_parity_claimed": false,
+    "sequence_difference": "Native bulk-restores unchanged settings and may reset after preparatory unit configuration."
+  },
+  "production": {
+    "pi_suite_count": 7,
+    "windows_suite_count": 9,
+    "pi_suites": {
+      "requester_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "7ca7e659c910454228c17aefd90b2cbdaa24005d62f1e703ec41af9c75af61a5"
+      },
+      "unsupported_backup_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "ee3b7c44879c537b8ff4d7c0bec9f0ddfcf062d05831bc75647d55da93f41c99"
+      },
+      "legacy_backup_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "c857fd03c5ca1828a80e63750506e5e62cd3837fc9e94673e91f6dc63959c5b6"
+      },
+      "rvsc_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "5bf471dcca14b7e1072c48895c7454a74a3a923f8fe4b1ecb090455e9ce8969c"
+      },
+      "legacy_write_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "161544e52779e205afcc921adc823a560578008e9546e9eb18f6096747ca6fe1"
+      },
+      "legacy_assistant_upload_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "e40eca7b49972f843d0c8145e7892d04438c64d8924a35ba24b1b98404ff1bf4"
+      },
+      "legacy_uploader_replay": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "3f05b3b7daf36698aedf974feb402c45c8fe2ec3c67a9c801b59914183674a80"
+      }
+    },
+    "windows_suites": {
+      "requester_test": {
+        "passed": true
+      },
+      "unsupported_backup_test": {
+        "passed": true
+      },
+      "legacy_backup_test": {
+        "passed": true
+      },
+      "rvsc_test": {
+        "passed": true
+      },
+      "legacy_write_test": {
+        "passed": true
+      },
+      "legacy_assistant_upload_test": {
+        "passed": true
+      },
+      "legacy_uploader_replay": {
+        "passed": true
+      },
+      "recorded-modern-rvsc": {
+        "passed": true
+      },
+      "recorded-modern-upload": {
+        "passed": true
+      }
+    },
+    "assistant_uploader_cases": [
+      {
+        "case": "replace-complete-4k",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "add-assistant",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "remove-assistant",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "record-rejected",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 3,
+        "unit_writes": 1,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "final-mark-ignored",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "record-no-ack",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 3,
+        "unit_writes": 1,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "last-byte-readback-mismatch",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "last-record-readback-timeout",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 63
+      },
+      {
+        "case": "ten-byte-identity-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "blank-tail-native-padding",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 79,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "modern-padding-unchanged",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "short-matching-file-and-live-bank-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 63
+      },
+      {
+        "case": "empty-live-bank-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 0
+      }
+    ],
+    "parser_rejects_truncation_bad_checksum_and_4097_bytes": true,
+    "transport": "Production portable C++ code using raw VE.Bus frames in memory; no physical adapter."
+  },
+  "guardrails": {
+    "fresh_complete_read_required": true,
+    "exact_eight_byte_identity_required": true,
+    "standalone_topology_required": true,
+    "matching_live_descriptors_access_identity_required": true,
+    "full_64_record_bank_required_for_assistant_changes": true,
+    "embedded_authorization_checks_retained": true,
+    "file_and_low_level_plan_checks_independent": true,
+    "fresh_complete_readback_required": true,
+    "other_runtime_control_qualification_unchanged": true,
+    "no_grid_metadata_fabricated": true
+  },
+  "build": {
+    "name": "github-ota-20261112.3",
+    "release_version": 2026111203,
+    "bytes": 2809056,
+    "sha256": "60a36cfa159843b45ab4deb94bcff5702d1c4598dfbe5831f20a5d37f08ca834",
+    "static_ram_bytes": 110416,
+    "static_ram_percent": 33.7,
+    "runtime_ram_measured": false,
+    "published": false,
+    "installed": false,
+    "source_sha256": {
+      "requester.cpp": "dfc4401a611ef71c3c81c92d690d381729e962d50597837bcddc55c44d7d5ed5",
+      "requester.h": "15fba43600558667e4c85cf151582194940cd76e091993e4fa4cb5763722d53c",
+      "rvsc.cpp": "b02cbe61c38b1b4e5d92377c7309946232c84f4a9098ebe5fc8c36100b109e42",
+      "rvsc.h": "a6049107ee485252f5d7ba3610e27a1c8e5f3ad7c0f683c367f6aa1e11d6835f",
+      "upload.cpp": "2bd03cc7f9da0d58dce3ab5fc7b1232f89fa900032b4eda52571b1a565f45a8a",
+      "diagnostics.h": "1c23704d8dfb3e2fec9af922697a5a05d7df7d8b6c6b17c21d727356416cf067"
+    }
+  },
+  "remaining_hardware_validation": "Physical 459 identity length, valid Assistant execution, restart and recovery need actual unit evidence."
+}

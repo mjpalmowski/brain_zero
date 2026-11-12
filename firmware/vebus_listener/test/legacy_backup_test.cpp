@@ -159,7 +159,41 @@ void export_case(const char *name,Fixture fixture,bool omitted,bool ready) {
         // itself, independently of the settings-file parser/checker.
         plan.assistants=true;plan.records=1;
         CHECK(!bus.requester.start_write(bus.now,plan,&why));
-        if(signature)CHECK(std::strstr(why,"Assistant replacement"));
+        if(signature && ready && fixture.model==47)CHECK(std::strstr(why,"Assistant replacement"));
+        if(can_write) {
+            static Requester::WritePlan valid;
+            valid=plan;valid.restart=true;valid.records=r.assistants.count;
+            std::memcpy(valid.unit_marked,r.unit_info+1,9);
+            std::memcpy(valid.unit_final,r.unit_info+1,9);
+            valid.unit_marked[7]=0xF0;valid.unit_final[7]=0xE0;
+            std::memset(valid.image,0xFF,sizeof valid.image);valid.image[4095]=5;
+            for(unsigned test=0;test<10;++test) {
+                plan=valid;
+                switch(test) {
+                case 0: --plan.records;break;
+                case 1: ++plan.records;break;
+                case 2: plan.restart=false;break;
+                case 3: plan.unit_marked[7]=0xE0;break;
+                case 4: plan.unit_final[0]++;break;
+                case 5: plan.unit_final[8]++;break;
+                case 6: plan.blank[63]=1;break;
+                case 7: plan.unit_final[7]=0xF0;break;
+                case 8: plan.blank[63]=2;break;
+                case 9: plan.unit_final[7]=0xF0;std::memset(plan.image,0xFF,sizeof plan.image);break;
+                }
+                CHECK(!bus.requester.start_write(bus.now,plan,&why));
+                CHECK(!bus.requester.write_job().active && bus.writes==0);
+            }
+            auto &short_read=const_cast<Requester::SettingsRead &>(bus.requester.settings());
+            short_read.assistants.count=63;plan=valid;plan.records=63;
+            CHECK(!bus.requester.start_write(bus.now,plan,&why));
+            short_read.assistants.count=0;plan.records=0;
+            CHECK(!bus.requester.start_write(bus.now,plan,&why));
+            CHECK(!bus.requester.write_job().active && bus.writes==0);
+            short_read.assistants.count=64;
+        }
+        plan=Requester::WritePlan();plan.settings=1;plan.setting_id[0]=2;plan.setting_value[0]=1;
+        plan.read_started=r.started;std::memcpy(plan.unit_id,r.unit_id,sizeof plan.unit_id);
         plan.assistants=false;plan.records=0;
         if(!can_write)CHECK(!bus.requester.start_write(bus.now,plan,&why));
         bus.requester.target(true,100,0);

@@ -136,16 +136,40 @@ int main() {
     f.credentials.count = 1; f.credentials.valid_time = f.credentials.settings_time = utc;
     CHECK(rvsc::check(f, read, result, utc) && result.plan.required_access == 2);
 
-    // No legacy Assistant bytes or presence marks may change, even with credentials.
+    // Replacement requires a coherent presence flag and the complete live capacity.
     file(read, f); f.assistants[0] = 5;
     CHECK(!rvsc::check(f, read, result, utc) && !result.plan.assistants);
     f.unit_info[8] = 0xE0;
     f.credentials.count = 1; f.credentials.valid_time = f.credentials.settings_time = utc;
-    CHECK(!rvsc::check(f, read, result, utc) && !result.plan.assistants);
+    f.data[0] = 1;
+    CHECK(rvsc::check(f, read, result, utc) && result.plan.assistants && result.plan.restart &&
+          result.plan.records == 64 && result.adds_assistants && result.plan.unit_marked[7] == 0xF0 &&
+          result.plan.unit_final[7] == 0xE0 && result.plan.image[0] == 5 && !result.plan.blank[0]);
+    f.assistants[4095] = 0xA5; f.data[63] = 1;
+    CHECK(rvsc::check(f, read, result, utc) && result.plan.image[4095] == 0xA5 && !result.plan.blank[63]);
+    f.assistant_bytes -= 64;
+    CHECK(!rvsc::check(f, read, result, utc));
+    file(read, f); f.assistants[0] = 5; f.unit_info[8] = 0xE0; f.data[0] = 1;
+    read.unit_info[8] = 0xD0;
+    CHECK(!rvsc::check(f, read, result, utc));
+    read.unit_info[8] = 0xF0;
+    // A short bank cannot inherit qualification even when file and read agree.
+    read.assistants.count = 63; file(read, f);
+    f.assistants[0] = 5; f.data[0] = 1; f.unit_info[8] = 0xE0;
+    CHECK(f.assistant_bytes == 4032 && !rvsc::check(f, read, result, utc));
+    file(read, f); f.settings[2] = 5750;
+    CHECK(rvsc::check(f, read, result, utc)); // ordinary settings keep their existing policy
+    read.assistants.count = 0;
+    CHECK(!rvsc::check(f, read, result, utc));
+    read.assistants.count = 64;
     file(read, f); f.unit_info[8] = 0xE0;
     CHECK(!rvsc::check(f, read, result, utc));
     read.unit_info[8] = 0xE0; file(read, f); f.unit_info[8] = 0xF0;
     CHECK(!rvsc::check(f, read, result, utc));
+    read.assistants.len[0] = 1; read.assistants.data[0][0] = 5;
+    file(read, f); memset(f.assistants, 0xFF, sizeof f.assistants); memset(f.data, 0, sizeof f.data);
+    f.unit_info[8] = 0xF0;
+    CHECK(!rvsc::check(f, read, result, utc) && !result.plan.assistants);
 
     printf(failures ? "%d FAILED\n" : "all synthetic legacy settings-write guards passed\n", failures);
     return failures ? 1 : 0;

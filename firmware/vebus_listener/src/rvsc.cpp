@@ -556,8 +556,20 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
     }
     bool flag_differs = f.unit_info[8] != r.unit_info[8];
     if (legacy && (out.assistant_bytes_differ || flag_differs)) {
-        snprintf(out.why, sizeof out.why, "Assistant changes are not verified for this legacy inverter firmware");
-        return false;
+        if (records != 64) {
+            snprintf(out.why, sizeof out.why, "legacy Assistant replacement requires the verified 4096-byte memory area");
+            return false;
+        }
+        bool image_present = false;
+        for (int i = 0; i < f.assistant_bytes; ++i) image_present = image_present || f.assistants[i] != 0xFF;
+        if (!image_present || (f.unit_info[8] >> 4) != 0x0E) {
+            snprintf(out.why, sizeof out.why, "legacy Assistant removal is not verified; replacement needs a nonempty active image");
+            return false;
+        }
+        if ((r.unit_info[8] >> 4) < 0x0E) {
+            snprintf(out.why, sizeof out.why, "the Assistant presence flag does not match the replacement image");
+            return false;
+        }
     }
     if (out.assistant_bytes_differ == 0 && flag_differs) {
         snprintf(out.why, sizeof out.why, "the file changes the unit's assistant flag but not its assistants");

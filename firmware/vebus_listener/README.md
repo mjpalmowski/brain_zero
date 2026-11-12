@@ -17,9 +17,12 @@ The application image is `firmware/vebus_listener/.pio/build/listener/firmware.b
 Settings downloads support the verified legacy `2628459` identity using the
 older schema 2 / unit 2 RVSC format. Grid metadata is omitted by that format;
 timeouts on other identities still fail. The verified eight-byte identity also
-supports guarded settings uploads and ESS after live Assistant discovery.
-Ten-byte legacy exports remain read-only, and Assistant replacement is blocked.
-See the [implementation and isolated tests](../../docs/vebus_settings_downloads_2026-11-11.md#settings-writes-and-ess-for-2628459-12-november-2026).
+supports guarded settings uploads, ESS after live Assistant discovery, and
+nonempty Assistant installation/replacement with the verified 4 KiB memory area.
+Ten-byte legacy exports remain read-only. Assistant removal/disable remains
+blocked: stock Venus disables its presence flag while retaining stored program
+bytes, which does not qualify a complete empty-image upload and readback.
+See the [implementation and isolated tests](../../docs/vebus_settings_downloads_2026-11-11.md#assistant-replacement-for-2628459-12-november-2026).
 
 Portable regressions in `test/legacy_backup_test.cpp` and `test/rvsc_test.cpp`
 use synthetic traffic and configurations, with no physical device transport.

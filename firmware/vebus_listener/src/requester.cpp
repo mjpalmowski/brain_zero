@@ -42,7 +42,7 @@ constexpr InverterWriteProfile WRITE_PROFILES[] = {
     {VERSION_2623556, sizeof VERSION_2623556, 0x2F, false, false}, // 48/5000, ESS only
     {VERSION_2611552, sizeof VERSION_2611552, 0x2F, true, false}, // 24/3000
     {VERSION_2601560, sizeof VERSION_2601560, 0x2F, true, false}, // 48/4k5
-    {VERSION_2628459, sizeof VERSION_2628459, 0x2F, true, false}, // legacy 48/3000; no Assistant replacement
+    {VERSION_2628459, sizeof VERSION_2628459, 0x2F, true, false}, // legacy 48/3000; exact eight-byte identity
 };
 const InverterWriteProfile *match_write_profile(const uint8_t *version, size_t len) {
     for (const auto &profile : WRITE_PROFILES) {
@@ -1183,7 +1183,9 @@ int Requester::write_progress(const WriteJob &j, const WritePlan &p) {
 // Record r's first request: 0x58 when it and the next are blank, else chunk 6. On 2026-10-27 mk2vsc
 // blanked records 30-41 this way and wrote record 42, blank but followed by data, as ff.
 static uint8_t first_chunk(const Requester::WritePlan &p, int r) {
-    bool next_blank = r + 1 >= p.records || p.blank[r + 1];
+    const bool next_blank = r + 1 >= p.records ?
+        p.image[p.records * Requester::RECORD] == 0xFF &&
+        p.image[p.records * Requester::RECORD + 1] == 0xFF : p.blank[r + 1];
     return p.blank[r] && next_blank ? 0 : Requester::CHUNKS;
 }
 
@@ -1216,6 +1218,7 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
                     : s == CtlState::LISTENING   ? "still listening for other masters after a restart"
                     : s == CtlState::BACKING_OFF ? "backing off after failed requests"
                     : plan.settings < 0 || plan.settings > SETTINGS ? "bad plan"
+                    : !plan.assistants && plan.records != 0 ? "invalid Assistant record count"
                     : plan.access_only && (!plan.access.count || plan.settings || plan.assistants || plan.restart || plan.records || plan.required_access)
                         ? "invalid credentials-only plan"
                     : plan.settings == 0 && !plan.assistants && !plan.access_only ? "nothing to write"
@@ -1225,10 +1228,6 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
     if (!w) w = plan.access.problem(utc);
     if (!w) w = settings_write_firmware_gate(now);
     const bool legacy = write_profile_ && write_profile_->version_bytes == sizeof VERSION_2628459;
-    // Native ordinary/protected writes and restart were qualified separately.
-    // Assistant replacement was inconclusive and must not enter the writer,
-    // even when a caller bypasses the settings-file checker with a forged plan.
-    if (!w && legacy && plan.assistants) w = "Assistant replacement is not verified for this inverter firmware";
     if (!w) {
         const SettingsRead &r = settings_;
         const bool version_ok = r.version_bytes == write_profile_->version_bytes &&
@@ -1248,12 +1247,47 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
              (r.unit_info[8] & 0x0F) || r.unit_info[9] ||
              !memcmp(r.unit_id, broadcast, sizeof broadcast)))
             w = "Settings writes require a single standalone MultiPlus-II";
+        if (!w && legacy && plan.assistants) {
+            // Independently validate the complete plan, even if a caller skips
+            // the file checker. Only the Assistant-presence nibble may change.
+            uint8_t marked[9];
+            memcpy(marked, r.unit_info + 1, sizeof marked);
+            marked[7] = uint8_t(0xF0 | (r.unit_info[8] & 0x0F));
+            if (!plan.restart || !r.assistants.ended || r.assistants.count != 64 || plan.records != 64 ||
+                (r.unit_info[8] >> 4) < 0x0E ||
+                memcmp(plan.unit_marked, marked, sizeof marked) ||
+                memcmp(plan.unit_final, marked, 7) || plan.unit_final[8] != marked[8] ||
+                (plan.unit_final[7] & 0x0F) != (marked[7] & 0x0F) ||
+                (plan.unit_final[7] >> 4) < 0x0E)
+                w = "Assistant replacement plan does not match the complete current inverter read";
+            bool image_present = false;
+            for (int i = 0; !w && i < plan.records; ++i) {
+                if (r.assistants.len[i] > RECORD || plan.blank[i] > 1) {
+                    w = "Assistant replacement plan has invalid records";
+                    break;
+                }
+                for (int k = 0; k < RECORD; ++k) {
+                    const bool data = plan.image[i * RECORD + k] != 0xFF;
+                    image_present = image_present || data;
+                    if (plan.blank[i] && data) w = "Assistant replacement plan omits nonblank data";
+                }
+            }
+            if (!w && (!image_present || (plan.unit_final[7] >> 4) != 0x0E))
+                w = "Legacy Assistant removal is not verified; replacement needs a nonempty active image";
+        }
     }
     if (why) *why = w ? w : "";
     if (w) return false;
     plan_ = plan;
-    // Chunk 6 of the last record reaches two bytes past the records; the Multi reads ff there.
+    // Preserve the modern terminal padding; the qualified legacy profile overrides it below.
     plan_.image[plan_.records * RECORD] = plan_.image[plan_.records * RECORD + 1] = 0xFF;
+    if (legacy && plan_.assistants) {
+        // Match the observed legacy terminal wire bytes after the last logical
+        // record, including when that record is blank. Their meaning is unproven.
+        // These two wire bytes are outside the 4096-byte Assistant image.
+        plan_.image[plan_.records * RECORD] = plan_.unit_marked[7];
+        plan_.image[plan_.records * RECORD + 1] = plan_.unit_marked[8];
+    }
     write_ = WriteJob();
     write_.active = true;
     write_.started = now;
@@ -1345,6 +1379,16 @@ size_t Requester::write_payload(Kind kind, uint8_t id, uint8_t *payload) const {
         if (j.chunk) {
             memcpy(payload + n, p.image + j.index * RECORD + (j.chunk - 1) * CHUNK, CHUNK);
             n += CHUNK;
+            // start_write derives these terminal bytes only for the qualified
+            // legacy profile. The marker survives runtime invalidation at our
+            // own presence-off break; modern plans retain their existing padding.
+            if (j.chunk == CHUNKS && j.index + 1 < p.records &&
+                p.image[p.records * RECORD] == 0xF0 && p.image[p.records * RECORD + 1] == 0x00) {
+                // Native legacy uploads retain the preceding record's chunk-1
+                // bytes 9/10 in these two positions of the reused wire buffer.
+                payload[n - 2] = p.image[(j.index + 1) * RECORD + 9];
+                payload[n - 1] = p.image[(j.index + 1) * RECORD + 10];
+            }
         }
         break;
     case RESET_SEND: {

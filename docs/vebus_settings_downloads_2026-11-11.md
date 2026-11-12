@@ -506,3 +506,73 @@ The real inverter was not contacted. The firmware builds at **110,416 bytes
 static RAM (33.7%)**; runtime RAM was not measured. Build 20261112.2 is prepared
 but not published or installed. A physical 459 wire capture and live-unit
 acceptance remain follow-up evidence. See the [sanitized qualification report](evidence/2026-11-12/legacy-459-control-qualification.json).
+
+### Assistant replacement for 2628459: 12 November 2026
+
+Build **20261112.3** enables nonempty Assistant installation and replacement for
+the exact eight-byte `2628459` identity above, with a complete **64-record /
+4096-byte** Assistant area. Legacy removal/disable remains blocked. This
+supersedes the initial Assistant restriction recorded for build 20261112.2.
+
+The original reconnect failure came from the simulator's process lifecycle:
+stock `mk2-dbus` deliberately exits after MK2 takeover and asks Daemontools to
+restart it. The harness had started it only once. An opt-in private supervisor
+now restarts that unmodified driver after its documented successful exit,
+retaining the simulated inverter memory, virtual serial device, private D-Bus
+and cache. It checks the current process generation's log, limits restarts and
+fails on unexpected exits or supervisor errors. A separate negative test
+confirmed that an older log marker cannot authorize another restart.
+
+With the repaired lifecycle, stock Venus v3.64 `mk2vsc -w` completed:
+
+- Installation into an empty area, using 128 synthetic program bytes.
+- Replacement of 192 old bytes with 128 different bytes.
+- Replacement of 192 old bytes with a shorter 64-byte program.
+
+Each upload exited zero. After stopping the private driver, a fresh raw protocol
+read compared **all 4096 logical bytes**, including erased trailing records, the
+unit/version/serial and final presence flag, and all **142 supported settings**.
+The complete program image matched, identity matched and saved settings were
+unchanged. Native installation/replacement used 79 Assistant programming
+requests and shrinking used 74. No case requested the missing grid table.
+Disabling the supervisor reproduced the original reopen failure and abort,
+with zero Assistant programming requests and unchanged program/settings memory.
+
+Native removal is a different operation: Venus reports that VLL code is unused,
+sets the F0 presence flag and skips program writes. The old bytes remain stored.
+That observation does **not** qualify an empty-image erase/readback operation.
+Both brain_zero's file checker and low-level writer therefore refuse legacy
+removal/disable before any write or reset.
+
+Assistant records hold 64 logical bytes but their six transfer chunks carry up
+to 66 wire bytes. The extra two bytes are excluded from the logical image and
+are recorded separately in the experiment. Their physical interpretation is
+not established; the implementation follows the observed legacy transfer
+behavior while preserving the existing modern-profile behavior. There is no
+claim of byte-identical native upload sequencing: native Venus also retransmits
+unchanged scalar settings and may perform a preparatory reset for installation.
+An independent replay matched all 232 Assistant programming requests across
+the three native positive cases, including record order and extra wire bytes.
+
+The production Uploader regression covers full-area replacement and addition,
+short-bank and empty-bank refusal, removal refusal, record rejection/no reply,
+ignored final presence flag, corruption of logical byte 4095, last-record read
+timeout, unqualified ten-byte identity, legacy transfer bytes and modern-profile
+regression. Truncated, oversized and bad-checksum files are also rejected. The
+writer requires a fresh complete standalone-unit read and retains all identity,
+descriptor, access, authorization, capacity and full readback checks.
+All seven isolated Pi suites and nine Windows suites passed, including the
+13 complete Assistant upload scenarios. Static RAM remains **110,416 bytes
+(33.7%)**; runtime RAM was not measured.
+
+This is a program-transfer qualification using synthetic program bytes, not an
+Assistant execution simulator. The descriptors and eight stored version bytes
+come from the genuine legacy export; identities, saved values, program memory
+and telemetry are synthetic. Actual firmware reply length, Assistant execution
+and recovery on a physical 459 unit still require hardware evidence.
+
+All Pi execution stayed in private mount/network namespaces as UID 65534, with
+physical serial devices and system D-Bus hidden. The real inverter was not
+contacted. Build 20261112.3 is prepared locally, not published or installed.
+The [sanitized Assistant qualification report](evidence/2026-11-12/legacy-459-assistant-qualification.json)
+records native outcomes, production tests, source hashes and the firmware image.
