@@ -219,3 +219,109 @@ product listing remain inventory gaps. In particular, the current manual lists
 [48/10k/150-100](https://www.victronenergy.com/media/pg/MultiPlus-II_4k_4k5_6k5_10k_230V/en/technical-specifications-mp-ii-k-230v.html),
 whose prefix has not been confirmed. It must not be equated with the older
 48/10000/140-100 family on the strength of the similar power rating.
+
+## Genuine export search: 12 November 2026
+
+The follow-up search covered all 23 prefixes marked **B** above. It found one
+genuine legacy catalogue, for **2628459**, but no complete replacement fixture.
+The other 22 prefixes still lack a matching genuine export from the sources
+searched. A search miss does not establish that no file exists.
+
+The published evidence is a [per-prefix search ledger](evidence/2026-11-12/genuine-export-search.json)
+and a [sanitized observed 2628459 catalogue](evidence/2026-11-12/observed-2628459-legacy-catalogue.json).
+Original exports, private file paths, post bodies, device serials, unique unit
+IDs, saved setting values, credentials and Assistant programs are not published.
+Only sanitized metadata reached the Pi. No live inverter, Rev C, physical MK3
+or Home Assistant connection was used for this search or its tests.
+
+### Search coverage
+
+The search used external indexes and public forum search/topic APIs, including
+Victron's current forum and archived community, DIY Solar Forum, Solarforum,
+MyPower, Photovoltaikforum, Akkudoktor, RV/installer resources and public GitHub
+repositories and issues. Full post streams were inspected, including posts
+outside the first response page. Attachments renamed as JPG, PDF, TXT or DOC,
+and ZIP members, were checked by content and section checksums. A name or
+retail-model mention alone was never counted as a match.
+
+| Search group | Prefixes | Logged web queries | Forum query attempts | Complete topic streams | Posts inspected | Candidate URLs checked |
+| --- | --- | --- | --- | --- | --- | --- |
+| Older/high-power 230 V | 2619, 2621, 2625, 2626, 2628, 2682, 2684 | 48 | 11 | 185 | 2,247 | 45 |
+| Newer/low-voltage 230 V | 2604, 2605, 2630, 2636, 2637, 2696, 2697, 2698 | 48 | 18 | 25 | 389 | 12 |
+| 120 V and 2×120 V | 2704, 2711, 2713, 2715, 2723, 2775, 2777, 2779 | 80 | 16 | 10 | 143 | 6 |
+
+These are per-group work counts, with overlap, not a count of unique global
+queries or posts. Forum query attempts include recorded rate-limit responses.
+Requests were then coordinated through a shared six-second interval and
+server-requested backoff. Access controls were not bypassed. Two potential
+Solarforum attachments require membership; their actual firmware is unknown,
+and the user has no account there. They remain inaccessible candidates.
+
+The existing local corpus was also checked: 1,624 candidate files, 505 unique
+hashes, plus an independent legacy section/checksum audit of parse failures.
+It contained no additional genuine match for the 23 gaps. The rejected TXT
+and ZIP candidates in the newer-model search were audited again without
+assuming modern section order, so an old-format export was not discarded just
+because the current parser rejected its layout.
+
+### Genuine 2628459 finding
+
+The [archived current-transformer discussion](https://communityarchive.victronenergy.com/questions/15221/current-transformer-multiplus-ii.html)
+contains a file disguised as a JPG. Its actual contents are a checksum-valid
+VEConfig settings container for the **2628** product family, firmware **459**:
+
+- `BareSettingInfo` version 2 and `BareSettingData` version 2; no producer section.
+- 192 numeric descriptor slots, of which 142 are supported, plus 192 actual
+  access bytes and 80 flag/access bytes.
+- A 35 A maximum charger-current descriptor and 4,096-byte Assistant capacity.
+- Eight stored firmware/version bytes, rather than the ten retained by the
+  modern format, and no grid-information blob.
+
+The source SHA-256 is
+`e39476aaa041d2987e7f227083448c68883767e11597c50851ecfc7a8cc13e26`.
+The catalogue differs from the previous borrowed 2623563 table at 79 descriptor
+IDs. That comparison changes both model and firmware revision; it does not
+attribute every difference to hardware. In particular, the borrowed table's
+70 A charger limit cannot be substituted for this genuine 35 A limit.
+
+The old writer may have discarded version bytes that were present on the wire.
+Absence of a grid blob likewise does not prove that the inverter lacks grid
+information. Those fields stay **unknown**, not zero-filled.
+
+### Isolated Venus test and completeness check
+
+The dedicated probe replayed the eight stored version bytes, all genuine
+numeric/access descriptors and flag blocks. Unit identity, topology, saved
+words, blank Assistant contents and telemetry were explicitly synthetic. It
+supplied no invented grid information or version padding. The Pi again ran
+the pinned stock Venus v3.64 binaries in private mount/network namespaces as
+UID 65534, with physical serial devices and system D-Bus hidden.
+
+The driver connected as product `0x2628`, firmware `0x459`. During the native
+download it read all 142 supported descriptors and values, the explicit absent
+descriptors and five flag pairs correctly. It then requested grid record 0,
+chunk 1 (`57 01 00`) five times. Because that data was not in the source file,
+the harness deliberately withheld it. Native `mk2vsc` ended with exit 30 and
+did not produce a complete valid backup. There were **zero write attempts or
+configuration changes**.
+
+This is an **inconclusive fixture-evidence gap**, not a failure demonstrated on
+a physical 2628 inverter. Filling in another model's grid block or two zero
+version bytes would erase the distinction this investigation is meant to test.
+
+A separate offline production-reader check supplied exactly those eight bytes
+in an 11-byte direct-bus reply. It retained the base firmware number but refused
+to export an RVSC because the full firmware record was incomplete: zero output
+bytes and zero write commands. Other replies in that negative test were
+explicitly synthetic; it is a completeness check, not a faithful reconstruction
+of the physical legacy inverter.
+
+### Qualification outcome
+
+No borrowed fixture was promoted to complete genuine download qualification,
+and no settings-write or ESS support was added. Prefix 2628 now has genuine
+legacy descriptor evidence, while the other 22 remain source gaps. A newer
+genuine export or a read-only capture supplying the missing 2628 metadata is
+needed before rerunning a complete case. For the other prefixes, obtain an
+owner export containing the actual matching firmware/schema rather than a
+renamed, retargeted or same-voltage donor.

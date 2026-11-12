@@ -1,0 +1,396 @@
+{
+  "format": "brain-zero-genuine-export-search-v1",
+  "date": "2026-11-12",
+  "scope": "The 23 prefixes that used borrowed descriptors in the 2026-11-11 simulator matrix; counts include overlapping searches/topics, not unique global totals.",
+  "outcome": {
+    "target_prefixes": 23,
+    "genuine_descriptor_catalogues_found": 1,
+    "prefixes_with_genuine_descriptor_evidence": [
+      2628
+    ],
+    "complete_modern_fixture_replacements": 0,
+    "other_prefixes_without_matching_export": 22,
+    "new_settings_write_or_ess_qualifications": 0
+  },
+  "privacy": "Original exports and raw post bodies remain private. Published evidence contains no device serials, unique unit IDs, credentials, saved setting values or Assistant programs.",
+  "search_groups": [
+    {
+      "group": "high-power",
+      "prefixes": [
+        2619,
+        2621,
+        2625,
+        2626,
+        2628,
+        2682,
+        2684
+      ],
+      "logged_web_queries": 48,
+      "forum_queries": 11,
+      "topics": 185,
+      "posts": 2247,
+      "candidate_urls": 45,
+      "private_research_log_sha256": "507fab331983a457a413b3483cd568ed27de340139f567f4fcdb043479dc8b98"
+    },
+    {
+      "group": "newer-230v",
+      "prefixes": [
+        2604,
+        2605,
+        2630,
+        2636,
+        2637,
+        2696,
+        2697,
+        2698
+      ],
+      "logged_web_queries": 48,
+      "forum_queries": 18,
+      "topics": 25,
+      "posts": 389,
+      "candidate_urls": 12,
+      "zip_members": 18,
+      "private_research_log_sha256": "66dcfcfb964ade0df723005138ffd9eeed11d994f9852ab4360d4f919ac02854"
+    },
+    {
+      "group": "120v",
+      "prefixes": [
+        2704,
+        2711,
+        2713,
+        2715,
+        2723,
+        2775,
+        2777,
+        2779
+      ],
+      "logged_web_queries": 80,
+      "forum_queries": 16,
+      "topics": 10,
+      "posts": 143,
+      "candidate_urls": 6,
+      "private_research_log_sha256": "08845f9f0fd38e76e2e7db510408e5eec922ef0e5acd3dfb9af5892ede919fff"
+    }
+  ],
+  "additional_checks": {
+    "existing_local_candidate_files": 1624,
+    "unique_existing_file_hashes": 505,
+    "local_legacy_layout_audit_additional_matches": 0,
+    "github_code_extension_rvsc_results": 0,
+    "github_repository_issue_and_tree_searches_performed": true,
+    "renamed_attachments_inspected_by_content": true,
+    "shared_rate_limit_gate_seconds": 6,
+    "access_blocks_not_bypassed": true
+  },
+  "models": [
+    {
+      "prefix": 2604,
+      "model": "MultiPlus-II 12/5000/220-50 (HIP-less)",
+      "nominal_dc_v": 12,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2605,
+      "model": "MultiPlus-II 12/3000/120-32 (ACOut2 switchable etc)",
+      "nominal_dc_v": 12,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2619,
+      "model": "MultiPlus-II 48/15000/200-100",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2621,
+      "model": "MultiPlus-II 48/8000/110-100",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2625,
+      "model": "MultiPlus-II 48/3000/35-32 (external sensor max 32A)",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2626,
+      "model": "MultiPlus-II 48/5000/70-50",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2628,
+      "model": "MultiPlus-II 48/3000/35-32",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "genuine_legacy_catalogue_found_download_inconclusive",
+      "complete_genuine_download_fixture_qualified": false,
+      "observed_firmware": 2628459
+    },
+    {
+      "prefix": 2630,
+      "model": "MultiPlus-II 12/4000/180-32 (ACOut2 switchable etc)",
+      "nominal_dc_v": 12,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2636,
+      "model": "MultiPlus-II 48/4500/60-32 HIPLess LowTrafo Ratio",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2637,
+      "model": "MultiPlus-II 48/6500/100-50 HIPLess LowTrafo Ratio",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2682,
+      "model": "MultiPlus-II 48/8000/110-100 HIPLess",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2684,
+      "model": "MultiPlus-II 48/15000/200-100 HIPLess",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "high-power",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2696,
+      "model": "MultiPlus-II 24/5000/120-50 HIPLess (ACOut2 switchable etc) (+ EasySolar)",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2697,
+      "model": "MultiPlus-II 24/3000/70-32 HIPLess (ACOut2 switchable etc) (+ EasySolar)",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2698,
+      "model": "MultiPlus-II 48/5000/70-50 HIPLess (ACOut2 switchable etc)",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 230,
+      "search_group": "newer-230v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2704,
+      "model": "MultiPlus-II 12/4k/160-50 120V (ACOut2 switchable etc)",
+      "nominal_dc_v": 12,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2711,
+      "model": "MultiPlus-II 24/3000/70-50 120V (ACOut2 switchable etc)",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2713,
+      "model": "MultiPlus-II 24/3000/70-50 120V HIPLess (ACOut2 switchable etc)",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2715,
+      "model": "MultiPlus-II 24/5000/120-95 120V (ACOut2 switchable etc)",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2723,
+      "model": "MultiPlus-II 48/5000/70-95 120V (ACOut2 switchable etc)",
+      "nominal_dc_v": 48,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2775,
+      "model": "MultiPlus-II 24/3000/70-50 2x120V",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2777,
+      "model": "MultiPlus-II 24/3000/70-50 2x120V HIPLess",
+      "nominal_dc_v": 24,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    },
+    {
+      "prefix": 2779,
+      "model": "MultiPlus-II 12/4k/160-50 2x120V",
+      "nominal_dc_v": 12,
+      "nominal_ac_v": 120,
+      "search_group": "120v",
+      "status": "no_matching_genuine_export_located",
+      "complete_genuine_download_fixture_qualified": false
+    }
+  ],
+  "genuine_legacy_source": {
+    "topic_url": "https://communityarchive.victronenergy.com/questions/15221/current-transformer-multiplus-ii.html",
+    "source_sha256": "e39476aaa041d2987e7f227083448c68883767e11597c50851ecfc7a8cc13e26",
+    "firmware": 2628459,
+    "prefix": 2628,
+    "schema_version": 2,
+    "unit_version": 2,
+    "checksums_valid": true,
+    "supported_settings": 142,
+    "charger_current_a_range": [
+      0,
+      35
+    ],
+    "descriptor_count": 192,
+    "access_bytes": 192,
+    "flag_access_bytes": 80,
+    "assistant_capacity_bytes": 4096,
+    "stored_version_bytes": 8,
+    "modern_grid_data_observed": false,
+    "actual_wire_reply_length_known": false,
+    "sanitized_catalogue": "observed-2628459-legacy-catalogue.json"
+  },
+  "pi_native_probe": {
+    "classification": "inconclusive_missing_evidence_requested",
+    "download_completed": false,
+    "native_exit": 30,
+    "native_driver_connected": true,
+    "dbus_product_id": 9768,
+    "dbus_firmware_version": 1113,
+    "missing_grid_queries": 5,
+    "missing_grid_request": "57 01 00",
+    "configuration_changed": false,
+    "write_attempts": 0,
+    "isolation": {
+      "uid": 65534,
+      "private_mount_namespace": true,
+      "private_network_namespace": true,
+      "physical_serial_visible": false,
+      "system_dbus_visible": false
+    },
+    "native_binaries": {
+      "mk2_dbus_sha256": "bb4f66da146af7bf63f145f475c06970de50b4114c2dbb6a526dc1ad48bb6a55",
+      "mk2vsc_sha256": "7c40593543ac864bac1dcb8cfdeb7d81cdd73c5b7f96a2221b93d56fd91d1280"
+    },
+    "native_phase_winmon_counts": {
+      "05": 3,
+      "31": 142,
+      "35": 254,
+      "36": 254,
+      "3B": 1,
+      "3C": 5,
+      "57": 5
+    },
+    "probe_source_sha256": "5325a1ef9b3c8164f0754625bc2f27283d51a20f9b3cd291903a7f57080985c3",
+    "full_private_result_sha256": "1d1acac9d56a819aa0731294080f770579afb3bd87201904f7c0adaa09db4b4e",
+    "interpretation": "The source file lacks grid metadata requested by native mk2vsc. The harness deliberately withheld it. This result is a fixture-evidence gap, not evidence of physical inverter incompatibility."
+  },
+  "production_completeness_negative_test": {
+    "passed": true,
+    "case": {
+      "passed": true,
+      "firmware": 2628459,
+      "model": 47,
+      "scenario": "eight stored bytes replayed; other replies synthetic2623",
+      "actual_legacy_wire_reply_length_known": false,
+      "observed_version_hex": "6b1b2800080d0000",
+      "version_data_bytes_sent": 8,
+      "direct_version_payload_bytes": 11,
+      "version_replies": 1,
+      "reader_done": true,
+      "version_ok": false,
+      "rvsc_ready": false,
+      "rvsc_bytes": 0,
+      "read_commands": 641,
+      "write_commands": 0,
+      "full_ten_byte_donor_control_ready": true,
+      "reason": "no firmware number"
+    },
+    "production_source_sha256": {
+      "requester.cpp": "a0b69cb40c34cc7613e47f65ac7c99395ba0ed28e856643f516fd468f80f1b19",
+      "rvsc.cpp": "5cfa3de410bf119a9c3f530929aafa42d6dcc94ca0a2300c74e7093c9433793c",
+      "requester.h": "d0fcc06106ef239094d83ed0193676d9da88a0111533c3e112564ab6409c0fa3",
+      "rvsc.h": "4ad69578352f09dd457d9ad158dd5d1d41d4e68f2e9a8c7bb904d5e10351060e"
+    },
+    "fixture_provenance": "Native Venus backup of synthetic2623 simulator; not an installation backup",
+    "test_source_sha256": "0a32031f4dff41e6786bd072ff3fa9bf6b01e15b4d26e8aa1af88ecdb62539aa",
+    "transport": "Offline synthetic raw VE.Bus frames; only the 8 stored legacy version bytes are genuine; other replies are explicitly synthetic."
+  },
+  "live_systems": {
+    "real_inverter_accessed": false,
+    "rev_c_accessed": false,
+    "home_assistant_changed": false,
+    "physical_mk3_or_system_dbus_accessed": false
+  },
+  "limits": [
+    "No search miss proves that an export does not exist.",
+    "No original export was uploaded publicly or sent to the Pi.",
+    "The8stored version bytes do not establish historical wire response length.",
+    "The legacy catalogue cannot establish current firmware limits.",
+    "Borrowed-descriptor classifications and write/control guards remain unchanged."
+  ]
+}
