@@ -188,6 +188,7 @@ void Requester::start(int64_t now, int64_t seconds, Mode mode, int watts) {
         }
     }
     stop("restarted");
+    clear_pending_echo();
     int64_t cap = mode == Mode::BENCH ? MAX_BENCH_S : MAX_TX_S;
     if (seconds > cap) seconds = cap;
     on_ = true;
@@ -220,6 +221,7 @@ void Requester::start(int64_t now, int64_t seconds, Mode mode, int watts) {
 
 void Requester::stop(const char *why) {
     if (!on_) return;
+    clear_pending_echo();
     on_ = false;
     snprintf(why_, sizeof why_, "%s", why);
     const TxStats &s = stats_;
@@ -264,7 +266,7 @@ void Requester::control(bool enable) {
         note("# control: reconnect the grid before disabling bus control\n"); return;
     }
     ctl_enabled_ = enable;
-    if (!enable) reset_ess_layout();
+    if (!enable) { clear_pending_echo(); reset_ess_layout(); }
 }
 
 inverter::View Requester::inverter_view(int64_t now, const State &st) const {
@@ -496,6 +498,7 @@ void Requester::invalidate_inverter_configuration(const char *message, bool brea
 }
 
 void Requester::invalidate_runtime_controls(const char *message, bool preserve_ignore_ac) {
+    clear_pending_echo();
     if (settings_.inspection && (settings_.active || (settings_.done && !settings_.problem)))
         settings_finish(message);
     inverter_firmware_ = 0;
@@ -1611,6 +1614,7 @@ void Requester::write_end(const char *problem) {
 }
 
 void Requester::back_off(const char *why) {
+    clear_pending_echo();
     reset_ess_layout();
     ctl_backoff_until_ = now_ + CTL_BACKOFF_US;
     ctl_.backoffs++;
@@ -1780,6 +1784,13 @@ bool Requester::control_job(int64_t now, Kind *kind) {
 
 // ---------------------------------------------------------------- the bus
 
+void Requester::clear_pending_echo() {
+    erase_secret(pending_echo_, sizeof pending_echo_);
+    pending_echo_len_ = 0;
+    late_echo_decoded_ = false;
+    pending_echo_start_ = pending_echo_deadline_ = NONE;
+}
+
 void Requester::failed_one() {
     if (alarm_poll()) return;
     if (by_control_) {
@@ -1803,8 +1814,27 @@ void Requester::other_heard(const uint8_t *raw, size_t n, int64_t t0, bool intac
 
 bool Requester::heard(const uint8_t *raw, size_t n, int64_t t0, bool *counted) {
     if (counted) *counted = false;
+    const bool already_decoded = late_echo_decoded_;
+    late_echo_decoded_ = false; // first following traffic consumes the ownership marker
     now_ = t0;
     if (first_heard_ == NONE) first_heard_ = t0;
+    if (pending_echo_deadline_ != NONE && t0 > pending_echo_deadline_) clear_pending_echo();
+    if (pending_echo_len_) {
+        // UART chunks carry task-processing timestamps. A flash operation can
+        // delay those timestamps without changing any received bytes. Attribute
+        // exactly one recent actual transmission, but never acknowledge it,
+        // reopen a finished request or change any request/job deadline or phase.
+        const bool late_own = t0 > pending_echo_start_ + ECHO_START_US &&
+                              n == pending_echo_len_ && checksum_ok(raw, n) &&
+                              memcmp(raw, pending_echo_, n) == 0;
+        clear_pending_echo(); // first traffic consumes the token, matching or not
+        if (late_own) {
+            ctl_.late_own_echoes++;
+            late_echo_decoded_ = true;
+            last_nr_ = raw[3] & 0x7F;
+            return true;
+        }
+    }
     bool echo = false, own = false;
     if (phase_ == ECHO) {
         if (t0 <= t_start_ + ECHO_START_US) {
@@ -1833,7 +1863,9 @@ bool Requester::heard(const uint8_t *raw, size_t n, int64_t t0, bool *counted) {
                     stats_.counted++;
                 }
                 last_nr_ = ours;  // so the step over ours isn't taken for a gap
-                if (counted) *counted = true;
+                // The delayed exact echo was already fed to Decoder as own.
+                // Preserve internal counting without backfilling that TX twice.
+                if (counted && !already_decoded) *counted = true;
             }
         }
         phase_ = REPLY;
@@ -2035,6 +2067,14 @@ bool Requester::due(int64_t now, uint8_t *frame, size_t cap, size_t *n, int64_t 
 }
 
 void Requester::sent(const uint8_t *frame, size_t n, int64_t t_start, int64_t t_end) {
+    clear_pending_echo();
+    if (n >= 6 && n <= sizeof pending_echo_ && checksum_ok(frame, n) &&
+        t_start >= 0 && t_end >= t_start && t_end <= INT64_MAX - REPLY_TIMEOUT_US) {
+        memcpy(pending_echo_, frame, n);
+        pending_echo_len_ = uint8_t(n);
+        pending_echo_start_ = t_start;
+        pending_echo_deadline_ = t_end + REPLY_TIMEOUT_US;
+    }
     if (n > sizeof frame_) n = sizeof frame_;
     memcpy(frame_, frame, n);
     frame_len_ = n;
@@ -2139,6 +2179,7 @@ void Requester::gave_up(bool late) {
 
 void Requester::tick(int64_t now) {
     now_ = now;
+    if (pending_echo_deadline_ != NONE && now > pending_echo_deadline_) clear_pending_echo();
     if (phase_ == ECHO && now - t_end_ > ECHO_TIMEOUT_US) {  // nothing at all heard since ours
         failed_one();
         phase_ = REPLY;
@@ -2481,7 +2522,7 @@ size_t Requester::to_json(int64_t now, char *out, size_t cap) const {
                      "\"ess_layout\":\"%s\",\"ess_discovered_ram\":%u,\"flags\":%d,"
                      "\"multi_flags\":%d,\"polls\":%lu,\"answered\":%lu,\"unanswered\":%lu,\"failed\":%lu,\"writes\":%lu,"
                      "\"acked\":%lu,\"flag_writes\":%lu,\"flag_acks\":%lu,\"yielded\":%lu,\"backoffs\":%lu,"
-                     "\"last_write_age_s\":%.1f}",
+                     "\"last_write_age_s\":%.1f,\"late_own_echoes\":%lu}",
                      on_ ? mode_name(mode_) : "off", on_ ? (until_ - now) / 1e6 : 0.0, watts_, (unsigned long)s.sent,
                      (unsigned long)s.echo_ok, (unsigned long)s.counted, (unsigned long)s.failed,
                      (unsigned long)s.answered, (unsigned long)s.same_cycle, (unsigned long)s.unanswered,
@@ -2493,7 +2534,8 @@ size_t Requester::to_json(int64_t now, char *out, size_t cap) const {
                      (unsigned long)c.polls, (unsigned long)c.answered, (unsigned long)c.unanswered,
                      (unsigned long)c.failed, (unsigned long)c.writes, (unsigned long)c.acked,
                      (unsigned long)c.flag_writes, (unsigned long)c.flag_acks, (unsigned long)c.yielded,
-                     (unsigned long)c.backoffs, ctl_last_write_ != NONE ? (now - ctl_last_write_) / 1e6 : -1.0);
+                     (unsigned long)c.backoffs, ctl_last_write_ != NONE ? (now - ctl_last_write_) / 1e6 : -1.0,
+                     (unsigned long)c.late_own_echoes);
     if (n < 0 || (size_t)n >= cap) return n > 0 ? cap - 1 : 0;
     const SettingsRead &r = settings_;
     int m = snprintf(out + n, cap - n,

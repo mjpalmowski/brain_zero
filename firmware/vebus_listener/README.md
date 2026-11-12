@@ -70,6 +70,12 @@ inverter during download. Readiness is still checked every 100 ms, before
 finishing staging and again before installation. A cancellation records its
 first readiness condition as `blocked_by` in `/api/firmware/release`.
 
+Delayed receive timestamps cannot turn a recent, exact copy of an actual
+transmission into a second controller. Ownership attribution is single-use and
+bounded by the existing 200 ms reply window; it does not acknowledge requests
+or extend their deadlines. Other frames retain the normal foreign-master
+checks. Diagnostics exposes the count as `ctl.late_own_echoes`.
+
 If the page has only **Upload a build**, first download the Rev C application image and select **Upload and verify** once. This also works for locally built images. [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases)
 
 For a new public OTA release, set `RELEASE_VERSION` to the build date times 100 plus its sequence number. Use the matching `firmware-YYYYMMDD.N` GitHub tag. Publish the same `firmware.bin` under `/firmware/<tag>/firmware.bin` on brain-zero.com before publishing the GitHub release. Attach only that OTA application image to the release; include its checksum and links to build instructions, source and notices in the release description. Other boards use builds compiled from the repository.

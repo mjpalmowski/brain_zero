@@ -1,0 +1,156 @@
+{
+  "format": "brain-zero-bounded-own-echo-attribution-v1",
+  "date": "2026-11-12",
+  "problem": "An exact actual-transmission echo with a delayed processing timestamp could be classified as another master.",
+  "field_evidence": {
+    "normal_release_retry_bytes": 43008,
+    "seconds_after_fresh_background_refresh": 2.57,
+    "new_intact_master_classifications": 1,
+    "controller_request_failure_delta": 1,
+    "uart_error_and_bad_frame_delta": 0,
+    "user_reported_only_brain_zero_on_bus": true,
+    "live_offending_raw_bytes_captured": false,
+    "interpretation": "Live counters correlate with the reproduced mechanism; exact live frame ownership is not directly proven."
+  },
+  "old_production_reproducer": {
+    "own_250us": true,
+    "own_2ms": false,
+    "own_60ms": false,
+    "late_failure_cleared_firmware_authority": true,
+    "late_failure_created_one_master_and_one_failed_request_without_checksum_error": true
+  },
+  "fix": {
+    "actual_sent_frames_only": true,
+    "full_byte_address_counter_length_checksum_match": true,
+    "single_use_first_traffic_consumes": true,
+    "maximum_deadline": "actual TX end plus unchanged 200 ms reply timeout",
+    "phase_ack_write_result_and_deadlines_unchanged": true,
+    "expired_replayed_superseded_or_different_frames_not_hidden": true,
+    "secret_copy_volatile_wiped": true,
+    "decoder_backfills_each_own_frame_once": true,
+    "ordinary_absent_echo_backfill_preserved": true,
+    "diagnostic_counter": "ctl.late_own_echoes",
+    "ota_readiness_and_foreign_master_guards_retained": true
+  },
+  "verification": {
+    "windows_suites": 10,
+    "isolated_pi_suites": 8,
+    "targeted_ownership_scenarios": 37,
+    "legacy_assistant_upload_scenarios": 31,
+    "all_passed": true,
+    "pi_suites": {
+      "requester_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "b0babce5ff8e731096b6bab113f09622906e02ce2880b0c286e583a0a3af8af9"
+      },
+      "unsupported_backup_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "46ce86f23a592f8c41b88d1fbf0bfe74fa4aa4f322eeef358652fbf43513cdf9"
+      },
+      "legacy_backup_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "08d60c2647c7473ce995b4732e96cd43c0a764eeab1ccb48490c2d36ce720c03"
+      },
+      "rvsc_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "991b3965733a41fdbc747e8ae51ae50a2e56030d25c0ec007ecb8feb59027a09"
+      },
+      "legacy_write_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "14ef6946e60e715b3cec05f6b616580e2ca8a611e804e73bf46a3d92da6969ab"
+      },
+      "legacy_assistant_upload_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "171b161c49ecc5ffa82d90064e288c09d1dc4bd9582ff8f4348f24bbe3943b03"
+      },
+      "late_own_echo_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "dbefea635ff9f47a0113dce2b487867eea53129540266f6999fff913cc462d28"
+      },
+      "legacy_uploader_replay": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "a8e4521b23b7960e1c58f4ecfd93b51fda9f8aec25cfcf5c10f8feac951e2dab"
+      }
+    },
+    "actual_controller_running_fixed_build_tested": false
+  },
+  "build": {
+    "name": "github-ota-20261112.6",
+    "release_version": 2026111206,
+    "bytes": 2813168,
+    "sha256": "6b170fd3dc0b3097f864e53ea22bc35e5f28a303054ac2c78fef25b34211e4c9",
+    "static_ram_bytes": 110528,
+    "static_ram_percent": 33.7,
+    "runtime_ram_measured": false,
+    "sources_sha256": {
+      "diagnostics.h": "9317628b338a0df8d74026f4cc9bc35621fd7522f49ffdd71ea6d511a36d0c16",
+      "requester.cpp": "9f5d3e563ddc2931eb2a4a69d0a856da777a7a778491a05f3418d828b2b635bd",
+      "requester.h": "a5e953239d2ca61c5f8d1d9318b4cdc067732b8a8be645d782cf8be5f39e438f",
+      "firmware_release_job.cpp": "e63d82971073636e7c71b8dd106f88c425e07270624fbf4eed5ed09c7d7a3cfd",
+      "firmware_release_job.h": "919ec986e7bcfe57eb42a560538570f4b9a1499f877a2d4eb0e6fd0c029ca95f",
+      "main.cpp": "bd7ab8d6f5b42199995c71cfe8ddec10cefe2c92e55ad8114f0fb68374b8e4dc",
+      "web.cpp": "9bc430563b05b5fdd2e3c5250e18c5b47e907593fd7022e9d70881b7dedb482c"
+    },
+    "ownership_test_sha256": "02f2aa133cd7b78acab260d4e5eba8fb75956cccf6be4f9b046f9a383d41f37d"
+  },
+  "references": {
+    "flash_cache_concurrency": "https://docs.espressif.com/projects/esp-idf/en/v4.4.7/esp32s3/api-reference/storage/spi_flash_concurrency.html"
+  },
+  "privacy": "No owner identifiers, credentials, nonce tokens, saved schedules or configuration files included."
+}

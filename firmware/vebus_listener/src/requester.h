@@ -84,6 +84,7 @@ struct TxStats {  // the current or last test run
 struct CtlStats {  // the controller, since boot
     uint32_t polls = 0, answered = 0, unanswered = 0, failed = 0;
     uint32_t writes = 0, acked = 0, flag_writes = 0, flag_acks = 0, yielded = 0, backoffs = 0;
+    uint32_t late_own_echoes = 0; // exact actual-TX echoes attributed after delayed receive timestamps
 };
 struct SocSync {
     uint32_t soc_sent=0,current_sent=0;
@@ -349,6 +350,7 @@ class Requester {
     void invalidate_charger(const char *message, bool retry_soon = true);
     void invalidate_inverter_configuration(const char *message, bool break_frame = false);
     void invalidate_runtime_controls(const char *message, bool preserve_ignore_ac = false);
+    void clear_pending_echo();
     void observe_firmware(const uint8_t *p, size_t k);
     bool runtime_firmware_verified() const;
     void reset_ess_layout();
@@ -449,6 +451,12 @@ class Requester {
     int value_ = 0, planned_value_ = 0;  // what a write carries: the setpoint or the flag word
     uint8_t frame_[48];  // fits a 15-byte payload (a record chunk), escaped at worst
     size_t frame_len_ = 0;
+    // A single actual transmission, independent of any frame merely prepared by
+    // due(). May contain access credentials: volatile-wiped on every clear.
+    uint8_t pending_echo_[48] = {};
+    uint8_t pending_echo_len_ = 0;
+    bool late_echo_decoded_ = false; // ownership-only backfill suppression for the first following frame
+    int64_t pending_echo_start_ = -1, pending_echo_deadline_ = -1;
     int64_t t_start_ = 0, t_end_ = 0, at_sync_ = -1;
     bool expect_reply_ = true;  // not in bench mode
     uint8_t syncs_since_ = 0;   // syncs heard since it went out: 0 = a reply in the same cycle
