@@ -145,10 +145,12 @@ int main() {
         const size_t size = rvsc::build(read, 1234, output, sizeof output);
         CHECK(size == expected.size() && !memcmp(output, expected.data(), size));
         static rvsc::Check check;
-        CHECK(!rvsc::check(parsed, read, check) && !check.ok && strstr(check.why, "read-only"));
+        if (version_bytes == 8) CHECK(rvsc::check(parsed, read, check) && check.ok);
+        else CHECK(!rvsc::check(parsed, read, check) && !check.ok && strstr(check.why, "read-only"));
         CHECK(check.plan.settings == 0 && !check.plan.assistants);
         parsed.credentials.count = 1; memset(parsed.credentials.bytes, 0xA5, sizeof parsed.credentials.bytes);
-        CHECK(!rvsc::check(parsed, read, check) && check.plan.settings == 0);
+        if (version_bytes == 8) CHECK(rvsc::check(parsed, read, check) && check.plan.settings == 0);
+        else CHECK(!rvsc::check(parsed, read, check) && check.plan.settings == 0);
         CHECK(parse(legacy_file(version_bytes, true), parsed) && !strcmp(parsed.mk2vsc, "1.33"));
     }
 

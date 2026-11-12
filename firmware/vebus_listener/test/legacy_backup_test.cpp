@@ -147,17 +147,37 @@ void export_case(const char *name,Fixture fixture,bool omitted,bool ready) {
         if(omitted)CHECK(f.grid_len==0);
     }
     if(fixture.firmware==2628459) {
+        const bool signature=fixture.version_bytes==8 && !std::memcmp(fixture.version,LEGACY,sizeof LEGACY);
         CHECK(bus.requester.firmware_gate(bus.now));
-        CHECK(bus.requester.ess_firmware_gate(bus.now));
-        CHECK(bus.requester.settings_write_firmware_gate(bus.now));
+        CHECK((bus.requester.ess_firmware_gate(bus.now)==nullptr)==signature);
+        CHECK((bus.requester.settings_write_firmware_gate(bus.now)==nullptr)==signature);
         Requester::WritePlan plan;
         plan.settings=1;plan.setting_id[0]=2;plan.setting_value[0]=1;plan.read_started=r.started;
         std::memcpy(plan.unit_id,r.unit_id,sizeof plan.unit_id);
+        const bool can_write=signature && ready && fixture.model==47;
+        // A forged Assistant replacement plan is refused by the scheduler
+        // itself, independently of the settings-file parser/checker.
+        plan.assistants=true;plan.records=1;
         CHECK(!bus.requester.start_write(bus.now,plan,&why));
+        if(signature)CHECK(std::strstr(why,"Assistant replacement"));
+        plan.assistants=false;plan.records=0;
+        if(!can_write)CHECK(!bus.requester.start_write(bus.now,plan,&why));
         bus.requester.target(true,100,0);
         bus.poll(50);
         CHECK(bus.writes==0 && !bus.requester.write_job().active);
         CHECK(bus.requester.ctl_stats().writes==0 && bus.requester.ctl_stats().flag_writes==0);
+        if(can_write) {
+            bus.requester.target(false,0,-1);
+            ++plan.read_started;
+            CHECK(!bus.requester.start_write(bus.now,plan,&why)); // different read generation
+            --plan.read_started;
+            bus.poll(400); // fresh syncs, but the full snapshot is now stale
+            CHECK(!bus.requester.start_write(bus.now,plan,&why));
+            bus.read();plan.read_started=bus.requester.settings().started;
+            CHECK(bus.requester.settings().version_bytes==8 && !bus.requester.settings().version_ok);
+            CHECK(bus.requester.start_write(bus.now,plan,&why));
+            CHECK(bus.requester.write_job().active && bus.writes==0);
+        }
     }
     std::printf("passed: %s\n",name);
 }

@@ -436,3 +436,73 @@ The firmware builds at **110,416 bytes static RAM (33.7%)**; runtime RAM was not
 measured on hardware. Build 20261112.1 is prepared but has not been published
 or installed. The [sanitized validation evidence](evidence/2026-11-12/legacy-grid-export-validation.json)
 records source/build hashes, native acceptance, Pi isolation and test results.
+
+### Settings writes and ESS for 2628459: 12 November 2026
+
+Build **20261112.2** enables stored-settings uploads and ESS for the exact
+**eight-byte** `2628459` / model 47 identity `6b1b2800080d0000`, following the
+isolated tests below. This does not qualify an arbitrary ten-byte reply sharing
+that prefix. Ten-byte legacy files remain readable/exportable but are not
+write-qualified. Other runtime controls, DVCC/BOL and Assistant replacement
+remain outside this legacy profile.
+
+Stock Venus v3.64 `mk2vsc -w` accepted the legacy 2/2 file with its actual eight
+version bytes and completed three settings cases: absorption to **57.50 V**,
+restart-flagged setting 11 to 3721, and protected grid selector/generation words
+with a synthetic authorization token. Each value read back correctly, and an
+incorrect token was rejected before any EEPROM request. No case requested the
+unknown grid table. The stock writer replays all 142 supported settings,
+including unchanged words, and retransmits the unchanged unit configuration;
+an independent audit checked every setting value against the entire synthetic
+target file. Those native settings-only cases sent no explicit reset packet.
+brain_zero continues to write only the changed settings and separately tests
+its explicit restart/start-up sequence where access flags require it. This is
+not a claim of identical native and brain_zero upload sequencing.
+
+These are protocol simulations: the fixture acknowledges unchanged words and
+recognizes a known synthetic token. It does not establish physical authorization
+acceptance on an untested inverter. The catalogued 35 A charge-current limit,
+48 V voltage ranges and access bytes came from the genuine legacy descriptors;
+all identities, saved values, telemetry, credentials and ESS RAM chains were
+synthetic. No owner's saved settings or Assistant program reached the Pi.
+
+Stock Venus discovered ESS in reference and relocated RAM layouts, applied
+positive/negative/zero setpoints with the expected wire sign, and changed the
+three ESS flag bits while preserving unrelated bits. A missing ESS Assistant
+exposed no writable control and sent no writes. Every actual runtime write
+targeted only the discovered setpoint or flag word. Boundary probes recorded
+native behavior separately; brain_zero retains its existing **±5000 W** cap.
+The production requester additionally passed 17 scenarios covering unknown
+signature lengths, wrong firmware/model/role, missing/duplicate/short/wrapping
+or stale layouts, periodic version rechecks and rediscovery after a session
+change. No genuine firmware-459 live ESS RAM capture is claimed.
+
+The production Requester, RVSC checker and Uploader were compiled for ARM and
+tested inside the Pi's private namespaces. All six suites and ten complete
+upload scenarios passed. The successful ordinary-voltage and charger-current
+cases each sent one EEPROM request. The restart-required case sent one setting
+and completed reset/start-up/readback; the protected case sent three settings,
+authorization and reset/start-up/readback. Bad, missing or expired authorization,
+36 A against the 35 A limit, and Assistant program/mark changes sent **zero
+EEPROM requests**. All ten scenarios sent zero grid requests and zero Assistant
+or unit-configuration writes.
+
+Assistant replacement did **not** qualify. The native test failed while the
+isolated D-Bus tunnel was being reopened, before a complete programming result;
+the process subsequently aborted. This is an inconclusive simulator lifecycle
+failure, not a demonstrated physical-inverter defect. Both the file checker and
+the low-level writer independently refuse legacy Assistant replacement.
+
+Upload authorization still requires a fresh full read of the current unit,
+matching serial/ID, exact received firmware length/signature, standalone layout,
+all 192 descriptors/access bytes, flag-access blocks, Assistant capacity and
+valid ranges/masks. Protected changes require fresh embedded authorization.
+The full file is read back after application. No grid descriptors or extra
+version bytes are fabricated to satisfy these checks.
+
+The workers ran as UID 65534 with private mount/network namespaces, only a
+virtual serial device and no system D-Bus or physical adapter visibility.
+The real inverter was not contacted. The firmware builds at **110,416 bytes
+static RAM (33.7%)**; runtime RAM was not measured. Build 20261112.2 is prepared
+but not published or installed. A physical 459 wire capture and live-unit
+acceptance remain follow-up evidence. See the [sanitized qualification report](evidence/2026-11-12/legacy-459-control-qualification.json).

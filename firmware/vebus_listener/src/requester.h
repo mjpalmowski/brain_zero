@@ -214,7 +214,7 @@ class Requester {
         uint32_t firmware = 0;
         uint8_t version[10] = {};    // bounded storage for 0x05's actual reply data
         uint8_t version_bytes = 0;   // received data bytes; an eight-byte legacy reply is never padded
-        bool version_ok = false, unit_ok = false; // version_ok retains the full ten-byte control/write gate
+        bool version_ok = false, unit_ok = false; // full ten bytes; qualified legacy writes check actual length separately
         uint8_t unit_id[4] = {}, unit_info[10] = {};  // from 21 .. 05
         uint8_t block[BLOCK_ARGS][BLOCK_BYTES] = {};
         uint8_t block_got[BLOCK_ARGS] = {};           // bit 0 the 0x9E reply, bit 1 the 0x9F

@@ -13,8 +13,8 @@
 namespace vebus {
 
 struct InverterWriteProfile {
-    const uint8_t (&version)[10];
-    uint8_t model;
+    const uint8_t *version;
+    uint8_t version_bytes, model;
     bool rvsc, other_runtime;
 };
 
@@ -33,19 +33,24 @@ constexpr uint8_t VERSION_2623556[] = {0x44, 0x08, 0x28, 0x00, 0x08, 0x1D, 0x00,
 constexpr uint8_t VERSION_2611552[] = {0x60, 0xD9, 0x27, 0x00, 0x08, 0x1D, 0x00, 0x00, 0x3F, 0x10};
 // 48/4k5 identity and isolated ESS evidence from the same owner-export workflow.
 constexpr uint8_t VERSION_2601560[] = {0x58, 0xB2, 0x27, 0x00, 0x08, 0x1D, 0x00, 0x00, 0x42, 0x10};
+// Genuine legacy export identity, exercised unchanged against isolated stock
+// Venus. The two bytes present in modern identities are unknown, not zero.
+constexpr uint8_t VERSION_2628459[] = {0x6B, 0x1B, 0x28, 0x00, 0x08, 0x0D, 0x00, 0x00};
 constexpr InverterWriteProfile WRITE_PROFILES[] = {
-    {TESTED_VERSION, 0x2F, true, true},    // 48/5000, 2623563
-    {VERSION_2629556, 0x2F, true, false},  // 48/3000
-    {VERSION_2623556, 0x2F, false, false}, // 48/5000, ESS only
-    {VERSION_2611552, 0x2F, true, false},  // 24/3000
-    {VERSION_2601560, 0x2F, true, false},  // 48/4k5
+    {TESTED_VERSION, sizeof TESTED_VERSION, 0x2F, true, true},    // 48/5000, 2623563
+    {VERSION_2629556, sizeof VERSION_2629556, 0x2F, true, false}, // 48/3000
+    {VERSION_2623556, sizeof VERSION_2623556, 0x2F, false, false}, // 48/5000, ESS only
+    {VERSION_2611552, sizeof VERSION_2611552, 0x2F, true, false}, // 24/3000
+    {VERSION_2601560, sizeof VERSION_2601560, 0x2F, true, false}, // 48/4k5
+    {VERSION_2628459, sizeof VERSION_2628459, 0x2F, true, false}, // legacy 48/3000; no Assistant replacement
 };
 const InverterWriteProfile *match_write_profile(const uint8_t *version, size_t len) {
-    if (len < sizeof TESTED_VERSION) return nullptr;
     for (const auto &profile : WRITE_PROFILES) {
         // The original 2623563 profile also accepts a longer reply with this prefix.
-        if ((len == sizeof TESTED_VERSION || profile.other_runtime) &&
-            !memcmp(version, profile.version, sizeof TESTED_VERSION)) return &profile;
+        // The legacy signature requires exactly eight received bytes; a longer
+        // reply with an unknown suffix has not been qualified for writes.
+        if (len >= profile.version_bytes && (len == profile.version_bytes || profile.other_runtime) &&
+            !memcmp(version, profile.version, profile.version_bytes)) return &profile;
     }
     return nullptr;
 }
@@ -125,10 +130,9 @@ bool legacy_export_format(const Requester::SettingsRead &r) {
     // VEConfigure accepts that format with either eight or ten stored version
     // bytes. Choose that verified file format before probing grid metadata;
     // this does not claim Winmon 0x57 is unsupported and is never a timeout fallback.
-    constexpr uint8_t prefix[] = {0x6B, 0x1B, 0x28, 0x00, 0x08, 0x0D, 0x00, 0x00};
     return !r.inspection && r.firmware == 2628459 && r.unit_ok && r.unit_info[0] == 47 &&
-           (r.version_bytes == sizeof prefix || r.version_bytes == sizeof r.version) &&
-           !memcmp(r.version, prefix, sizeof prefix);
+           (r.version_bytes == sizeof VERSION_2628459 || r.version_bytes == sizeof r.version) &&
+           !memcmp(r.version, VERSION_2628459, sizeof VERSION_2628459);
 }
 const char *mode_name(Requester::Mode m) {
     switch (m) {
@@ -1220,12 +1224,21 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
     if (!w && plan.required_access && !plan.access.count) w = "protected settings require embedded authorization";
     if (!w) w = plan.access.problem(utc);
     if (!w) w = settings_write_firmware_gate(now);
+    const bool legacy = write_profile_ && write_profile_->version_bytes == sizeof VERSION_2628459;
+    // Native ordinary/protected writes and restart were qualified separately.
+    // Assistant replacement was inconclusive and must not enter the writer,
+    // even when a caller bypasses the settings-file checker with a forged plan.
+    if (!w && legacy && plan.assistants) w = "Assistant replacement is not verified for this inverter firmware";
     if (!w) {
         const SettingsRead &r = settings_;
-        if (!r.done || r.inspection || r.problem || r.failed || !r.version_ok || !r.unit_ok || !r.serial[0] ||
+        const bool version_ok = r.version_bytes == write_profile_->version_bytes &&
+                                (legacy ? legacy_export_format(r) &&
+                                          r.grid_availability == GridAvailability::LEGACY_OMITTED &&
+                                          r.grid.count == 0 && !r.grid.ended : r.version_ok);
+        if (!r.done || r.inspection || r.problem || r.failed || !version_ok || !r.unit_ok || !r.serial[0] ||
             r.started < 0 || r.started != plan.read_started || r.started < controls_invalidated_at_ ||
             r.finished < r.started || now < r.finished || now - r.finished >= LINK_STALE_US ||
-            r.firmware != inverter_firmware_ || memcmp(r.version, write_profile_->version, sizeof r.version) ||
+            r.firmware != inverter_firmware_ || memcmp(r.version, write_profile_->version, write_profile_->version_bytes) ||
             (!plan.access_only && memcmp(r.unit_id, plan.unit_id, sizeof r.unit_id)))
             w = "Read the complete settings from the current inverter before writing";
         constexpr uint8_t standalone[] = {1, 1, 1, 0, 0, 0, 0};

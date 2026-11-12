@@ -449,9 +449,17 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
     p.settings = 0;
     p.assistants = false;
     p.records = 0;
-    if (f.schema_version != 4 || f.unit_version != 3 || !f.grid_present || f.version_bytes != 10 ||
-        r.grid_availability == Requester::GridAvailability::LEGACY_OMITTED) {
-        snprintf(out.why, sizeof out.why, "legacy-format exports are read-only; upload qualification is unchanged");
+    // The observed eight-byte 2628459 profile is separately write-qualified.
+    // Acceptance of ten-byte unit-2 exports is format support only: their
+    // unobserved tail must not inherit that qualification.
+    const bool legacy = legacy_export(r) && r.version_bytes == 8 &&
+                        f.schema_version == 2 && f.unit_version == 2 &&
+                        !f.grid_present && f.grid_len == 0 && f.version_bytes == 8;
+    const bool modern = f.schema_version == 4 && f.unit_version == 3 &&
+                        f.grid_present && f.version_bytes == 10 &&
+                        r.grid_availability != Requester::GridAvailability::LEGACY_OMITTED;
+    if (!legacy && !modern) {
+        snprintf(out.why, sizeof out.why, "this legacy export is read-only; its format or live identity is not write-qualified");
         return false;
     }
     const char *why = nullptr;
@@ -461,13 +469,15 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
         return false;
     }
     why = nullptr;
-    const uint8_t expected_const[] = {0xFF, 0x01, 0x01};
+    const uint8_t modern_const[] = {0xFF, 0x01, 0x01}, legacy_const[] = {0x01, 0x00, 0x00};
+    const uint8_t *expected_const = legacy ? legacy_const : modern_const;
     if (strcmp(f.serial, r.serial) != 0) {
         snprintf(out.why, sizeof out.why, "the file is for serial number %s; this Multi is %s", f.serial, r.serial);
         return false;
     }
     if (memcmp(f.unit_id, r.unit_id, 4) != 0) why = "the file's unit ID is not this Multi's";
-    else if (f.firmware != firmware_word(r) || f.schema_firmware != firmware_word(r) || memcmp(f.version, r.version, 10))
+    else if (f.firmware != firmware_word(r) || f.schema_firmware != firmware_word(r) ||
+             memcmp(f.version, r.version, legacy ? 8 : 10))
         why = "the file is for another firmware version";
     else if (f.model != r.unit_info[0]) why = "the file is for another model";
     else if (memcmp(f.unit_info, r.unit_info, 8) != 0 || f.unit_info[9] != r.unit_info[9] ||
@@ -545,6 +555,10 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
         }
     }
     bool flag_differs = f.unit_info[8] != r.unit_info[8];
+    if (legacy && (out.assistant_bytes_differ || flag_differs)) {
+        snprintf(out.why, sizeof out.why, "Assistant changes are not verified for this legacy inverter firmware");
+        return false;
+    }
     if (out.assistant_bytes_differ == 0 && flag_differs) {
         snprintf(out.why, sizeof out.why, "the file changes the unit's assistant flag but not its assistants");
         return false;

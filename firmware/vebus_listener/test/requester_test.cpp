@@ -145,8 +145,9 @@ struct AssistantFixture {
     bool standalone = true;
     bool inspection = false;
     int unsupported_inspection_setting = -1, out_of_range_inspection_setting = -1;
-    unsigned unit_queries = 0;
-    uint8_t version_variant = 0, version_marker = 0, unit_model = 0x2F, unit_role = 0;
+    unsigned unit_queries = 0, version_queries = 0;
+    uint8_t version_variant = 0, version_marker = 0, version_reserved = 0x1D;
+    uint8_t unit_model = 0x2F, unit_role = 0;
     size_t version_reply_size = 0;
 
     AssistantFixture() {
@@ -243,9 +244,11 @@ static uint8_t play_cycle(Requester &r, int64_t s, uint16_t flags, uint8_t *sent
         const uint8_t q[] = {0x00, p[1], 0x9D, 'H', 'Q', '2', '2', '5', '1', '4', 'A', 'W', 'Y', 'Y'};
         m = vebus::build_frame(0x83, 0x83, 0xFE, nr++, q, sizeof q, g, sizeof g);
     } else if (p[2] == 0x05) {  // the firmware
-        uint8_t q[16];
+        uint8_t q[16] = {};
         size_t size = version_reply(q, p[1], firmware);
         if (assistant) {
+            ++assistant->version_queries;
+            q[8] = assistant->version_reserved;
             if (firmware == 2623556 || firmware == 2629556) q[11] = 0x40;  // genuine 556 exports
             if (assistant->version_marker) q[11] = assistant->version_marker;
             q[10] = assistant->version_variant;
@@ -497,6 +500,100 @@ static void test_mp2_ess_profile(uint32_t firmware, uint8_t version_marker, uint
             CHECK(r.ctl_stats().acked && r.ctl_stats().flag_acks && fixture.read_after_write[flags]);
         } else {
             CHECK(!writes && !r.ess_setpoint_ram() && !r.ctl_stats().acked && !r.ctl_stats().flag_acks);
+        }
+    }
+}
+
+static AssistantFixture legacy_459_layout(uint8_t header) {
+    AssistantFixture f;
+    memset(f.ram + 128, 0, 128 * sizeof f.ram[0]);
+    f.ram[128] = header - 129;
+    f.ram[header] = 0x0052;
+    f.ram[header + 2] = 0x3000;
+    // Actual reply contains exactly the eight stored bytes from the owner
+    // export. Identity, telemetry and the entire Assistant chain are synthetic.
+    f.version_reserved = 0x0D;
+    f.version_reply_size = 11; // 00, request ID, 82, eight version bytes
+    return f;
+}
+
+static void test_legacy_459_ess() {
+    constexpr int64_t start = 818000000;
+    constexpr int cycles = 320;
+    enum class Case { Valid, Revision, Prefix, Seven, Nine, Ten, Eleven, Model, Role,
+                      MultiUnit, Absent, Duplicate, Short, Wrap, Lost, Truncated };
+    const Case cases[] = {Case::Valid, Case::Revision, Case::Prefix, Case::Seven, Case::Nine,
+        Case::Ten, Case::Eleven, Case::Model, Case::Role, Case::MultiUnit, Case::Absent,
+        Case::Duplicate, Case::Short, Case::Wrap, Case::Lost, Case::Truncated};
+    for (uint8_t header : {uint8_t(130), uint8_t(137)}) {
+        for (Case scenario : cases) {
+            if (header == 137 && scenario != Case::Valid) continue;
+            AssistantFixture f = legacy_459_layout(header);
+            uint32_t firmware = 2628459;
+            switch (scenario) {
+            case Case::Revision: firmware--; break;
+            case Case::Prefix: f.version_variant = 1; break;
+            case Case::Seven: f.version_reply_size = 10; break;
+            case Case::Nine: f.version_reply_size = 12; break;
+            case Case::Ten: f.version_reply_size = 13; break;
+            case Case::Eleven: f.version_reply_size = 14; break;
+            case Case::Model: f.unit_model = 46; break;
+            case Case::Role: f.unit_role = 1; break;
+            case Case::MultiUnit: f.standalone = false; break;
+            case Case::Absent: f.ram[header] = 0; break;
+            case Case::Duplicate: f.ram[header + 3] = 0x0052; break;
+            case Case::Short: f.ram[header] = 0x0051; break;
+            case Case::Wrap:
+                for (int address = 128; address <= 240; address += 16) f.ram[address] = 0x000F;
+                f.ram[240] = 0x0009; f.ram[250] = 0x005F; break;
+            case Case::Lost: f.no_reply_at = header + 1; break;
+            case Case::Truncated: f.short_reply_at = header + 2; break;
+            case Case::Valid: break;
+            }
+            Requester r;
+            r.control(true); hear_sync(r, start - 4000000); hear_cycle(r, start - CYCLE);
+            const uint8_t setpoint = header + 1, flags = header + 2;
+            const bool valid = scenario == Case::Valid;
+            const int targets[] = {-100, 100, 0, 32767, -32767, 0};
+            const int wire[] = {-100, 100, 0, Requester::MAX_CTL_WATTS, -Requester::MAX_CTL_WATTS, 0};
+            const int bits[] = {1, 2, 4, 1, 2, 0};
+            int64_t now = start;
+            for (unsigned i = 0; i < sizeof targets / sizeof targets[0]; ++i) {
+                r.target(true, targets[i], bits[i]);
+                const unsigned writes = check_assistant_writes(r, f, now, cycles, firmware,
+                    valid ? setpoint : 0, valid ? header + 3 : 0);
+                now += cycles * CYCLE;
+                CHECK(r.firmware_gate(now)); // DVCC and unrelated runtime controls stay blocked.
+                if (valid) {
+                    CHECK(writes && !r.ess_firmware_gate(now) && r.ess_setpoint_ram() == setpoint);
+                    CHECK((int16_t)f.ram[setpoint] == wire[i] && f.ram[flags] == (0x3000 | bits[i]));
+                    CHECK(f.read_after_write[flags]);
+                } else {
+                    CHECK(!writes && !r.ess_setpoint_ram() && !r.ctl_stats().acked && !r.ctl_stats().flag_acks);
+                }
+            }
+            if (!valid) continue;
+            CHECK(f.version_queries >= 2); // the periodic30s recheck kept the exact8 reply eligible
+            // Stale links and a changed version reply cannot retain authority.
+            CHECK(r.ess_firmware_gate(now + 6000000) && !r.ess_discovered_ram(now + 6000000));
+            const uint8_t reset[] = {0, 0xFB, 0x30, 0x4F, 0xFF};
+            r.heard(reset, sizeof reset, now - 200);
+            CHECK(r.ess_firmware_gate(now) && !r.ess_setpoint_ram());
+            AssistantFixture changed = legacy_459_layout(header);
+            changed.version_reply_size = 13; // unknown modern-length suffix: read-only
+            r.target(true, -100, 1);
+            CHECK(check_assistant_writes(r, changed, now, cycles, firmware, 0, 0) == 0);
+            now += cycles * CYCLE;
+            CHECK(r.ess_firmware_gate(now) && !r.ess_setpoint_ram());
+            // A later session with the genuine8 identity must rediscover the
+            // relocated chain, rather than using a previous session's address.
+            r.heard(reset, sizeof reset, now - 200);
+            AssistantFixture moved = legacy_459_layout(header == 130 ? 137 : 130);
+            const uint8_t moved_header = header == 130 ? 137 : 130;
+            r.target(true, -100, 1);
+            CHECK(check_assistant_writes(r, moved, now, cycles, firmware,
+                                        moved_header + 1, moved_header + 3) > 0);
+            CHECK(r.ess_setpoint_ram() == moved_header + 1);
         }
     }
 }
@@ -1433,6 +1530,7 @@ int main() {
     test_48_3000_ess();
     test_mp2_ess_profile(2611552, 0x3F, 137);
     test_mp2_ess_profile(2601560, 0x42, 137);
+    test_legacy_459_ess();
     test_read_only_assistant_discovery();
     test_settings_inspection();
     printf(failures ? "%d FAILED\n" : "all passed\n", failures);

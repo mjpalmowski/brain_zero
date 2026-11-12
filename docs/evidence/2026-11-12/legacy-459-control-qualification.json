@@ -1,0 +1,516 @@
+{
+  "format": "brain-zero-legacy-459-control-qualification-v1",
+  "date": "2026-11-12",
+  "privacy": "No owner serials, IDs, saved values, timestamps, credentials, raw files or Assistant programs are included.",
+  "qualified_identity": {
+    "firmware": 2628459,
+    "model_byte": 47,
+    "nominal_dc_v": 48,
+    "received_version_bytes": 8,
+    "version_signature": "6b1b2800080d0000",
+    "unknown_10byte_suffix_write_qualification": false
+  },
+  "enabled": {
+    "legacy_rvsc_settings_uploads": true,
+    "protected_settings_with_fresh_embedded_authorization": true,
+    "restart_required_settings": true,
+    "ess_after_fresh_live_assistant_discovery": true,
+    "assistant_replacement": false,
+    "other_runtime_controls": false,
+    "dvcc_bol": false
+  },
+  "provenance": {
+    "genuine": "142 supported descriptors,192 slots,80 flag-access bytes,eight stored version bytes and4096-byte Assistant capacity from legacy export",
+    "synthetic": "All unit identities,saved values,telemetry,authorization and ESS RAM chains; native-repaired grid settings from a wholly synthetic seed",
+    "historical_physical_version_reply_length_known": false,
+    "genuine_459_live_ess_ram_capture_available": false,
+    "fixture_authorization_assumption": "Known synthetic token is acknowledged; wrong token is rejected. Unchanged supported words are acknowledged by the fixture."
+  },
+  "stock_venus": {
+    "version": "v3.64",
+    "driver_sha256": "bb4f66da146af7bf63f145f475c06970de50b4114c2dbb6a526dc1ad48bb6a55",
+    "settings_cases": [
+      {
+        "case": "ordinary",
+        "passed": true,
+        "native_exit": 0,
+        "intended_setting_changes": {
+          "2": 5750
+        },
+        "readback": {
+          "2": 5750
+        },
+        "authorization_results": [],
+        "grid_requests": 0,
+        "classification": "passed",
+        "program_replacement_enabled": false
+      },
+      {
+        "case": "restart",
+        "passed": true,
+        "native_exit": 0,
+        "intended_setting_changes": {
+          "11": 3721
+        },
+        "readback": {
+          "11": 3721
+        },
+        "authorization_results": [],
+        "grid_requests": 0,
+        "classification": "passed",
+        "program_replacement_enabled": false
+      },
+      {
+        "case": "protected",
+        "passed": true,
+        "native_exit": 0,
+        "intended_setting_changes": {
+          "81": 1,
+          "128": 769,
+          "191": 769
+        },
+        "readback": {
+          "81": 1,
+          "128": 769,
+          "191": 769
+        },
+        "authorization_results": [
+          true
+        ],
+        "grid_requests": 0,
+        "classification": "passed",
+        "program_replacement_enabled": false
+      },
+      {
+        "case": "rejected-auth",
+        "passed": true,
+        "native_exit": 36,
+        "intended_setting_changes": {
+          "81": 1,
+          "128": 769,
+          "191": 769
+        },
+        "readback": {
+          "81": 2,
+          "128": 49154,
+          "191": 49154
+        },
+        "authorization_results": [
+          false
+        ],
+        "grid_requests": 0,
+        "classification": "passed",
+        "program_replacement_enabled": false
+      },
+      {
+        "case": "assistant",
+        "passed": false,
+        "native_exit": -6,
+        "intended_setting_changes": {},
+        "readback": {},
+        "authorization_results": [],
+        "grid_requests": 0,
+        "classification": "inconclusive_simulator_tunnel_reopen_failure",
+        "program_replacement_enabled": false
+      }
+    ],
+    "native_bulk_writes_match_entire_synthetic_target_file": true,
+    "native_rewrites_unchanged_settings": true,
+    "ess_cases": [
+      {
+        "case": "reference",
+        "passed": true,
+        "synthetic_header": 130,
+        "runtime_write_frames": 16,
+        "checks": {
+          "only_expected_runtime_ram_writes": true,
+          "no_persistent_settings_writes": true,
+          "required_control_steps": true,
+          "no_startup_setpoint_write": true,
+          "invalid_layout_no_write": true,
+          "truthful_eight_byte_version": true
+        },
+        "limits": {
+          "GetMin": {
+            "value": null,
+            "dbus_type": "Array"
+          },
+          "GetMax": {
+            "value": null,
+            "dbus_type": "Array"
+          },
+          "GetDefault": {
+            "value": null,
+            "dbus_type": "Array"
+          }
+        },
+        "all_actual_writes_only_discovered_setpoint_and_flag_words": true,
+        "isolation": {
+          "uid": 65534,
+          "devices": [
+            "null",
+            "ptmx",
+            "pts",
+            "random",
+            "ttyBZSim0",
+            "urandom",
+            "zero"
+          ],
+          "virtual_device": "/dev/ttyBZSim0",
+          "mount_private": true,
+          "network_private": true,
+          "system_dbus": false
+        }
+      },
+      {
+        "case": "relocated",
+        "passed": true,
+        "synthetic_header": 137,
+        "runtime_write_frames": 16,
+        "checks": {
+          "only_expected_runtime_ram_writes": true,
+          "no_persistent_settings_writes": true,
+          "required_control_steps": true,
+          "no_startup_setpoint_write": true,
+          "invalid_layout_no_write": true,
+          "truthful_eight_byte_version": true
+        },
+        "limits": {
+          "GetMin": {
+            "value": null,
+            "dbus_type": "Array"
+          },
+          "GetMax": {
+            "value": null,
+            "dbus_type": "Array"
+          },
+          "GetDefault": {
+            "value": null,
+            "dbus_type": "Array"
+          }
+        },
+        "all_actual_writes_only_discovered_setpoint_and_flag_words": true,
+        "isolation": {
+          "uid": 65534,
+          "devices": [
+            "null",
+            "ptmx",
+            "pts",
+            "random",
+            "ttyBZSim0",
+            "urandom",
+            "zero"
+          ],
+          "virtual_device": "/dev/ttyBZSim0",
+          "mount_private": true,
+          "network_private": true,
+          "system_dbus": false
+        }
+      },
+      {
+        "case": "missing",
+        "passed": true,
+        "synthetic_header": null,
+        "runtime_write_frames": 0,
+        "checks": {
+          "only_expected_runtime_ram_writes": true,
+          "no_persistent_settings_writes": true,
+          "required_control_steps": true,
+          "no_startup_setpoint_write": true,
+          "invalid_layout_no_write": true,
+          "truthful_eight_byte_version": true
+        },
+        "limits": {
+          "GetMin": {
+            "error": "org.freedesktop.DBus.Error.UnknownObject"
+          },
+          "GetMax": {
+            "error": "org.freedesktop.DBus.Error.UnknownObject"
+          },
+          "GetDefault": {
+            "error": "org.freedesktop.DBus.Error.UnknownObject"
+          }
+        },
+        "all_actual_writes_only_discovered_setpoint_and_flag_words": true,
+        "isolation": {
+          "uid": 65534,
+          "devices": [
+            "null",
+            "ptmx",
+            "pts",
+            "random",
+            "ttyBZSim0",
+            "urandom",
+            "zero"
+          ],
+          "virtual_device": "/dev/ttyBZSim0",
+          "mount_private": true,
+          "network_private": true,
+          "system_dbus": false
+        }
+      }
+    ],
+    "native_boundary_observations_are_not_brain_zero_limits": true,
+    "native_assistant_failure": "Upload did not complete after the isolated D-Bus tunnel closed/reopened; no completed Assistant programming qualification.",
+    "native_settings_only_cases_retransmit_unit_configuration": true,
+    "native_settings_only_cases_explicit_reset_packets": 0,
+    "byte_for_byte_native_upload_sequence_parity_claimed": false
+  },
+  "production_pi": {
+    "passed": true,
+    "transport": "Raw VE.Bus frames in memory, inside private mount/network namespaces",
+    "suites": {
+      "requester_test": {
+        "passed": true,
+        "executable_sha256": "c74774cc3600157948ee9ebf56e01ad8b5dc7646dde0a9ae9c9f0b60094497f3",
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      "unsupported_backup_test": {
+        "passed": true,
+        "executable_sha256": "68594b255ef425ad0097d115a17687034ab297b7baf10f89fe34d5bb0a4c4604",
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      "legacy_backup_test": {
+        "passed": true,
+        "executable_sha256": "651c5af5a60879f7545e845ba578f8b0f5c1932a0c6b24ad34b316c09a5533c5",
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      "rvsc_test": {
+        "passed": true,
+        "executable_sha256": "5dd0bf7e6b614d71e30ccb9cf67fd55ee17a3e32b1a447076d51773767f518b6",
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      "legacy_write_test": {
+        "passed": true,
+        "executable_sha256": "5f4226193e9db0d60ac0f41baa649aa2949e4f444f479439eec2b9af3cefd13a",
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      "legacy_uploader_replay": {
+        "passed": true,
+        "executable_sha256": "b921bf2d8f5074b46774ecaa241909e5d622d6b92fe5ef392a0aae484f206ad2",
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      }
+    },
+    "uploader_cases": [
+      {
+        "case": "ordinary-absorption",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "eeprom_requests": 1,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "written and read back: 1 setting, in 33 s"
+      },
+      {
+        "case": "charger-current",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "eeprom_requests": 1,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "written and read back: 1 setting, in 33 s"
+      },
+      {
+        "case": "restart-setting",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "eeprom_requests": 1,
+        "auth_requests": 0,
+        "reset_requests": 2,
+        "resets": 1,
+        "startup_identifications": 1,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "written and read back: 1 setting, and a reset, in 42 s; start-up made; the unit answered the roll call"
+      },
+      {
+        "case": "protected-settings",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "eeprom_requests": 3,
+        "auth_requests": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "startup_identifications": 1,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "written and read back: 3 settings, and a reset, in 42 s; start-up made; the unit answered the roll call"
+      },
+      {
+        "case": "bad-authorization",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "eeprom_requests": 0,
+        "auth_requests": 1,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "writing stopped: embedded authorization was rejected; no settings were written"
+      },
+      {
+        "case": "missing-authorization",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "eeprom_requests": 0,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "not written: protected changes need embedded authorization: reopen and save in VEConfigure"
+      },
+      {
+        "case": "over35A",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "eeprom_requests": 0,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "not written: setting 4: 36 is outside its range 0..35"
+      },
+      {
+        "case": "Assistant-mark-change",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "eeprom_requests": 0,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "not written: Assistant changes are not verified for this legacy inverter firmware"
+      },
+      {
+        "case": "Assistant-byte-change",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "eeprom_requests": 0,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "not written: Assistant changes are not verified for this legacy inverter firmware"
+      },
+      {
+        "case": "expired-authorization",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "eeprom_requests": 0,
+        "auth_requests": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "startup_identifications": 0,
+        "grid_queries": 0,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "message": "not written: embedded authorization expired: reopen and save the file in VEConfigure"
+      }
+    ],
+    "legacy_ess_scenarios": 17,
+    "setpoint_cap_w": 5000,
+    "flags_preserve_unrelated_bits": true,
+    "bad_identity_length_model_role_layout_or_stale_session_rejected": true,
+    "invalid_missing_expired_authorization_over35A_and_Assistant_changes_zero_eeprom": true
+  },
+  "guardrails": {
+    "fresh_unit_serial_firmware_signature_topology_required": true,
+    "fresh_complete_live_192_slot_numeric_access_and_flag_descriptors_required": true,
+    "file_and_live_actual_version_lengths_must_match": true,
+    "only_changes_are_sent_by_brain_zero": true,
+    "fresh_readback_required": true,
+    "no_grid_metadata_fabricated": true
+  },
+  "build": {
+    "name": "github-ota-20261112.2",
+    "release_version": 2026111202,
+    "published": false,
+    "installed": false,
+    "bytes": 2808096,
+    "sha256": "6f9a36a66ef1fe9cd04f75506dc5a8bd6f41a00665c9d4fc1daf1f41626d20dd",
+    "static_ram_bytes": 110416,
+    "static_ram_percent": 33.7,
+    "runtime_ram_measured": false,
+    "sources_sha256": {
+      "requester.cpp": "35ad62261879a29f6e611d4f34ca03d8e1bcbe79f01cadbc031fa71c0899ea0e",
+      "requester.h": "15fba43600558667e4c85cf151582194940cd76e091993e4fa4cb5763722d53c",
+      "rvsc.cpp": "8c80912565d20927893dd3279837d9b84b24a128dcd6fb1aab1980145e767e8f",
+      "rvsc.h": "e3743f9970f7b9720d7024aa2e5dead99b6decd15c47337bbf0214856e09ee98",
+      "diagnostics.h": "75bc2261d4857c93a1d8a6bfa1a4616b70ffd73529eebddf32c913162b595815"
+    }
+  },
+  "real_inverter_contacted": false,
+  "remaining_hardware_validation": "Simulator qualification only; actual459 wire identity, live ESS Assistant layout,protected authorization and restart behavior still need a physical-unit capture."
+}

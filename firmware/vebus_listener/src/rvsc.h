@@ -52,13 +52,13 @@ struct File {
     uint8_t data[Requester::MAX_RECORDS] = {};  // bytes of each record given as data (0: blank)
 };
 
-// Parses a bounded single-unit legacy 2/2 or modern 4/3 file. Parsing legacy exports
-// permits inspection only; check() refuses to turn them into an upload plan.
+// Parses a bounded single-unit legacy 2/2 or modern 4/3 file. Legacy writes require
+// the separately qualified eight-byte live identity; Assistant changes remain blocked.
 bool parse(const uint8_t *f, size_t n, File &out, char *why, size_t cap);
 
 // What writing a parsed file to the Multi takes, from a complete read of it made just before. The
 // file must be for this unit (serial number, ID, firmware, unit bytes), with the Multi's own schema,
-// 0x3C block and grid info, the assistant memory's size, no value for a setting the Multi lacks, no
+// 0x3C block and grid info, the assistant memory's size, no value for a setting the Multi lacks,
 // valid embedded authorization for protected changes, and changed values within their ranges/masks.
 struct Check {
     bool ok = false;         // it may be written (perhaps with nothing to write)

@@ -16,9 +16,10 @@ The application image is `firmware/vebus_listener/.pio/build/listener/firmware.b
 
 Settings downloads support the verified legacy `2628459` identity using the
 older schema 2 / unit 2 RVSC format. Grid metadata is omitted by that format;
-timeouts on other identities still fail. This download path does not enable
-legacy settings uploads or ESS writes. See the [implementation and isolated
-test results](../../docs/vebus_settings_downloads_2026-11-11.md#brain_zero-legacy-export-implementation-12-november-2026).
+timeouts on other identities still fail. The verified eight-byte identity also
+supports guarded settings uploads and ESS after live Assistant discovery.
+Ten-byte legacy exports remain read-only, and Assistant replacement is blocked.
+See the [implementation and isolated tests](../../docs/vebus_settings_downloads_2026-11-11.md#settings-writes-and-ess-for-2628459-12-november-2026).
 
 Portable regressions in `test/legacy_backup_test.cpp` and `test/rvsc_test.cpp`
 use synthetic traffic and configurations, with no physical device transport.
