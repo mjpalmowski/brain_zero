@@ -120,6 +120,16 @@ unsigned u16(const uint8_t *p, size_t i) { return p[i] | p[i + 1] << 8; }
 uint8_t setting_id(const Requester::SettingsRead &r) {
     return r.inspection ? INSPECTION_SETTING_IDS[r.step] : (uint8_t)r.step;
 }
+bool legacy_export_format(const Requester::SettingsRead &r) {
+    // The genuine 2628459/model47 schema2 export omits the grid field.
+    // VEConfigure accepts that format with either eight or ten stored version
+    // bytes. Choose that verified file format before probing grid metadata;
+    // this does not claim Winmon 0x57 is unsupported and is never a timeout fallback.
+    constexpr uint8_t prefix[] = {0x6B, 0x1B, 0x28, 0x00, 0x08, 0x0D, 0x00, 0x00};
+    return !r.inspection && r.firmware == 2628459 && r.unit_ok && r.unit_info[0] == 47 &&
+           (r.version_bytes == sizeof prefix || r.version_bytes == sizeof r.version) &&
+           !memcmp(r.version, prefix, sizeof prefix);
+}
 const char *mode_name(Requester::Mode m) {
     switch (m) {
     case Requester::Mode::READ: return "on";
@@ -859,12 +869,14 @@ bool Requester::read_settings(int64_t now, bool inspection) {
     r.serial[0] = 0;
     r.firmware = 0;
     memset(r.version, 0, sizeof r.version);
+    r.version_bytes = 0;
     r.version_ok = r.unit_ok = false;
     memset(r.unit_id, 0, sizeof r.unit_id);
     memset(r.unit_info, 0, sizeof r.unit_info);
     memset(r.block, 0, sizeof r.block);
     memset(r.block_got, 0, sizeof r.block_got);
     clear_records(r.grid);
+    r.grid_availability = GridAvailability::UNKNOWN;
     clear_records(r.assistants);
     r.problem = nullptr;
     r.started = now;
@@ -941,7 +953,12 @@ void Requester::settings_part_done() {
     r.info_done = false;
     r.step = 0;
     r.chunk = 1;
-    if (++r.part < PARTS) return;
+    ++r.part;
+    if (r.part == GRID_PART && legacy_export_format(r)) {
+        r.grid_availability = GridAvailability::LEGACY_OMITTED;
+        ++r.part;  // Schema2 has no grid field. Do not fabricate records or a terminating reply.
+    }
+    if (r.part < PARTS) return;
     settings_finish(nullptr);
 }
 
@@ -1034,7 +1051,7 @@ void Requester::settings_reply(const uint8_t *p, size_t k) {
         }
         settings_next();
         break;
-    case VERSION_READ:  // 0x82, the firmware number (u32) and six more bytes
+    case VERSION_READ:  // 0x82 and the version bytes actually returned
         if (p[2] == 0x82 && k >= 7) {
             r.firmware = u16(p, 3) | (uint32_t)u16(p, 5) << 16;
             observe_firmware(p, k);
@@ -1044,9 +1061,11 @@ void Requester::settings_reply(const uint8_t *p, size_t k) {
             settings_finish("Commissioning requires a recognized 230 V MultiPlus-II firmware reply");
             return;
         }
-        if (p[2] == 0x82 && k >= 13) {
-            memcpy(r.version, p + 3, sizeof r.version);
-            r.version_ok = true;
+        if (p[2] == 0x82) {
+            r.version_bytes = uint8_t(k - 3);
+            const size_t stored = r.version_bytes < sizeof r.version ? r.version_bytes : sizeof r.version;
+            memcpy(r.version, p + 3, stored);
+            r.version_ok = k >= 13;
         }
         settings_next();
         break;
@@ -1075,7 +1094,11 @@ void Requester::settings_reply(const uint8_t *p, size_t k) {
             r.block_got[r.step] = 0;  // ask again
         }
         break;
-    case GRID_READ: records_reply(r.grid, 0xA3, p, k); break;
+    case GRID_READ:
+        if (p[2] == 0xA3 || (k >= 4 && p[2] == 0x80 && p[3] == 0x02))
+            r.grid_availability = GridAvailability::AVAILABLE;
+        records_reply(r.grid, 0xA3, p, k);
+        break;
     case ASSISTANT_READ: records_reply(r.assistants, 0x96, p, k); break;
     case INFO_READ: {  // 0x89: scale, offset, default, minimum, maximum, access; empty if not supported
         Setting &s = r.s[setting_id(r)];

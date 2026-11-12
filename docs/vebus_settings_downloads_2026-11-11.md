@@ -325,3 +325,114 @@ genuine export or a read-only capture supplying the missing 2628 metadata is
 needed before rerunning a complete case. For the other prefixes, obtain an
 owner export containing the actual matching firmware/schema rather than a
 renamed, retargeted or same-voltage donor.
+
+### VEConfigure profile selection and Pi retest: 12 November 2026
+
+A fresh, exact private copy of the genuine `2628459` export was opened in the
+installed VEConfigure application, with its communication port confirmed
+closed. The existing offline audit driver selected the offered **UK G83/2
+August 2012 / G59/3-1 August 2014** profile and entered the previously audited
+grid access password. The older-Assistant advisory was acknowledged with
+**Ignore**, preserving the Assistant program. No settings were sent to a device.
+
+The native save succeeded: the file grew from 3,666 to 3,706 bytes, gained a
+producer section and one authorization record, and changed saved settings
+`81`, `128`–`157` and `191`. The selected firmware profile code is **2**; the
+experiment filename's suffix is not a grid code. This is a disposable test
+selection, separate from any installed inverter configuration.
+
+The decisive comparison is the settings schema: its complete body remained
+**byte-identical**, including all numeric descriptors and access bytes. It
+remained schema version 2 with **no grid-information blob**, and the unit still
+stored exactly eight version bytes. The original export and Assistant program
+were preserved. Thus protected legacy profile editing works in VEConfigure,
+but selecting and saving a profile **did not recover the missing capability
+metadata**. Changed grid setting values and authorization are separate from
+the firmware-supplied grid table requested by Venus.
+
+The Pi retest used the genuine descriptor metadata plus only the newly
+selected `81 = 2` value. All other saved words were synthetic descriptor
+defaults; identity/topology, blank Assistant contents and telemetry were also
+synthetic. Neither the original saved user values nor the new authorization
+record were copied to the Pi. No grid block, grid end marker or additional
+version bytes were invented.
+
+Stock Venus v3.64 connected as `0x2628` / `0x459`, read all 142 supported
+descriptors and settings correctly, and read selector 81 back as 2. It then
+requested `57 01 00` five times and ended with exit 30 because that grid data
+remains unknown. There was no complete valid backup. The outcome remains
+**inconclusive due to missing evidence**, not physical-inverter incompatibility.
+The private mount/network namespaces ran as UID 65534 with physical serial
+devices and system D-Bus hidden; write attempts and configuration changes were
+both zero. The real inverter remained isolated.
+
+The [sanitized experiment evidence](evidence/2026-11-12/veconfigure-2628459-grid-recovery.json)
+records hashes, comparisons, readback and isolation checks. Its limits include
+the harness-supplied absent replies beyond the 192-slot source table, existing
+transport error counters without phase attribution, and the fact that the
+native download never reached a complete Assistant-memory read. No additional
+model/firmware, settings-write or ESS qualification follows from this test.
+
+### brain_zero legacy export implementation: 12 November 2026
+
+Build **20261112.1** adds a verified legacy `.rvsc` download path for
+**2628459**, model byte **47**, with observed version prefix
+`6b1b2800080d0000`. It exports the older schema 2 / unit 2 container that
+VEConfigure already accepts, without a grid-information field. This is an
+explicit file-format choice made before the optional grid read, not a claim
+that the hardware lacks Winmon `0x57`. A timeout never selects this path.
+
+VEConfigure's descriptor readers leave the missing grid table absent. Separate
+compiled legacy logic provides profile handling. Static inspection and 100
+bounded, memory-only native cases confirmed that dispatch without constructing
+a grid table. The helper profile arguments and all runtime model globals are
+not fully reconstructed, so those cases do not establish every GUI default or
+a live-bus fallback contract. Actual offline UI tests are the acceptance proof
+for the exported file format: both eight-byte and ten-byte version records
+opened successfully, and a save preserved an explicit ten-byte test marker.
+The extra two marker bytes are synthetic format evidence, not hardware data.
+
+The production reader now retains the received version length and distinguishes
+grid records from **omission by the legacy export format**. The writer preserves
+all received eight or ten bytes, live numeric/access descriptors, flag blocks,
+saved words and the complete Assistant area. It invents neither a grid record
+nor an end-of-grid reply. The parser accepts bounded 2/2 containers with or
+without the optional producer section; modern 4/3 exports retain their layout.
+The settings API reports the received version length and grid-metadata state.
+
+The initial synthetic fixture changed selector 81 without updating its grid
+validity words. VEConfigure correctly offered to repair that combination. A
+consistent fixture was then generated by VEConfigure itself from the wholly
+synthetic seed, with owner settings and Assistant contents excluded. Embedded
+authorization was stripped before transfer to the Pi. This repair belongs in
+the configuration workflow: the backup reader preserves actual inverter words
+even if a later editor considers their combination invalid.
+
+The production Requester and codec were compiled for the Venus Pi's ARM CPU
+and exercised with raw VE.Bus frames held in memory. Each consistent legacy
+case completed **469 read commands, zero writes, zero grid requests and all
+64 Assistant records**, then rebuilt its independent fixture exactly. Both
+resulting files opened in native VEConfigure with the UK profile selected,
+13 offered profiles and no repair prompt. The existing 35 modern simulator
+fixtures also rebuilt exactly; their original genuine/borrowed provenance is
+unchanged. This is a brain_zero reader test on the Pi, not a claim that stock
+Venus `mk2vsc` can download the still-unobserved grid table.
+
+Seventeen synthetic integration scenarios, codec corruption/bounds tests and
+the existing requester, unsupported-backup, recorded-modern-backup and upload
+regressions passed. Wrong firmware/model/signature, unsupported version
+lengths, lost settings/flag blocks/Assistant data and modern grid timeouts
+remain failures. The Pi workers ran as UID 65534 in private mount/network
+namespaces, with physical serial devices and system D-Bus hidden.
+
+This adds **legacy backup/download support**, not settings-write or ESS
+qualification. Legacy upload plans are explicitly rejected, and
+`compatibility.json` still requires actual device grid metadata rather than
+invented descriptors. A physical 2628459 read capture is still needed to verify
+its real version reply length and hardware timing. The real inverter was not
+contacted or changed.
+
+The firmware builds at **110,416 bytes static RAM (33.7%)**; runtime RAM was not
+measured on hardware. Build 20261112.1 is prepared but has not been published
+or installed. The [sanitized validation evidence](evidence/2026-11-12/legacy-grid-export-validation.json)
+records source/build hashes, native acceptance, Pi isolation and test results.

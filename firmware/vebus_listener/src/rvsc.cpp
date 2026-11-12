@@ -14,6 +14,17 @@ const char MAGIC[] = "VEConfig setting section file";
 const char MK2VSC[] = "1.32";                     // the mk2vsc version on the Pi's Venus, as its files carry
 const uint8_t UNIT_CONST[] = {0xFF, 0x01, 0x01};  // the same on all 15 units seen, on 9 systems
 
+// A deliberate export-format policy, not evidence that the inverter has no grid
+// data. Keep this independent check beside the codec as well as in the requester.
+bool legacy_export(const Read &r) {
+    const uint8_t observed[] = {0x6B, 0x1B, 0x28, 0x00, 0x08, 0x0D, 0x00, 0x00};
+    return r.grid_availability == Requester::GridAvailability::LEGACY_OMITTED &&
+           r.firmware == 2628459 && r.unit_ok && r.unit_info[0] == 47 &&
+           (r.version_bytes == 8 || r.version_bytes == 10) &&
+           memcmp(r.version, observed, sizeof observed) == 0 &&
+           !r.grid.ended && r.grid.count == 0;
+}
+
 struct Writer {
     uint8_t *p;
     size_t cap, n = 0;
@@ -107,6 +118,7 @@ void assistant_area(Writer &w, const Requester::Records<Requester::MAX_RECORDS> 
 
 bool ready(const Read &r, const char **why) {
     const char *w = nullptr;
+    const bool legacy = legacy_export(r);
     if (r.inspection) {
         w = "the setup read does not contain a full backup";
     } else if (!r.done) {
@@ -115,13 +127,17 @@ bool ready(const Read &r, const char **why) {
         w = r.problem;
     } else if (!r.serial[0]) {
         w = "no serial number";
-    } else if (!r.version_ok) {
+    } else if (!r.version_ok && !legacy) {
         w = "no firmware number";
+    } else if (!legacy && r.version_bytes != 0 && r.version_bytes != 10) {
+        w = "the firmware version record has an unsupported length";
     } else if (!r.unit_ok) {
         w = "no answer to the unit query (21 .. 05)";
     } else if (r.failed) {
         w = "some settings could not be read";
-    } else if (!r.grid.ended) {
+    } else if (r.grid_availability == Requester::GridAvailability::LEGACY_OMITTED && !legacy) {
+        w = "the legacy export format is not verified for this read";
+    } else if (!r.grid.ended && !legacy) {
         w = "the grid info records are incomplete";
     } else if (!r.assistants.ended) {
         w = "the assistant records are incomplete";
@@ -132,28 +148,41 @@ bool ready(const Read &r, const char **why) {
     for (int i = 0; !w && i < Requester::SETTINGS; i++) {
         if (r.s[i].state != Requester::READ_OK && r.s[i].state != Requester::UNSUPPORTED) w = "a setting was not read";
     }
+    if (!w && (r.grid.count < 0 || r.grid.count > Requester::MAX_GRID_RECORDS ||
+               r.assistants.count <= 0 || r.assistants.count > Requester::MAX_RECORDS)) {
+        w = "the memory record count is outside the backup bounds";
+    }
+    for (int i = 0; !w && i < r.grid.count; i++)
+        if (r.grid.len[i] > Requester::RECORD) w = "a grid record exceeds the backup bounds";
+    for (int i = 0; !w && i < r.assistants.count; i++)
+        if (r.assistants.len[i] > Requester::RECORD) w = "an Assistant record exceeds the backup bounds";
     if (why) *why = w ? w : "";
     return !w;
 }
 
 size_t build(const Read &r, uint32_t unix_time, uint8_t *out, size_t cap) {
     if (!ready(r, nullptr)) return 0;
+    const bool legacy = legacy_export(r);
     Writer w(out, cap);
     w.u16(sizeof MAGIC - 1);
     w.bytes(MAGIC, sizeof MAGIC - 1);
 
-    size_t start = w.n, next_at = begin(w, "Mk2vscInfo");
-    w.u32(1);
-    w.u16(sizeof MK2VSC - 1);
-    w.bytes(MK2VSC, sizeof MK2VSC - 1);
-    end(w, start, next_at);
+    size_t start, next_at;
+    if (!legacy) {
+        start = w.n;
+        next_at = begin(w, "Mk2vscInfo");
+        w.u32(1);
+        w.u16(sizeof MK2VSC - 1);
+        w.bytes(MK2VSC, sizeof MK2VSC - 1);
+        end(w, start, next_at);
+    }
 
     // The schema: GetSettingInfo for settings 0-191 (zeros where not supported), Winmon 0x3C, each
     // setting's access byte, the grid info records.
     const uint32_t fw = firmware_word(r);
     start = w.n;
     next_at = begin(w, "BareSettingInfo");
-    w.u32(4);
+    w.u32(legacy ? 2 : 4);
     w.u32(fw);
     w.u8(r.unit_info[0]);
     w.u16(Requester::SETTINGS * 10);
@@ -169,22 +198,26 @@ size_t build(const Read &r, uint32_t unix_time, uint8_t *out, size_t cap) {
     w.bytes(r.block, sizeof r.block);
     w.u16(Requester::SETTINGS);
     for (const Requester::Setting &s : r.s) w.u8(s.state != Requester::UNSUPPORTED ? s.access : 0);
-    unsigned grid = 0;
-    for (int i = 0; i < r.grid.count; i++) grid += r.grid.len[i];
-    w.u16(grid);
-    for (int i = 0; i < r.grid.count; i++) w.bytes(r.grid.data[i], r.grid.len[i]);
+    if (!legacy) {
+        unsigned grid = 0;
+        for (int i = 0; i < r.grid.count; i++) grid += r.grid.len[i];
+        w.u16(grid);
+        for (int i = 0; i < r.grid.count; i++) w.bytes(r.grid.data[i], r.grid.len[i]);
+    }
     end(w, start, next_at);
 
     // The unit: its ID, firmware and model bytes, serial number, save time, settings, assistants.
     start = w.n;
     next_at = begin(w, "BareSettingData");
-    w.u32(3);
+    w.u32(legacy ? 2 : 3);
     w.bytes(r.unit_id, sizeof r.unit_id);
     w.u32(fw);
-    w.bytes(UNIT_CONST, sizeof UNIT_CONST);
+    if (legacy) w.u8(1);
+    else w.bytes(UNIT_CONST, sizeof UNIT_CONST);
     w.bytes(r.version, 4);
-    w.u16(6);
-    w.bytes(r.version + 4, 6);
+    const unsigned version_tail = legacy ? r.version_bytes - 4 : 6;
+    w.u16(version_tail);
+    w.bytes(r.version + 4, version_tail);
     w.bytes(r.unit_info, sizeof r.unit_info);
     size_t serial = strlen(r.serial);
     w.u16((unsigned)serial);
@@ -253,7 +286,9 @@ bool fail(char *why, size_t cap, const char *text) {
 }
 
 bool parse_schema(Reader &r, File &f) {
-    if (r.u32() != 4) return false;
+    const uint32_t version = r.u32();
+    if (version != 2 && version != 4) return false;
+    f.schema_version = (uint8_t)version;
     f.schema_firmware = r.u32();
     f.model = (uint8_t)r.u8();
     if (r.u16() != sizeof f.records) return false;
@@ -262,21 +297,33 @@ bool parse_schema(Reader &r, File &f) {
     r.bytes(f.block, sizeof f.block);
     if (r.u16() != sizeof f.access) return false;
     r.bytes(f.access, sizeof f.access);
-    f.grid_len = (int)r.u16();
-    if (f.grid_len > (int)sizeof f.grid) return false;
-    r.bytes(f.grid, (size_t)f.grid_len);
+    f.grid_present = version != 2;
+    if (f.grid_present) {
+        f.grid_len = (int)r.u16();
+        if (f.grid_len > (int)sizeof f.grid) return false;
+        r.bytes(f.grid, (size_t)f.grid_len);
+    }
     return r.at_end();
 }
 
 // The unit: the header, serial number, the form's bytes, the settings, then the assistant area's runs.
 const char *parse_unit(Reader &r, File &f) {
-    if (r.u32() != 3) return "the unit block does not start with 3";
+    const uint32_t version = r.u32();
+    if (version != (f.schema_version == 2 ? 2u : 3u)) return "the schema and unit versions do not match";
+    f.unit_version = (uint8_t)version;
     r.bytes(f.unit_id, 4);
     f.firmware = r.u32();
-    r.bytes(f.unit_const, 3);
+    if (version == 2) {
+        f.unit_const[0] = (uint8_t)r.u8();
+        if (f.unit_const[0] != 1) return "the legacy unit marker is not 1";
+    } else {
+        r.bytes(f.unit_const, 3);
+    }
     r.bytes(f.version, 4);
-    if (r.u16() != 6) return "the unit block's firmware bytes are not as expected";
-    r.bytes(f.version + 4, 6);
+    const unsigned extra = r.u16();
+    if (extra != 6 && !(version == 2 && extra == 4)) return "the unit block's firmware bytes are not as expected";
+    f.version_bytes = (uint8_t)(4 + extra);
+    r.bytes(f.version + 4, extra);
     r.bytes(f.unit_info, 10);
     unsigned sl = r.u16();
     if (sl == 0 || sl >= sizeof f.serial) return "no serial number";
@@ -352,9 +399,10 @@ bool parse(const uint8_t *data, size_t n, File &f, char *why, size_t cap) {
             if (vl >= sizeof f.mk2vsc || !r.has(vl)) return fail(why, cap, "the Mk2vscInfo section is not as expected");
             r.bytes(f.mk2vsc, vl);
             f.mk2vsc[vl] = 0;
-        } else if (len == 15 && memcmp(name, "BareSettingInfo", 15) == 0 && info && !schema && !units) {
+        } else if (len == 15 && memcmp(name, "BareSettingInfo", 15) == 0 && !schema && !units) {
             schema = true;
             if (!parse_schema(r, f)) return fail(why, cap, "the settings schema (BareSettingInfo) is not as expected");
+            if (!info && f.schema_version != 2) return fail(why, cap, "the modern file has no Mk2vscInfo section");
         } else if (len == 15 && memcmp(name, "BareSettingData", 15) == 0 && schema) {
             if (++units > 1) return fail(why, cap, "the file holds several units (.rvms): the ESP32 writes one");
             const char *problem = parse_unit(r, f);
@@ -401,6 +449,11 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
     p.settings = 0;
     p.assistants = false;
     p.records = 0;
+    if (f.schema_version != 4 || f.unit_version != 3 || !f.grid_present || f.version_bytes != 10 ||
+        r.grid_availability == Requester::GridAvailability::LEGACY_OMITTED) {
+        snprintf(out.why, sizeof out.why, "legacy-format exports are read-only; upload qualification is unchanged");
+        return false;
+    }
     const char *why = nullptr;
     const uint8_t mark = (uint8_t)(r.unit_info[8] & 0x0F);
     if (!ready(r, &why)) {

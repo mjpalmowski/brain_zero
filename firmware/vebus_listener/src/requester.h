@@ -198,6 +198,9 @@ class Requester {
         int count = 0;               // records complete
         bool ended = false;          // the Multi answered 0x80 after the last
     };
+    enum class GridAvailability : uint8_t {
+        UNKNOWN, AVAILABLE, LEGACY_OMITTED  // omitted by a verified export format, not an unsupported command
+    };
     struct SettingsRead {
         bool active = false, done = false;
         bool inspection = false;
@@ -209,12 +212,14 @@ class Requester {
         int read = 0, unsupported = 0, failed = 0;
         char serial[16] = "";
         uint32_t firmware = 0;
-        uint8_t version[10] = {};    // 0x05's reply: the firmware number and six more bytes
-        bool version_ok = false, unit_ok = false;
+        uint8_t version[10] = {};    // bounded storage for 0x05's actual reply data
+        uint8_t version_bytes = 0;   // received data bytes; an eight-byte legacy reply is never padded
+        bool version_ok = false, unit_ok = false; // version_ok retains the full ten-byte control/write gate
         uint8_t unit_id[4] = {}, unit_info[10] = {};  // from 21 .. 05
         uint8_t block[BLOCK_ARGS][BLOCK_BYTES] = {};
         uint8_t block_got[BLOCK_ARGS] = {};           // bit 0 the 0x9E reply, bit 1 the 0x9F
         Records<MAX_GRID_RECORDS> grid;
+        GridAvailability grid_availability = GridAvailability::UNKNOWN;
         Records<MAX_RECORDS> assistants;
         const char *problem = nullptr;  // why a part was given up
         int64_t started = -1, finished = -1;

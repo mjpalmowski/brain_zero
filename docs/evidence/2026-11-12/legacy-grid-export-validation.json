@@ -1,0 +1,190 @@
+{
+  "format": "brain-zero-legacy-grid-export-validation-v1",
+  "date": "2026-11-12",
+  "privacy": "No owner serials, IDs, saved user values, timestamps, credentials, Assistant programs or raw RVSC files are published.",
+  "legacy_policy": {
+    "firmware": 2628459,
+    "model_byte": 47,
+    "required_version_prefix": "6b1b2800080d0000",
+    "accepted_received_version_bytes": [
+      8,
+      10
+    ],
+    "format": "BareSettingInfo2 / BareSettingData2, with omitted grid field",
+    "selected_before_grid_query": true,
+    "timeout_fallback": false,
+    "grid_absence_claimed_about_hardware": false,
+    "actual_setting_values_preserved": true,
+    "legacy_uploads_allowed": false,
+    "control_write_qualification_changed": false,
+    "compatibility_json_requires_device_grid_metadata": true
+  },
+  "veconfigure_findings": {
+    "executable_sha256": "d979d4f7ad111f2fe9bb3c504ec74c55857a124373dd202af1454750b43fca2f",
+    "memory_proof_sha256": "3183fc0f808114caad819d125f44298dfa9e7466ba7b1176223f2b3ac8af0627",
+    "bounded_memory_cases": 100,
+    "missing_grid_uses_compiled_legacy_logic": true,
+    "grid_table_generated_by_observed_helpers": false,
+    "memory_proof_limit": "Profile arguments and all runtime model globals are not fully reconstructed; this is not a complete proof of GUI defaults or a wire fallback contract.",
+    "unit2_ten_byte_marker_preserved_by_native_save": "6b1b2800080d0000a55a",
+    "ten_byte_extra_data_provenance": "Synthetic marker for format testing, not hardware evidence",
+    "coherent_production_equivalent_exports_opened": [
+      {
+        "version_bytes": 8,
+        "opened": true,
+        "offline_port_closed": true,
+        "selected_profile": "UK:                      G83/2 August 2012,  G59/3-1 August 2014",
+        "offered_profiles": 13,
+        "acknowledged_notice_titles": [],
+        "file_sha256": "1e716ce7c1c200992bcdfed5332a7b87f7c577ec52a714ccccd727c9972a1f14",
+        "settings_sent": false,
+        "source_unchanged": true
+      },
+      {
+        "version_bytes": 10,
+        "opened": true,
+        "offline_port_closed": true,
+        "selected_profile": "UK:                      G83/2 August 2012,  G59/3-1 August 2014",
+        "offered_profiles": 13,
+        "acknowledged_notice_titles": [],
+        "file_sha256": "a0d35b9e5708ee04f827c77c0ca5305b813a7f1770709fc7a780e234a26d566c",
+        "settings_sent": false,
+        "source_unchanged": true
+      }
+    ],
+    "fixture_preparation": "VEConfigure repaired/applied UK profile to wholly synthetic descriptor-default values. Authorization and timestamps stripped; no owner saved values imported.",
+    "invalid_grid_fixture_lesson": "Changing selector81 alone can invalidate grid generation words. The backup reader preserves raw values and does not repair them."
+  },
+  "pi_validation": {
+    "architecture": "armv7l",
+    "isolated_native_suites": {
+      "legacy_backup_test": {
+        "passed": true,
+        "executable_sha256": "00d0d7cf832df4337ca01ed658597ae97471a5beaaf6204f600aea736e19afb0"
+      },
+      "rvsc_test": {
+        "passed": true,
+        "executable_sha256": "5918f49c3d835f70c270054353409f0c8b0a6541bf3db8ef012471f82078e21d"
+      },
+      "requester_test": {
+        "passed": true,
+        "executable_sha256": "1b2d3a3ed069a206b3d3d41ef7d709e9dcd7d968a41716c443b6db32da40a0ed"
+      },
+      "unsupported_backup_test": {
+        "passed": true,
+        "executable_sha256": "d01c399df368bfcb4371aaa0948b158e8a03f2391c56732943a11b3ad219fbd2"
+      }
+    },
+    "new_requester_scenarios": 17,
+    "isolation": {
+      "uid": 65534,
+      "private_mount_namespace": true,
+      "private_network_namespace": true,
+      "physical_serial_visible": false,
+      "system_dbus_visible": false
+    },
+    "transport": "in-memory synthetic raw VE.Bus frames; no physical adapter",
+    "replay_executable_sha256": "a4072858b166561d76c872a1d6eeb5ad13d7dd21fa3c9f4934db359f459661e1",
+    "coherent_legacy_replays": [
+      {
+        "file": "legacy-2628459-8bytes.rvsc",
+        "firmware": 2628459,
+        "model": 47,
+        "reader_done": true,
+        "ready": true,
+        "requests": 469,
+        "read_commands": 469,
+        "write_commands": 0,
+        "version_bytes": 8,
+        "schema_version": 2,
+        "unit_version": 2,
+        "grid_queries": 0,
+        "grid_records": 0,
+        "assistant_records": 64,
+        "input_bytes": 2749,
+        "rebuilt_bytes": 2749,
+        "equal": true,
+        "first_difference": null,
+        "reason": ""
+      },
+      {
+        "file": "legacy-2628459-10bytes.rvsc",
+        "firmware": 2628459,
+        "model": 47,
+        "reader_done": true,
+        "ready": true,
+        "requests": 469,
+        "read_commands": 469,
+        "write_commands": 0,
+        "version_bytes": 10,
+        "schema_version": 2,
+        "unit_version": 2,
+        "grid_queries": 0,
+        "grid_records": 0,
+        "assistant_records": 64,
+        "input_bytes": 2751,
+        "rebuilt_bytes": 2751,
+        "equal": true,
+        "first_difference": null,
+        "reason": ""
+      }
+    ],
+    "modern_native_fixture_regressions": {
+      "count": 35,
+      "byte_identical": 35,
+      "write_commands": 0,
+      "scope": "Existing modern-format simulator fixtures; their original genuine/borrowed descriptor provenance is unchanged."
+    }
+  },
+  "windows_suites": [
+    {
+      "name": "requester",
+      "passed": true
+    },
+    {
+      "name": "unsupported-backup",
+      "passed": true
+    },
+    {
+      "name": "legacy-backup",
+      "passed": true
+    },
+    {
+      "name": "rvsc-codec",
+      "passed": true
+    },
+    {
+      "name": "recorded-modern-rvsc",
+      "passed": true
+    },
+    {
+      "name": "upload",
+      "passed": true
+    }
+  ],
+  "build": {
+    "name": "github-ota-20261112.1",
+    "release_version": 2026111201,
+    "published": false,
+    "installed": false,
+    "bytes": 2807760,
+    "sha256": "e0068f20c0ae1fce3d215cce9ac43557ff2d0dd090f6059d3003bf9db3b73258",
+    "static_ram_bytes": 110416,
+    "static_ram_percent": 33.7,
+    "runtime_ram_measured": false,
+    "sources_sha256": {
+      "requester.cpp": "994f01f5ea7ce69dbeae5d198d350b7078c3641107d555446fef40f369b54ae0",
+      "requester.h": "1d9354573fead4c58207ddebd4b64e3bc75cbb30d1b79fb7beabcffa4474c31f",
+      "rvsc.cpp": "c97d009f3bc224671b07865c44631b52901da873c1091650e59cef2b760aeb22",
+      "rvsc.h": "67db040575eb361f19dfe038a0a8c5c5aa27ebf4926b61f4c424a523e16eb2ad",
+      "compatibility_profile.cpp": "5d3daedbd58ba31fa26ce6ac03ce2dde458006f489120d10159eaafc81cf5aa9",
+      "web.cpp": "6917386a6a7e971a10351750043ba9ef7931179d30fc4a10ef0132f98ef7c5c0",
+      "diagnostics.h": "2dda2ff4d5adcbab63ae17c0db23534fa25b5c4c5e781c46061ffc90442d8de1"
+    }
+  },
+  "remaining_evidence": [
+    "The legacy source retained8 version bytes; actual physical wire length remains unknown.",
+    "No physical2628459 hardware acceptance, settings-write or ESS qualification was added."
+  ],
+  "real_inverter_contacted": false
+}

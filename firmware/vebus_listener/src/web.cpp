@@ -1254,6 +1254,10 @@ void handle_settings_get() {
           (unsigned long)r.firmware, r.started < 0 ? 0.0 : (end - r.started) / 1e6, r.read, r.unsupported, r.failed,
           r.grid.count, r.assistants.count, tf(file));
     o.str(why);
+    const bool legacy = r.grid_availability == vebus::Requester::GridAvailability::LEGACY_OMITTED;
+    o.add(",\"version_bytes\":%u,\"backup_schema_version\":%u,\"grid_metadata\":\"%s\"",
+          unsigned(r.version_bytes), legacy ? 2u : 4u,
+          legacy ? "omitted_by_legacy_format" : r.grid.ended ? "device_records_complete" : "incomplete");
     o.add(",\"inspection\":%s,\"setup\":{\"status\":\"%s\",\"model\":", tf(r.inspection), setup.status);
     o.str(setup.model);
     o.add(",\"nominal_voltage\":%u,\"ess_setpoint_ram\":%u,\"can_upload\":%s,\"problem\":",

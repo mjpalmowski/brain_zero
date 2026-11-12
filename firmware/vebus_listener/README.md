@@ -14,6 +14,18 @@ pio run -d firmware/vebus_listener -e listener
 
 The application image is `firmware/vebus_listener/.pio/build/listener/firmware.bin`. The build uses [PlatformIO Espressif 32 v6.8.1](https://github.com/platformio/platform-espressif32/tree/v6.8.1) and the [Arduino-ESP32 framework source](https://github.com/espressif/arduino-esp32/tree/dcc1105b0cf1322a437b354c336f2abf72b7e512).
 
+Settings downloads support the verified legacy `2628459` identity using the
+older schema 2 / unit 2 RVSC format. Grid metadata is omitted by that format;
+timeouts on other identities still fail. This download path does not enable
+legacy settings uploads or ESS writes. See the [implementation and isolated
+test results](../../docs/vebus_settings_downloads_2026-11-11.md#brain_zero-legacy-export-implementation-12-november-2026).
+
+Portable regressions in `test/legacy_backup_test.cpp` and `test/rvsc_test.cpp`
+use synthetic traffic and configurations, with no physical device transport.
+They can be compiled with a C++11 compiler, including `src/requester.cpp`,
+`src/rvsc.cpp`, `src/charger_settings.cpp`, `src/inverter_controls.cpp` and
+`src/vebus_state.cpp`, and `src` on the include path.
+
 For a custom first-boot image, copy `include/wifi_secrets.example.h` to `include/wifi_secrets.h` in this folder and set the Wi-Fi credentials locally before building. Keep that file and images built with those credentials private.
 
 ## Settings downloads for unqualified inverters

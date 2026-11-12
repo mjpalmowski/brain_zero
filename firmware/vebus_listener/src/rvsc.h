@@ -29,6 +29,9 @@ size_t build(const Requester::SettingsRead &r, uint32_t unix_time, uint8_t *out,
 // A file to write to the Multi, including VEConfigure's optional access credentials and timestamps.
 struct File {
     char mk2vsc[8] = "";
+    uint8_t schema_version = 0, unit_version = 0;
+    uint8_t version_bytes = 0;     // actual stored length: legacy unit 2 accepts eight or ten
+    bool grid_present = false;     // an omitted legacy field is different from a present empty blob
     uint32_t schema_firmware = 0;  // the schema header's firmware word
     uint8_t model = 0;             // and its model byte
     uint8_t records[Requester::SETTINGS][10] = {};
@@ -49,7 +52,8 @@ struct File {
     uint8_t data[Requester::MAX_RECORDS] = {};  // bytes of each record given as data (0: blank)
 };
 
-// Parses a file of `n` bytes; false with the reason in `why` if it is not one this can write.
+// Parses a bounded single-unit legacy 2/2 or modern 4/3 file. Parsing legacy exports
+// permits inspection only; check() refuses to turn them into an upload plan.
 bool parse(const uint8_t *f, size_t n, File &out, char *why, size_t cap);
 
 // What writing a parsed file to the Multi takes, from a complete read of it made just before. The

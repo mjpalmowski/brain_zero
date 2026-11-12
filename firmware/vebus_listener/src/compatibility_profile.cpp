@@ -134,6 +134,8 @@ private:
 
 bool prepare(const Read &r, Profile &profile, const char **why) {
     if (!rvsc::ready(r, why)) return false;
+    if (r.grid_availability == Requester::GridAvailability::LEGACY_OMITTED)
+        return fail(why, "This legacy firmware exports an .rvsc backup; compatibility.json still requires device grid metadata");
     if (memcmp(r.unit_info + 1, STANDALONE, sizeof STANDALONE) || (r.unit_info[8] & 15) || r.unit_info[9])
         return fail(why, "Expected one standalone inverter");
 
