@@ -138,7 +138,8 @@ int main() {
 
     // Replacement requires a coherent presence flag and the complete live capacity.
     file(read, f); f.assistants[0] = 5;
-    CHECK(!rvsc::check(f, read, result, utc) && !result.plan.assistants);
+    CHECK(rvsc::check(f, read, result, utc) && !result.plan.assistants &&
+          result.plan.retain_assistants && !result.plan.disable_assistants && result.plan.image[0] == 0xFF);
     f.unit_info[8] = 0xE0;
     f.credentials.count = 1; f.credentials.valid_time = f.credentials.settings_time = utc;
     f.data[0] = 1;
@@ -165,11 +166,34 @@ int main() {
     file(read, f); f.unit_info[8] = 0xE0;
     CHECK(!rvsc::check(f, read, result, utc));
     read.unit_info[8] = 0xE0; file(read, f); f.unit_info[8] = 0xF0;
-    CHECK(!rvsc::check(f, read, result, utc));
+    CHECK(rvsc::check(f, read, result, utc) && !result.plan.assistants &&
+          result.plan.disable_assistants && result.plan.retain_assistants && result.plan.restart &&
+          result.removes_assistants && result.plan.unit_final[7] == 0xF0);
     read.assistants.len[0] = 1; read.assistants.data[0][0] = 5;
+    read.assistants.len[63] = 64; memset(read.assistants.data[63], 0xFF, 64); read.assistants.data[63][63] = 0xA5;
     file(read, f); memset(f.assistants, 0xFF, sizeof f.assistants); memset(f.data, 0, sizeof f.data);
     f.unit_info[8] = 0xF0;
-    CHECK(!rvsc::check(f, read, result, utc) && !result.plan.assistants);
+    CHECK(rvsc::check(f, read, result, utc) && !result.plan.assistants && result.plan.disable_assistants &&
+          result.plan.retain_assistants && result.plan.image[0] == 5 && result.plan.image[4095] == 0xA5);
+    // Native Venus ignores both the empty six-byte header and arbitrary inactive
+    // file data. Only the original live bank is retained in the executable plan.
+    const uint8_t empty_header[] = {0xA7, 0xFE, 0, 0, 0x57, 0x01};
+    memcpy(f.assistants, empty_header, sizeof empty_header);
+    CHECK(rvsc::check(f, read, result, utc) && result.plan.disable_assistants &&
+          result.plan.image[0] == 5 && result.plan.image[4095] == 0xA5);
+    memset(f.assistants, 0x3C, sizeof f.assistants);
+    CHECK(rvsc::check(f, read, result, utc) && result.plan.disable_assistants && result.plan.image[0] == 5);
+    read.unit_info[8] = 0xF0;
+    CHECK(rvsc::check(f, read, result, utc) && !result.plan.disable_assistants && !result.plan.assistants &&
+          result.plan.retain_assistants && !result.plan.restart && !result.plan.settings &&
+          result.plan.image[4095] == 0xA5);
+    f.settings[2] = 5750;
+    CHECK(rvsc::check(f, read, result, utc) && result.plan.settings == 1 &&
+          result.plan.retain_assistants && !result.plan.disable_assistants && result.plan.image[0] == 5);
+    // Reused Check objects must not retain a disable operation on another file.
+    file(read, f); f.unit_info[8] = 0xE0; f.assistants[0] ^= 1; f.data[0] = 1;
+    CHECK(rvsc::check(f, read, result, utc) && result.plan.assistants &&
+          !result.plan.retain_assistants && !result.plan.disable_assistants);
 
     printf(failures ? "%d FAILED\n" : "all synthetic legacy settings-write guards passed\n", failures);
     return failures ? 1 : 0;

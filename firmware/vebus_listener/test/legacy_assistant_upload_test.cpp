@@ -156,6 +156,12 @@ struct Multi {
     int deny_setting = -1, ignore_setting = -1;
     int deny_record = -1, drop_record = -1;
     bool ignore_final_mark = false, drop_last_read = false;
+    bool ignore_disable_mark = false, corrupt_unit_echo = false;
+    unsigned failed_unit_sends = 0;
+    bool expose_ess_ram = false;
+    uint16_t ess_setpoint = 0, ess_flags = 0x3000;
+    unsigned runtime_writes = 0;
+    unsigned disabled_unit_reads = 0, ess_chain_reads = 0;
 
     void put_firmware(Bytes &frame, size_t offset) const {
         const Bytes &reply = table.at({0x05})[0];
@@ -248,13 +254,16 @@ struct Multi {
             if (sub == 0x08 && p.size() >= 7) {  // DC or L1 info
                 info = Bytes(15, 0); info[0] = 0x20;
             } else if (sub == 0x05 && (to_all || to_unit)) {
+                if ((unit_info[8] >> 4) == 0x0F) ++disabled_unit_reads;
                 info = {0x20};
                 info.insert(info.end(), unit_id, unit_id + 4);
                 info.insert(info.end(), unit_info, unit_info + 10);
             } else if (sub == 0x04 && to_unit && p.size() >= 15) {
                 ++unit_writes;
-                if (!ignore_final_mark || (p[13] >> 4) != 0x0E) memcpy(unit_info + 1, &p[6], 9);
-                if ((p[13] >> 4) == 0x0F) break_x = 0x50;  // the assistants off: a break frame follows
+                const bool ignored = (ignore_final_mark && (p[13] >> 4) == 0x0E) ||
+                                     (ignore_disable_mark && (p[13] >> 4) == 0x0F);
+                if (!ignored) memcpy(unit_info + 1, &p[6], 9);
+                if (!ignored && (p[13] >> 4) == 0x0F) break_x = 0x50;  // presence off produces a break
             } else if (sub == 0x03 && to_all && reset_in == 0) {  // mk2vsc's second one comes before it
                 authorized = false;
                 resets++;
@@ -302,6 +311,11 @@ struct Multi {
                     reply({0x9B}); return out;
                 }
                 if (p[4] != ignore_setting) value[p[4]] = v;
+            } else {
+                ++runtime_writes;
+                const uint16_t v = uint16_t(p[5] | p[6] << 8);
+                if (p[4] == 131) ess_setpoint = v;
+                if (p[4] == 132) ess_flags = v;
             }
             reply({(uint8_t)(p[3] & 1 ? 0x88 : 0x87)});
         } else if (cmd == 0x58 && p.size() >= 4) {
@@ -331,9 +345,21 @@ struct Multi {
                 reply(b);
             }
         } else if (cmd == 0x30 && p.size() >= 4) {  // the controller's ESS and telemetry RAM reads
-            uint8_t ram_reply[16];
-            const size_t count = assistant_ram_reply(ram_reply, p.data(), p.size(), 4);
-            reply(Bytes(ram_reply + 2, ram_reply + count));
+            if (p[3] >= 128) ++ess_chain_reads;
+            if (expose_ess_ram) {
+                Bytes ram{0x85};
+                for (size_t i = 3; i < p.size(); ++i) {
+                    const uint8_t a = p[i];
+                    const uint16_t word = a == 128 ? 1 : a == 130 ? 0x0052 :
+                                          a == 131 ? ess_setpoint : a == 132 ? ess_flags : 0;
+                    ram.push_back(uint8_t(word)); ram.push_back(uint8_t(word >> 8));
+                }
+                reply(ram);
+            } else {
+                uint8_t ram_reply[16];
+                const size_t count = assistant_ram_reply(ram_reply, p.data(), p.size(), 4);
+                reply(Bytes(ram_reply + 2, ram_reply + count));
+            }
         } else if (cmd == 0x38) {
             reply({0x99, 0, 0, 0, 0, 0, 0, 0, 0});
         } else {
@@ -381,13 +407,20 @@ static void cycle(Requester &r, Multi &m, int64_t s, int i) {
         int64_t start = earliest > s + 700 ? earliest : s + 700;
         r.sent(f, n, start, start + (int64_t)n * Requester::BYTE_US + Requester::ADDRESS_PAUSE_US);
         nr++;
-        hear(r, 0x83, 0x83, 0xFE, E4, sizeof E4, s + 15030);  // counts ours
         size_t pn = vebus::payload_of(f, n, p, sizeof p);
         Bytes req(p, p + pn);
         m.sent.push_back(req);
-        std::vector<Bytes> replies = m.answer(req);
-        if (!replies.empty()) hear(r, 0x83, 0x83, 0xFE, replies[0].data(), replies[0].size(), s + 16080);
-        if (replies.size() > 1) m.later = replies[1];
+        if (m.corrupt_unit_echo && req.size() == 15 && req[0] == 0x21 && req[5] == 0x04) {
+            // A failed own echo must not be mistaken for an accepted configuration write.
+            uint8_t damaged[64]; memcpy(damaged, f, n); damaged[0] ^= 1;
+            r.heard(damaged, n, start);
+            ++m.failed_unit_sends;
+        } else {
+            hear(r, 0x83, 0x83, 0xFE, E4, sizeof E4, s + 15030);  // counts ours
+            std::vector<Bytes> replies = m.answer(req);
+            if (!replies.empty()) hear(r, 0x83, 0x83, 0xFE, replies[0].data(), replies[0].size(), s + 16080);
+            if (replies.size() > 1) m.later = replies[1];
+        }
     } else if (!m.later.empty()) {
         hear(r, 0x83, 0x83, 0xFE, m.later.data(), m.later.size(), s + 16080);
         m.later.clear();
@@ -593,12 +626,178 @@ static void parser_failures() {
     CHECK(!rvsc::parse(corrupt.data(), corrupt.size(), parsed, error, sizeof error));
 }
 
+// A disabled legacy file expresses presence-off intent. Its inactive payload is
+// deliberately unrelated to the program already stored on the simulated unit.
+static Bytes inactive_file(Bytes base, const Bytes &payload = Bytes(), unsigned capacity = 4096) {
+    const size_t at = settings_offset(base) + 384;
+    base.erase(base.begin() + at, base.end());
+    base.push_back(uint8_t(payload.size())); base.push_back(uint8_t(payload.size() >> 8));
+    base.insert(base.end(), payload.begin(), payload.end());
+    const unsigned fill = capacity - unsigned(payload.size());
+    base.push_back(0xFF); base.push_back(uint8_t(fill)); base.push_back(uint8_t(fill >> 8));
+    base.insert(base.end(), 4, 0);
+    const size_t next = unit_payload(base) - 4;
+    for (unsigned i = 0; i < 4; ++i) base[next + i] = uint8_t(base.size() >> (8*i));
+    base[unit_info_offset(base) + 8] = 0xF0;
+    fix_checksums(base); return base;
+}
+
+enum DisableCase {
+    DISABLE_RETAIN, ALREADY_DISABLED, SCALAR_DISABLE, SCALAR_ALREADY_DISABLED,
+    NATIVE_EMPTY_HEADER, DIFFERENT_INACTIVE_IMAGE, IGNORE_DISABLE_FLAG, MUTATE_RETAINED_LAST,
+    SCALAR_F0_MUTATE_LAST, IGNORE_SCALAR_F0, DISABLE_READ_TIMEOUT, UNIT_SEND_FAILED,
+    DISABLE_IDENTITY10, DISABLE_BANK63, DISABLE_BANK0, DISABLE_OTHER_MASTER,
+    DISABLE_STALE_SNAPSHOT, DISABLE_OTHER_MASTER_AFTER_PLAN, DISABLED_ESS_REARM
+};
+
+static bool retained_read_matches(const Requester::SettingsRead &r, const uint8_t *expected) {
+    if (!r.done || !r.assistants.ended || r.assistants.count != 64) return false;
+    for (int record = 0; record < 64; ++record) for (int k = 0; k < 64; ++k)
+        if ((k < r.assistants.len[record] ? r.assistants.data[record][k] : 0xFF) != expected[record*64+k]) return false;
+    return true;
+}
+
+static void disable_case(const char *name, DisableCase scenario) {
+    const bool already = scenario == ALREADY_DISABLED || scenario == SCALAR_ALREADY_DISABLED ||
+                         scenario == SCALAR_F0_MUTATE_LAST || scenario == IGNORE_SCALAR_F0;
+    const bool scalar = scenario == SCALAR_DISABLE || scenario == SCALAR_ALREADY_DISABLED ||
+                        scenario == SCALAR_F0_MUTATE_LAST || scenario == IGNORE_SCALAR_F0;
+    const bool positive = scenario <= DIFFERENT_INACTIVE_IMAGE || scenario == DISABLED_ESS_REARM;
+    const unsigned records = scenario == DISABLE_BANK63 ? 63 : 64;
+    const unsigned capacity = records*64;
+    Bytes base = image_file(fixture(scenario == DISABLE_IDENTITY10 ? 10 : 8, false, false, records), false, false, capacity);
+    const size_t literal = settings_offset(base) + 384 + 2;
+    for (unsigned i = 0; i < capacity; ++i) base[literal+i] = uint8_t(i*7+9);
+    if (already) base[unit_info_offset(base) + 8] = 0xF0;
+    fix_checksums(base);
+    Bytes payload;
+    if (scenario == NATIVE_EMPTY_HEADER) payload = {0xA7, 0xFE, 0, 0, 0x57, 1};
+    if (scenario == DIFFERENT_INACTIVE_IMAGE) for (unsigned i = 0; i < 128; ++i) payload.push_back(uint8_t(i*3+0x41));
+    Bytes edited = inactive_file(base, payload, capacity);
+    if (scalar) set_setting(edited, 2, 5750);
+    static rvsc::File original, target;
+    char error[180] = {};
+    CHECK(rvsc::parse(base.data(), base.size(), original, error, sizeof error));
+    CHECK(rvsc::parse(edited.data(), edited.size(), target, error, sizeof error));
+    Multi multi; multi.init(original);
+    if (scenario == DISABLE_BANK0) multi.records = 0;
+    if (scenario == IGNORE_DISABLE_FLAG) multi.ignore_disable_mark = true;
+    if (scenario == UNIT_SEND_FAILED) multi.corrupt_unit_echo = true;
+    if (scenario == IGNORE_SCALAR_F0) multi.ignore_setting = 2;
+    if (scenario == DISABLED_ESS_REARM) multi.expose_ess_ram = true;
+    Requester requester; upload::Uploader uploader;
+    const int64_t t0 = 1000000; int index = 0;
+    settle(requester, multi, t0, index);
+    if (scenario == DISABLED_ESS_REARM) {
+        requester.target(true, -100, 1);
+        for (int end = index+400; index < end; ++index) cycle(requester, multi, t0+index*CYCLE, index);
+        if (requester.ess_setpoint_ram() != 131 || !multi.runtime_writes) {
+            printf("ESS fixture: firmware %lu, discovered %u, writes %u, gate %s\n", (unsigned long)requester.inverter_firmware(),
+                   unsigned(requester.ess_discovered_ram(t0+index*CYCLE)), multi.runtime_writes,
+                   requester.ess_firmware_gate(t0+index*CYCLE) ? requester.ess_firmware_gate(t0+index*CYCLE) : "open");
+            char report[4096]; while (requester.take_report(report, sizeof report)) printf("%s", report);
+        }
+        CHECK(requester.ess_setpoint_ram() == 131 && multi.runtime_writes > 0);
+        requester.target(false, 0, 0);
+    }
+    if (scenario == DISABLE_OTHER_MASTER) multi.mk3 = true;
+    const char *why = nullptr;
+    const bool started = uploader.load(edited.data(), edited.size(), "synthetic-disabled-assistant.rvsc", error, sizeof error) &&
+                         uploader.start(requester, t0+index*CYCLE, &why);
+    CHECK(started);
+    bool damaged = false, delayed = false;
+    int64_t delay_until = 0;
+    for (int end = index+30000; started && index < end && uploader.busy(); ++index) {
+        const int64_t now = t0+index*CYCLE;
+        if (scenario == DISABLE_OTHER_MASTER_AFTER_PLAN && uploader.state() == upload::WRITING && !multi.mk3) {
+            static const uint8_t master[] = {0, 0xE5, 0x30, 0x0D, 0};
+            hear(requester, 0x8F, 0xF7, 0xFE, master, sizeof master, now-500);
+            multi.mk3 = true;
+        }
+        if (!damaged && uploader.state() == upload::VERIFYING) {
+            if (scenario == MUTATE_RETAINED_LAST || scenario == SCALAR_F0_MUTATE_LAST) multi.mem[4095] ^= 1;
+            if (scenario == DISABLE_READ_TIMEOUT) multi.drop_last_read = true;
+            damaged = true;
+        }
+        cycle(requester, multi, now, index);
+        if (scenario == DISABLE_STALE_SNAPSHOT && uploader.state() == upload::READING &&
+            requester.settings().done && !requester.settings().active && !delayed) {
+            delayed = true; delay_until = now+6000000;
+        }
+        if (!delayed || now >= delay_until) uploader.step(requester, now+19500, UTC+index*CYCLE/1000000);
+    }
+    const auto &read = requester.settings();
+    bool passed = started && !uploader.busy() && (uploader.state() == upload::DONE) == positive &&
+                  multi.program_writes == 0 && multi.grid_queries == 0;
+    if (positive) {
+        passed = passed && !memcmp(multi.mem, original.assistants, 4096) &&
+                 retained_read_matches(read, original.assistants) && read.unit_info[8] == 0xF0 &&
+                 multi.unit_info[8] == 0xF0 && multi.unit_writes == unsigned(!already) &&
+                 reset_requests(multi) == unsigned(already ? 0 : 2) && multi.resets == unsigned(!already) &&
+                 multi.setting_attempts == unsigned(scalar) && multi.value[2] == (scalar ? 5750 : original.settings[2]);
+        if (!already) passed = passed && requester.write_job().identified && multi.identifies > 0;
+        for (const Bytes &frame : multi.sent) if (frame.size() == 15 && frame[0] == 0x21 && frame[5] == 4) {
+            passed = passed && !memcmp(frame.data()+1, original.unit_id, 4) &&
+                     !memcmp(frame.data()+6, original.unit_info+1, 7) && frame[13] == 0xF0 && frame[14] == 0;
+        }
+        if (scenario == DISABLED_ESS_REARM) {
+            const unsigned cached_before = requester.ess_setpoint_ram();
+            passed = passed && cached_before == 0;
+            const unsigned before = multi.runtime_writes;
+            const unsigned unit_reads_before = multi.disabled_unit_reads, chain_reads_before = multi.ess_chain_reads;
+            requester.target(true, 100, 2);
+            for (int end = index+400; index < end; ++index) cycle(requester, multi, t0+index*CYCLE, index);
+            passed = passed && multi.runtime_writes == before && !requester.ess_setpoint_ram() &&
+                     !requester.ess_discovered_ram(t0+index*CYCLE) &&
+                     requester.control_state(t0+index*CYCLE) == Requester::CtlState::CHECKING &&
+                     multi.disabled_unit_reads > unit_reads_before && multi.ess_chain_reads == chain_reads_before;
+        }
+    } else {
+        passed = passed && uploader.state() == upload::FAILED;
+        if (scenario == DISABLE_IDENTITY10 || scenario == DISABLE_BANK63 || scenario == DISABLE_BANK0 ||
+            scenario == DISABLE_OTHER_MASTER || scenario == DISABLE_STALE_SNAPSHOT || scenario == DISABLE_OTHER_MASTER_AFTER_PLAN)
+            passed = passed && multi.setting_attempts == 0 && multi.unit_writes == 0 && multi.resets == 0;
+        if (scenario == UNIT_SEND_FAILED) passed = passed && multi.failed_unit_sends == 3 && multi.unit_writes == 0 && multi.resets == 0;
+        if (scenario == MUTATE_RETAINED_LAST || scenario == SCALAR_F0_MUTATE_LAST)
+            passed = passed && damaged && multi.mem[4095] != original.assistants[4095];
+    }
+    CHECK(passed);
+    printf("{\"case\":\"%s\",\"passed\":%s,\"expected_success\":%s,\"done\":%s,"
+           "\"assistant_writes\":%d,\"unit_writes\":%d,\"reset_requests\":%u,\"resets\":%d,"
+           "\"fresh_read_records\":%d,\"retained_image_matches\":%s,\"scalar_writes\":%d,\"message\":\"%s\"}\n",
+           name, passed ? "true" : "false", positive ? "true" : "false", uploader.state() == upload::DONE ? "true" : "false",
+           multi.program_writes, multi.unit_writes, reset_requests(multi), multi.resets, read.assistants.count,
+           !memcmp(multi.mem, original.assistants, 4096) ? "true" : "false", multi.setting_attempts, uploader.message());
+}
+
+static void modern_removal_plan_unchanged() {
+    const Bytes base = fixture(8, false, true), edited = inactive_file(base);
+    static rvsc::File original, target; static rvsc::Check check;
+    char error[180];
+    CHECK(rvsc::parse(base.data(), base.size(), original, error, sizeof error));
+    CHECK(rvsc::parse(edited.data(), edited.size(), target, error, sizeof error));
+    Multi m; m.init(original); Requester r; int index = 0; const int64_t t0 = 1000000;
+    settle(r, m, t0, index); CHECK(r.read_settings(t0+index*CYCLE));
+    for (int end = index+30000; index < end && r.settings().active; ++index) cycle(r, m, t0+index*CYCLE, index);
+    CHECK(rvsc::check(target, r.settings(), check, UTC));
+    CHECK(check.plan.assistants && !check.plan.disable_assistants && !check.plan.retain_assistants &&
+          check.plan.records == 64 && check.removes_assistants);
+}
+
 int main() {
     const char *names[] = {"replace-complete-4k", "add-assistant", "remove-assistant", "record-rejected",
                            "final-mark-ignored", "record-no-ack", "last-byte-readback-mismatch",
                            "last-record-readback-timeout", "ten-byte-identity-refused", "blank-tail-native-padding", "modern-padding-unchanged",
                            "short-matching-file-and-live-bank-refused", "empty-live-bank-refused"};
-    for (unsigned i = 0; i < sizeof names / sizeof names[0]; ++i) test_case(names[i], i);
+    for (unsigned i = 0; i < sizeof names / sizeof names[0]; ++i) if (i != 2) test_case(names[i], i);
+    const char *disabled[] = {"disable-retains-complete-4k", "already-disabled-retained-noop", "scalar-and-disable-retain",
+        "scalar-already-disabled-retain", "native-empty-header-disables-retains", "inactive-foreign-image-retained",
+        "disable-flag-ignored", "disable-last-byte-mutated", "scalar-f0-last-byte-mutated", "scalar-f0-setting-ignored",
+        "disable-readback-timeout", "disable-unit-send-failed", "disable-ten-byte-identity-refused", "disable-bank63-refused",
+        "disable-empty-bank-refused", "disable-other-master-refused", "disable-stale-snapshot-refused",
+        "disable-other-master-after-plan-refused", "disabled-ess-cannot-rearm-retained-ram"};
+    for (unsigned i = 0; i < sizeof disabled / sizeof disabled[0]; ++i) disable_case(disabled[i], DisableCase(i));
+    modern_removal_plan_unchanged();
     parser_failures();
     return failures ? 1 : 0;
 }

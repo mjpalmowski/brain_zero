@@ -2,7 +2,9 @@
 // shown against the latest read (rvsc.h). On confirmation the job reads the Multi afresh, checks the
 // file against that read, writes what differs (requester.h, start_write(): the changed settings, and,
 // if the assistants differ, the assistant records and a reset, as mk2vsc writes them), then reads the
-// Multi again and requires it to hold the file. Plain C++, so test/upload_test.cpp can run it on a PC;
+// Multi again and verifies the requested state. A qualified legacy F0 operation preserves and
+// verifies its pre-write Assistant bank instead of applying the inactive file payload.
+// Plain C++, so test/upload_test.cpp can run it on a PC;
 // main.cpp calls step() with the requester's lock held.
 #pragma once
 

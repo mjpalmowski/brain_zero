@@ -100,8 +100,9 @@ void Uploader::step(vebus::Requester &r, int64_t now, int64_t utc) {
             else state_ = WRITING;
             return;
         }
-        if (p.settings == 0 && !p.assistants) {
-            finish(DONE, "nothing written: the Multi already holds this file");
+        if (p.settings == 0 && !p.assistants && !p.disable_assistants) {
+            finish(DONE, p.retain_assistants ? "nothing written: assistants are already disabled; stored program retained" :
+                                            "nothing written: the Multi already holds this file");
             return;
         }
         const char *why = nullptr;
@@ -135,17 +136,37 @@ void Uploader::step(vebus::Requester &r, int64_t now, int64_t utc) {
             if (!read.active && read.started != read_started_) finish(FAILED, "the read after writing did not run");
             return;
         }
-        const rvsc::Check &after = preview(read, utc);
         const vebus::Requester::WritePlan &p = check_.plan;
+        if (p.retain_assistants) {
+            // Reuse the preflight plan's existing image buffer for the original
+            // bank. An inactive file payload is never a replacement image.
+            const char *why = nullptr;
+            if (!rvsc::ready(read, &why) || read.assistants.count != 64 || p.records != 64 ||
+                memcmp(read.unit_info + 1, p.unit_final, sizeof p.unit_final)) {
+                finish(FAILED, "written, but the disabled Assistant state or full program readback was not confirmed");
+                return;
+            }
+            for (int i = 0; i < 64; ++i) for (int k = 0; k < vebus::Requester::RECORD; ++k) {
+                const uint8_t actual = k < read.assistants.len[i] ? read.assistants.data[i][k] : 0xFF;
+                if (actual != p.image[i * vebus::Requester::RECORD + k]) {
+                    finish(FAILED, "written, but stored Assistant program changed at byte %d; preservation was not verified",
+                           i * vebus::Requester::RECORD + k);
+                    return;
+                }
+            }
+        }
+        const rvsc::Check &after = preview(read, utc);
         if (!after.ok) {
             finish(FAILED, "written, but the read afterwards does not match the file: %s", after.why);
-        } else if (after.plan.settings || after.plan.assistants) {
+        } else if (after.plan.settings || after.plan.assistants || after.plan.disable_assistants) {
             finish(FAILED, "written, but the Multi still differs from the file: %d setting%s%s", after.plan.settings,
-                   after.plan.settings == 1 ? "" : "s", after.plan.assistants ? " and the assistants" : "");
+                   after.plan.settings == 1 ? "" : "s", (after.plan.assistants || after.plan.disable_assistants) ? " and the assistants" : "");
         } else {
             const vebus::Requester::WriteJob &j = r.write_job();
             finish(DONE, "written and read back: %d setting%s%s, in %.0f s%s%s", p.settings, p.settings == 1 ? "" : "s",
-                   p.assistants ? ", the assistants and a reset" : p.restart ? ", and a reset" : "", (now - started_) / 1e6, j.startup[0] ? "; " : "",
+                   p.assistants ? ", the assistants and a reset" :
+                   p.disable_assistants ? ", assistants disabled with stored program retained, and a reset" :
+                   p.restart ? ", and a reset" : p.retain_assistants ? "; stored Assistant program retained" : "", (now - started_) / 1e6, j.startup[0] ? "; " : "",
                    j.startup);
         }
         return;

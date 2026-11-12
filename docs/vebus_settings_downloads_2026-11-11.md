@@ -576,3 +576,66 @@ physical serial devices and system D-Bus hidden. The real inverter was not
 contacted. Build 20261112.3 is prepared locally, not published or installed.
 The [sanitized Assistant qualification report](evidence/2026-11-12/legacy-459-assistant-qualification.json)
 records native outcomes, production tests, source hashes and the firmware image.
+
+### Assistant removal for 2628459: 12 November 2026
+
+Build **20261112.4** adds the qualified legacy removal operation: set the
+Assistant presence state to **F0 / unused**, restart, and retain every stored
+program byte. This supersedes build 20261112.3's removal restriction. It does
+not erase Assistant memory. The exact eight-byte identity and complete
+64-record / 4096-byte bank remain mandatory.
+
+Five fresh stock Venus v3.64 uploads passed on the isolated Pi. Initially active
+units accepted F0 files containing no program bytes, VEConfigure's six-byte
+empty header, or a different inactive synthetic program. Each finished with F0,
+all **4096 original bytes retained**, all **142 supported settings unchanged**,
+and zero Assistant programming requests. Initially F0 units with retained or
+blank memory also preserved their entire bank. The inactive file payload is
+therefore not a replacement image: its presence flag determines disable intent.
+
+Native Venus issued two F0 unit-configuration writes and one adapter reset when
+disabling an active unit, or one redundant F0 write and no reset for an already
+disabled unit. It also retransmitted all supported scalar settings. brain_zero
+sends only changed scalar settings, one F0 unit write when needed and its
+existing two direct-bus reset frames/start-up sequence. Already-disabled uploads
+with no scalar changes are no-ops. These are equivalent disable/retain results;
+the complete upload packet sequences are not claimed to be identical.
+
+The file checker creates an explicit retain/disable plan. The low-level writer
+independently checks the fresh identity, capacity, unit bytes and complete
+preservation snapshot. Disable plans cannot enter the record-programming state
+or serialize an Assistant record write. The original 4 KiB image uses an
+existing plan buffer. No additional 4 KiB allocation was introduced.
+
+After any actual write, including scalar-only changes to an already-disabled
+unit, a fresh complete read must confirm F0, all 4096 original program bytes,
+identity, descriptors and requested scalar settings. A changed byte, missing
+record or ignored presence flag cannot be reported as success. The expected
+break immediately following the controller's own F0 unit write is handled
+without bypassing the other-master checks. Legacy ESS discovery additionally
+requires E0 / active, so retained inactive RAM cannot resume setpoint or flag
+writes after removal.
+
+The production regression covers removal, already-disabled no-op, combined
+scalar changes, the native empty header, differing inactive file payloads,
+ignored settings/flags, failed sends, corruption of byte 4095, missing readback,
+stale plans, competing masters, invalid identities and incomplete banks. The
+ESS case first discovers a valid live layout and performs control writes, then
+disables it and proves that rearming while F0 produces no new control writes
+despite the simulator retaining that valid-looking RAM. Existing nonempty
+replacement and modern-profile checks remain in the same suite.
+
+All program contents, identities, settings and telemetry in these experiments
+are synthetic; descriptors and eight stored version bytes are from the genuine
+legacy export. The simulator stores programs but does not execute them. Native
+case reports measured UID 65534 and hidden physical serial/system D-Bus; the
+unchanged sandbox enforces private mount/network namespaces, with an additional
+zero-write probe recording those namespace differences. Production tests also
+measure isolation for each executable. No live inverter was contacted.
+
+Build 20261112.4 is prepared locally and has not been published or installed.
+All seven isolated Pi suites and nine Windows suites passed, including 31
+complete Assistant upload scenarios. Static RAM is **110,432 bytes (33.7%)**;
+runtime RAM was not measured.
+See the [sanitized removal qualification report](evidence/2026-11-12/legacy-459-assistant-disable-qualification.json)
+for native results, regression results, source hashes and firmware details.

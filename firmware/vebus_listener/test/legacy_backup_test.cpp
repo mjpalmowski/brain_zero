@@ -191,6 +191,32 @@ void export_case(const char *name,Fixture fixture,bool omitted,bool ready) {
             CHECK(!bus.requester.start_write(bus.now,plan,&why));
             CHECK(!bus.requester.write_job().active && bus.writes==0);
             short_read.assistants.count=64;
+            // Forged disable/retain plans cannot rewrite records, change the
+            // saved image, or bypass the independent identity/capacity guards.
+            valid.assistants=false;valid.retain_assistants=true;valid.disable_assistants=false;
+            valid.restart=false;valid.unit_final[7]=0xF0;
+            std::memset(valid.image,0xFF,sizeof valid.image);
+            for(unsigned test=0;test<11;++test) {
+                plan=valid;
+                switch(test) {
+                case 0: plan.records=63;break;
+                case 1: plan.records=65;break;
+                case 2: plan.disable_assistants=true;break; // already F0
+                case 3: plan.assistants=true;break;
+                case 4: plan.unit_final[7]=0xE0;break;
+                case 5: plan.unit_final[0]++;break;
+                case 6: plan.unit_marked[7]=0xE0;break;
+                case 7: plan.image[4095]=1;break;
+                case 8: plan.retain_assistants=false;break;
+                case 9: ++plan.read_started;break;
+                case 10: plan.access_only=true;break;
+                }
+                CHECK(!bus.requester.start_write(bus.now,plan,&why));
+                CHECK(!bus.requester.write_job().active && bus.writes==0);
+            }
+            plan=valid;short_read.assistants.count=63;plan.records=63;
+            CHECK(!bus.requester.start_write(bus.now,plan,&why));
+            short_read.assistants.count=64;
         }
         plan=Requester::WritePlan();plan.settings=1;plan.setting_id[0]=2;plan.setting_value[0]=1;
         plan.read_started=r.started;std::memcpy(plan.unit_id,r.unit_id,sizeof plan.unit_id);

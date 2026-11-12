@@ -448,6 +448,7 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
     p.restart = false;
     p.settings = 0;
     p.assistants = false;
+    p.disable_assistants = p.retain_assistants = false;
     p.records = 0;
     // The observed eight-byte 2628459 profile is separately write-qualified.
     // Acceptance of ten-byte unit-2 exports is format support only: their
@@ -555,7 +556,26 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
         }
     }
     bool flag_differs = f.unit_info[8] != r.unit_info[8];
-    if (legacy && (out.assistant_bytes_differ || flag_differs)) {
+    // On this qualified legacy profile Venus treats F0 as unused VLL code:
+    // it changes the unit state and retains stored memory, including when the
+    // file carries VEConfigure's six-byte empty header instead of all FF.
+    const bool disable_intent = legacy && records == 64 && (f.unit_info[8] >> 4) == 0x0F;
+    if (disable_intent) {
+        if ((r.unit_info[8] >> 4) < 0x0E) {
+            snprintf(out.why, sizeof out.why, "the live legacy Assistant presence state is not recognized");
+            return false;
+        }
+        p.retain_assistants = true;
+        p.disable_assistants = (r.unit_info[8] >> 4) == 0x0E;
+        p.restart = p.restart || p.disable_assistants;
+        p.records = records;
+        memcpy(p.unit_marked, r.unit_info + 1, 9);
+        p.unit_marked[7] = (uint8_t)(0xF0 | mark);
+        memcpy(p.unit_final, f.unit_info + 1, 9);
+        for (int i = 0; i < records; ++i) for (int k = 0; k < Requester::RECORD; ++k)
+            p.image[i * Requester::RECORD + k] = k < r.assistants.len[i] ? r.assistants.data[i][k] : 0xFF;
+        out.removes_assistants = p.disable_assistants;
+    } else if (legacy && (out.assistant_bytes_differ || flag_differs)) {
         if (records != 64) {
             snprintf(out.why, sizeof out.why, "legacy Assistant replacement requires the verified 4096-byte memory area");
             return false;
@@ -563,7 +583,7 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
         bool image_present = false;
         for (int i = 0; i < f.assistant_bytes; ++i) image_present = image_present || f.assistants[i] != 0xFF;
         if (!image_present || (f.unit_info[8] >> 4) != 0x0E) {
-            snprintf(out.why, sizeof out.why, "legacy Assistant removal is not verified; replacement needs a nonempty active image");
+            snprintf(out.why, sizeof out.why, "active Assistant replacement needs a nonempty image");
             return false;
         }
         if ((r.unit_info[8] >> 4) < 0x0E) {
@@ -571,11 +591,11 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
             return false;
         }
     }
-    if (out.assistant_bytes_differ == 0 && flag_differs) {
+    if (!disable_intent && out.assistant_bytes_differ == 0 && flag_differs) {
         snprintf(out.why, sizeof out.why, "the file changes the unit's assistant flag but not its assistants");
         return false;
     }
-    if (out.assistant_bytes_differ) {
+    if (!disable_intent && out.assistant_bytes_differ) {
         p.assistants = true;
         p.restart = true;
         p.records = records;
@@ -589,7 +609,7 @@ bool check(const File &f, const Read &r, Check &out, int64_t utc) {
         out.adds_assistants = (f.unit_info[8] >> 4) == 0x0E && (r.unit_info[8] >> 4) == 0x0F;
     }
     memcpy(p.unit_id, r.unit_id, sizeof p.unit_id);
-    if (p.settings || p.assistants) {
+    if (p.settings || p.assistants || p.disable_assistants) {
         if (p.required_access && !f.credentials.count) {
             snprintf(out.why, sizeof out.why, "protected changes need embedded authorization: reopen and save in VEConfigure");
             return false;

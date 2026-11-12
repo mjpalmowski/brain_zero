@@ -294,7 +294,7 @@ bool Requester::operate(int64_t now, const inverter::Command &c, const State &st
     if (c.action == inverter::Action::RESTART || c.action == inverter::Action::REDETECT) {
         // Reuse the captured reset/start-up sequence, without writing settings or assistants.
         plan_.settings = plan_.records = 0;
-        plan_.assistants = false;
+        plan_.assistants = plan_.disable_assistants = plan_.retain_assistants = false;
         memset(plan_.unit_id, 0, sizeof plan_.unit_id);
         write_ = WriteJob();
         write_.active = write_.maintenance = true;
@@ -486,8 +486,12 @@ void Requester::invalidate_inverter_configuration(const char *message, bool brea
     if (!write_.active || write_.maintenance || write_.reset_sends) return;
     const bool marking = write_.step == W_MARK && kind_ == UNIT_WRITE && write_.config_sends;
     const bool marked = write_marked() && write_.step <= W_UNMARK;
+    // Only the expected immediate break from our disable-only F0 configuration
+    // is tolerated here. Other masters are still handled by the normal bus guard.
+    const bool disabling = plan_.disable_assistants && write_.config_sends && kind_ == UNIT_WRITE &&
+        (write_.step == W_UNMARK || write_.step == W_RESET) && now_ >= t_start_ && now_ - t_start_ < 200000;
     // Marking the inverter to stop its assistants produces this break.
-    if (break_frame && (marking || marked)) return;
+    if (break_frame && (marking || marked || disabling)) return;
     write_end(marking || marked ? "Assistant write interrupted; recover the inverter configuration before trying again" : message);
 }
 
@@ -595,6 +599,8 @@ const char *Requester::ess_layout_reply(const uint8_t *p, size_t k) {
             (write_profile_ && (p[5] != write_profile_->model ||
                                 (!write_profile_->other_runtime && (p[13] & 0x0F)))))
             return "ESS requires a recognized standalone VE.Bus unit layout";
+        if (write_profile_ && write_profile_->version_bytes == sizeof VERSION_2628459 && (p[13] >> 4) != 0x0E)
+            return "ESS requires active Assistants; the legacy inverter reports they are disabled";
         ess_header_ = ASSISTANTS;
         return nullptr;
     }
@@ -1218,16 +1224,19 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
                     : s == CtlState::LISTENING   ? "still listening for other masters after a restart"
                     : s == CtlState::BACKING_OFF ? "backing off after failed requests"
                     : plan.settings < 0 || plan.settings > SETTINGS ? "bad plan"
-                    : !plan.assistants && plan.records != 0 ? "invalid Assistant record count"
-                    : plan.access_only && (!plan.access.count || plan.settings || plan.assistants || plan.restart || plan.records || plan.required_access)
+                    : !plan.assistants && !plan.retain_assistants && plan.records != 0 ? "invalid Assistant record count"
+                    : plan.disable_assistants && !plan.retain_assistants ? "disable-only plan needs its retained memory snapshot"
+                    : plan.assistants && (plan.disable_assistants || plan.retain_assistants) ? "conflicting Assistant operations"
+                    : plan.access_only && (!plan.access.count || plan.settings || plan.assistants || plan.disable_assistants || plan.retain_assistants || plan.restart || plan.records || plan.required_access)
                         ? "invalid credentials-only plan"
-                    : plan.settings == 0 && !plan.assistants && !plan.access_only ? "nothing to write"
+                    : plan.settings == 0 && !plan.assistants && !plan.disable_assistants && !plan.access_only ? "nothing to write"
                     : plan.assistants && (plan.records < 1 || plan.records > MAX_RECORDS) ? "no assistant records"
                                                                                           : nullptr;
     if (!w && plan.required_access && !plan.access.count) w = "protected settings require embedded authorization";
     if (!w) w = plan.access.problem(utc);
     if (!w) w = settings_write_firmware_gate(now);
     const bool legacy = write_profile_ && write_profile_->version_bytes == sizeof VERSION_2628459;
+    if (!w && plan.retain_assistants && !legacy) w = "disable-only plans require the qualified legacy inverter";
     if (!w) {
         const SettingsRead &r = settings_;
         const bool version_ok = r.version_bytes == write_profile_->version_bytes &&
@@ -1273,7 +1282,24 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
                 }
             }
             if (!w && (!image_present || (plan.unit_final[7] >> 4) != 0x0E))
-                w = "Legacy Assistant removal is not verified; replacement needs a nonempty active image";
+                w = "Active Assistant replacement needs a nonempty image";
+        }
+        if (!w && plan.retain_assistants) {
+            uint8_t final[9]; memcpy(final, r.unit_info + 1, sizeof final);
+            final[7] = uint8_t(0xF0 | (r.unit_info[8] & 0x0F));
+            if (!r.assistants.ended || r.assistants.count != 64 || plan.records != 64 ||
+                (r.unit_info[8] >> 4) < 0x0E || memcmp(plan.unit_final, final, sizeof final) ||
+                memcmp(plan.unit_marked, final, sizeof final) ||
+                plan.disable_assistants != ((r.unit_info[8] >> 4) == 0x0E) ||
+                (plan.disable_assistants && !plan.restart))
+                w = "Assistant disable plan does not match the complete current inverter read";
+            for (int i = 0; !w && i < plan.records; ++i) {
+                if (r.assistants.len[i] > RECORD) { w = "Assistant disable snapshot has invalid records"; break; }
+                for (int k = 0; k < RECORD; ++k) {
+                    const uint8_t original = k < r.assistants.len[i] ? r.assistants.data[i][k] : 0xFF;
+                    if (plan.image[i * RECORD + k] != original) w = "Assistant disable must retain every stored program byte";
+                }
+            }
         }
     }
     if (why) *why = w ? w : "";
@@ -1291,11 +1317,13 @@ bool Requester::start_write(int64_t now, const WritePlan &plan, const char **why
     write_ = WriteJob();
     write_.active = true;
     write_.started = now;
-    write_.step = plan_.access.count ? W_AUTHORIZE : plan_.settings ? W_SETTINGS : W_MARK;
+    write_.step = plan_.access.count ? W_AUTHORIZE : plan_.settings ? W_SETTINGS :
+                  plan_.disable_assistants ? W_UNMARK : W_MARK;
     if (plan_.access.count)
         write_.authorization_deadline = now + (plan_.access.expires() - utc + 1) * 1000000;
     note("# write: %d setting%s%s; no polls or ESS writes meanwhile\n", plan_.settings, plan_.settings == 1 ? "" : "s",
-         plan_.assistants ? ", then the assistants and a reset" : "");
+         plan_.assistants ? ", then the assistants and a reset" :
+         plan_.disable_assistants ? ", then disable assistants while retaining their program, and a reset" : "");
     return true;
 }
 
@@ -1304,6 +1332,10 @@ bool Requester::write_job(int64_t now, Kind *kind) {
     if (!j.active || (j.wait_until != NONE && now < j.wait_until)) return false;
     if (plan_.access_only && j.step != W_AUTHORIZE) {
         write_end("credentials-only guard stopped a non-authorization step");
+        return false;
+    }
+    if (plan_.retain_assistants && (j.step == W_MARK || j.step == W_RECORDS)) {
+        write_end("disable-only guard stopped Assistant memory programming");
         return false;
     }
     switch (j.step) {
@@ -1348,6 +1380,7 @@ size_t Requester::write_payload(Kind kind, uint8_t id, uint8_t *payload) const {
     const WriteJob &j = write_;
     const WritePlan &p = plan_;
     if (p.access_only && kind != ACCESS_WRITE) return 0;
+    if (p.retain_assistants && kind == RECORD_WRITE) return 0;
     size_t n = 0;
     switch (kind) {
     case ACCESS_WRITE:
@@ -1490,7 +1523,7 @@ void Requester::write_advance() {
             return;
         }
         j.index = 0;
-        j.step = plan_.settings ? W_SETTINGS : W_MARK;
+        j.step = plan_.settings ? W_SETTINGS : plan_.disable_assistants ? W_UNMARK : W_MARK;
         note("# write: embedded authorization accepted; applying settings\n");
         return;
     case W_SETTINGS:
@@ -1502,7 +1535,7 @@ void Requester::write_advance() {
             write_end(nullptr);
             return;
         }
-        j.step = plan_.assistants ? W_MARK : W_RESET;
+        j.step = plan_.assistants ? W_MARK : plan_.disable_assistants ? W_UNMARK : W_RESET;
         j.index = 0;
         return;
     case W_MARK:
@@ -1526,7 +1559,8 @@ void Requester::write_advance() {
     case W_UNMARK:
         j.step = W_RESET;
         j.index = 0;
-        note("# write: %d assistant records written, assistant flag on; resetting the Multi\n", j.records_written);
+        if (plan_.disable_assistants) note("# write: assistants disabled, stored program retained; resetting the Multi\n");
+        else note("# write: %d assistant records written, assistant flag on; resetting the Multi\n", j.records_written);
         return;
     case W_RESET:
         if (++j.index < 2) {
@@ -1570,7 +1604,8 @@ void Requester::write_end(const char *problem) {
         note("# write: stopped: %s\n", problem);
     } else {
         note("# write: done in %.1f s: %d setting%s%s%s%s\n", (j.finished - j.started) / 1e6, j.settings_written,
-             j.settings_written == 1 ? "" : "s", plan_.assistants ? ", the assistants and a reset" : plan_.restart ? ", and a reset" : "",
+             j.settings_written == 1 ? "" : "s", plan_.assistants ? ", the assistants and a reset" :
+             plan_.disable_assistants ? ", assistants disabled with stored program retained, and a reset" : plan_.restart ? ", and a reset" : "",
              j.startup[0] ? "; " : "", j.startup);
     }
 }

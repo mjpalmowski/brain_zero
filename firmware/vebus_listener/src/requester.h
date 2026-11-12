@@ -262,6 +262,8 @@ class Requester {
         uint8_t setting_id[SETTINGS] = {};
         uint16_t setting_value[SETTINGS] = {};
         bool assistants = false;                  // write the records and reset
+        bool disable_assistants = false;          // legacy: write F0 and restart, without programming records
+        bool retain_assistants = false;           // verify image[] stays unchanged, including scalar-only writes
         uint8_t unit_id[4] = {};
         uint8_t unit_marked[9] = {}, unit_final[9] = {};  // 21 <ID> 04's bytes: flag f0, then the file's
         int records = 0;                          // assistant records (44 on this Multi)
@@ -367,7 +369,8 @@ class Requester {
     void write_reply(const uint8_t *p, size_t k);
     void write_advance();
     void write_end(const char *problem);  // done, or failed with `problem`
-    bool write_marked() const { return write_.active && !write_.maintenance && plan_.assistants && write_.step > W_MARK; }
+    bool write_marked() const { return write_.active && !write_.maintenance &&
+        ((plan_.assistants && write_.step > W_MARK) || (plan_.disable_assistants && write_.step >= W_RESET)); }
     size_t write_payload(Kind kind, uint8_t id, uint8_t *payload) const;
 
     // test runs

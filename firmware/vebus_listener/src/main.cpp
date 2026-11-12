@@ -1158,7 +1158,7 @@ void listener_upload(web::UploadView &v) {
                 v.from[i] = r.s[p.setting_id[i]].value;
                 v.to[i] = p.setting_value[i];
             }
-            v.assistants = c->ok && p.assistants;
+            v.assistants = c->ok && (p.assistants || p.disable_assistants);
             v.protected_changes = p.required_access != 0;
             v.restart_required = p.restart;
             v.removes_assistants = c->removes_assistants;

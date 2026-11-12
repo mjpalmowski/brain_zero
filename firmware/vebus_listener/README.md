@@ -18,11 +18,12 @@ Settings downloads support the verified legacy `2628459` identity using the
 older schema 2 / unit 2 RVSC format. Grid metadata is omitted by that format;
 timeouts on other identities still fail. The verified eight-byte identity also
 supports guarded settings uploads, ESS after live Assistant discovery, and
-nonempty Assistant installation/replacement with the verified 4 KiB memory area.
-Ten-byte legacy exports remain read-only. Assistant removal/disable remains
-blocked: stock Venus disables its presence flag while retaining stored program
-bytes, which does not qualify a complete empty-image upload and readback.
-See the [implementation and isolated tests](../../docs/vebus_settings_downloads_2026-11-11.md#assistant-replacement-for-2628459-12-november-2026).
+Assistant installation/replacement and removal with the verified 4 KiB memory
+area. Legacy removal follows Venus: it disables the presence flag and retains
+all stored program bytes. A fresh complete readback verifies both conditions;
+an already-disabled bank needs no Assistant write. Ten-byte legacy exports
+remain read-only.
+See the [implementation and isolated tests](../../docs/vebus_settings_downloads_2026-11-11.md#assistant-removal-for-2628459-12-november-2026).
 
 Portable regressions in `test/legacy_backup_test.cpp` and `test/rvsc_test.cpp`
 use synthetic traffic and configurations, with no physical device transport.

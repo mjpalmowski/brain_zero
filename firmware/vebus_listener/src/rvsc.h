@@ -54,6 +54,8 @@ struct File {
 
 // Parses a bounded single-unit legacy 2/2 or modern 4/3 file. Legacy writes require
 // the separately qualified eight-byte live identity, including Assistant replacement.
+// A legacy F0 target disables Assistants while preserving the complete stored bank;
+// that inactive file payload is never programmed, and the original bank is verified.
 bool parse(const uint8_t *f, size_t n, File &out, char *why, size_t cap);
 
 // What writing a parsed file to the Multi takes, from a complete read of it made just before. The

@@ -7,8 +7,8 @@
 #include "external_battery.h"
 
 namespace diagnostics {
-constexpr const char *BUILD = "github-ota-20261112.3";
-constexpr uint32_t RELEASE_VERSION = 2026111203;
+constexpr const char *BUILD = "github-ota-20261112.4";
+constexpr uint32_t RELEASE_VERSION = 2026111204;
 struct Cache {
     int64_t now = 0, policy_at = -1;
     charger::View charger;

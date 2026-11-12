@@ -35,7 +35,7 @@ These profiles are for standalone 230 V units. Check the full seven-digit VE.Bus
 | MultiPlus-II 48/5000/70-50 | `2623563` | ESS verified on physical hardware. Stored inverter settings writes supported. |
 | MultiPlus-II 48/5000/70-50 | `2623556` | ESS tested in replay. |
 | MultiPlus-II 48/3000/35-32 | `2629556` | ESS and stored inverter settings writes tested in simulation. |
-| MultiPlus-II 48/3000/35-2x32 | `2628459` | ESS, stored settings writes and nonempty Assistant installation/replacement tested in simulation for the verified eight-byte identity. Assistant removal remains blocked. |
+| MultiPlus-II 48/3000/35-2x32 | `2628459` | ESS, stored settings writes and Assistant installation/replacement/removal tested in simulation for the verified eight-byte identity. Removal disables Assistants and retains their stored program. |
 | MultiPlus-II 24/3000/70-32 | `2611552` | ESS and stored inverter settings writes tested in simulation. |
 | MultiPlus-II 48/4k5/55-32 | `2601560` | ESS and stored inverter settings writes tested in simulation. |
 

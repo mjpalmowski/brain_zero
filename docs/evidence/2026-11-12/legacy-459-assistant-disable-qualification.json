@@ -1,0 +1,688 @@
+{
+  "format": "brain-zero-legacy-459-assistant-disable-qualification-v1",
+  "date": "2026-11-12",
+  "privacy": "No owner identifiers, credentials, saved settings, program contents or raw configuration files included.",
+  "qualified_identity": {
+    "firmware": 2628459,
+    "received_version_bytes": 8,
+    "version_signature": "6b1b2800080d0000",
+    "model_byte": 47,
+    "assistant_records": 64,
+    "stored_program_bytes": 4096
+  },
+  "enabled": {
+    "assistant_disable_and_retain": true,
+    "already_disabled_noop": true,
+    "scalar_changes_with_retained_program": true,
+    "native_empty_header_input": true,
+    "inactive_file_payload_never_programmed": true,
+    "assistant_memory_erase": false,
+    "unknown_ten_byte_or_short_live_bank": false
+  },
+  "native_venus": {
+    "version": "v3.64",
+    "cases": [
+      {
+        "case": "used-retained",
+        "passed": true,
+        "native_exit": 0,
+        "initially_active": true,
+        "input_program_kind": "zero-length program",
+        "input_program_bytes": 0,
+        "all_4096_bytes_retained": true,
+        "all_142_supported_settings_unchanged": true,
+        "fresh_identity_matches": true,
+        "assistant_programming_requests": 0,
+        "f0_unit_requests": 2,
+        "adapter_reset_requests": 1,
+        "grid_requests": 0,
+        "authorization_requests": 0,
+        "measured_isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      {
+        "case": "unused-retained",
+        "passed": true,
+        "native_exit": 0,
+        "initially_active": false,
+        "input_program_kind": "zero-length program",
+        "input_program_bytes": 0,
+        "all_4096_bytes_retained": true,
+        "all_142_supported_settings_unchanged": true,
+        "fresh_identity_matches": true,
+        "assistant_programming_requests": 0,
+        "f0_unit_requests": 1,
+        "adapter_reset_requests": 0,
+        "grid_requests": 0,
+        "authorization_requests": 0,
+        "measured_isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      {
+        "case": "unused-empty",
+        "passed": true,
+        "native_exit": 0,
+        "initially_active": false,
+        "input_program_kind": "zero-length program",
+        "input_program_bytes": 0,
+        "all_4096_bytes_retained": true,
+        "all_142_supported_settings_unchanged": true,
+        "fresh_identity_matches": true,
+        "assistant_programming_requests": 0,
+        "f0_unit_requests": 1,
+        "adapter_reset_requests": 0,
+        "grid_requests": 0,
+        "authorization_requests": 0,
+        "measured_isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      {
+        "case": "used-empty-header",
+        "passed": true,
+        "native_exit": 0,
+        "initially_active": true,
+        "input_program_kind": "VEConfigure empty header A7FE00005701",
+        "input_program_bytes": 6,
+        "all_4096_bytes_retained": true,
+        "all_142_supported_settings_unchanged": true,
+        "fresh_identity_matches": true,
+        "assistant_programming_requests": 0,
+        "f0_unit_requests": 2,
+        "adapter_reset_requests": 1,
+        "grid_requests": 0,
+        "authorization_requests": 0,
+        "measured_isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      },
+      {
+        "case": "used-opaque-unused",
+        "passed": true,
+        "native_exit": 0,
+        "initially_active": true,
+        "input_program_kind": "different opaque synthetic program",
+        "input_program_bytes": 128,
+        "all_4096_bytes_retained": true,
+        "all_142_supported_settings_unchanged": true,
+        "fresh_identity_matches": true,
+        "assistant_programming_requests": 0,
+        "f0_unit_requests": 2,
+        "adapter_reset_requests": 1,
+        "grid_requests": 0,
+        "authorization_requests": 0,
+        "measured_isolation": {
+          "uid": 65534,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        }
+      }
+    ],
+    "readback": "Independent fresh raw protocol sessions read the entire bank, unit, firmware, serial and all supported settings before and after upload.",
+    "independent_trace_audit_sha256": "6e754af61bc972879a1285483c80ac4f1deb8c85a403e0b3d67739dd7dac5f19",
+    "namespace_separation": "Enforced by unchanged run.sandbox; not retroactively added to each native case report.",
+    "additional_zero_write_probe": {
+      "passed": true,
+      "uid": 65534,
+      "private_mount_namespace": true,
+      "private_network_namespace": true,
+      "physical_serial_visible": false,
+      "system_dbus_visible": false,
+      "native_commands_or_writes": 0
+    },
+    "whole_upload_packet_sequence_parity_claimed": false,
+    "sequence_difference": "Native bulk-restores settings and sends redundant F0 frames; brain_zero writes changed settings, one necessary F0 frame and its existing direct reset/start-up sequence."
+  },
+  "production": {
+    "assistant_upload_scenarios": 31,
+    "pi_suite_count": 7,
+    "windows_suite_count": 9,
+    "pi_suites": {
+      "requester_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "1e5abcc461bb51dc5a21c72f6270780b1aaf7546a0c4cc00437f708553c0db22"
+      },
+      "unsupported_backup_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "415010ba92283439b465973f80482dc4607e7970979e5ec490fffdab513a983f"
+      },
+      "legacy_backup_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "1f130b3bd85e0964f2fbe8bd3369f98b06495e0d8d9f83853ec0fc00fe0f3a9d"
+      },
+      "rvsc_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "d0c4b7d26c0e13d490819bc7c6c565b387534ec4bfdb120c93f894cc2b6d9931"
+      },
+      "legacy_write_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "3936593b2d55d22fb7a70217dc536fbcec8f31022c0f63c1db72f627b2e8720b"
+      },
+      "legacy_assistant_upload_test": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "c4c9ba3db3039852e48e3c2f3e37f1ae18d8d2dd575a6cfc4524cf391ead435d"
+      },
+      "legacy_uploader_replay": {
+        "passed": true,
+        "isolation": {
+          "uid": 65534,
+          "private_mount_namespace": true,
+          "private_network_namespace": true,
+          "physical_serial_visible": false,
+          "system_dbus_visible": false
+        },
+        "executable_sha256": "696cd293583b36f3f0d59ed8bd785114336c216bf2ff93ac10decf75e2aa9ee6"
+      }
+    },
+    "windows_suites": {
+      "requester_test": {
+        "passed": true
+      },
+      "unsupported_backup_test": {
+        "passed": true
+      },
+      "legacy_backup_test": {
+        "passed": true
+      },
+      "rvsc_test": {
+        "passed": true
+      },
+      "legacy_write_test": {
+        "passed": true
+      },
+      "legacy_assistant_upload_test": {
+        "passed": true
+      },
+      "legacy_uploader_replay": {
+        "passed": true
+      },
+      "recorded-modern-rvsc": {
+        "passed": true
+      },
+      "recorded-modern-upload": {
+        "passed": true
+      }
+    },
+    "upload_cases": [
+      {
+        "case": "replace-complete-4k",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "add-assistant",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "record-rejected",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 3,
+        "unit_writes": 1,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "final-mark-ignored",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "record-no-ack",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 3,
+        "unit_writes": 1,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "last-byte-readback-mismatch",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "last-record-readback-timeout",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 63
+      },
+      {
+        "case": "ten-byte-identity-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "blank-tail-native-padding",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 79,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "modern-padding-unchanged",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 384,
+        "unit_writes": 2,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64
+      },
+      {
+        "case": "short-matching-file-and-live-bank-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 63
+      },
+      {
+        "case": "empty-live-bank-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 0
+      },
+      {
+        "case": "disable-retains-complete-4k",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "already-disabled-retained-noop",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "scalar-and-disable-retain",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 1
+      },
+      {
+        "case": "scalar-already-disabled-retain",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 1
+      },
+      {
+        "case": "native-empty-header-disables-retains",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "inactive-foreign-image-retained",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-flag-ignored",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-last-byte-mutated",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": false,
+        "scalar_writes": 0
+      },
+      {
+        "case": "scalar-f0-last-byte-mutated",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": false,
+        "scalar_writes": 1
+      },
+      {
+        "case": "scalar-f0-setting-ignored",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 1
+      },
+      {
+        "case": "disable-readback-timeout",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 63,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-unit-send-failed",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-ten-byte-identity-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-bank63-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 63,
+        "retained_image_matches": false,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-empty-bank-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 0,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-other-master-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-stale-snapshot-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disable-other-master-after-plan-refused",
+        "passed": true,
+        "expected_success": false,
+        "done": false,
+        "assistant_writes": 0,
+        "unit_writes": 0,
+        "reset_requests": 0,
+        "resets": 0,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      },
+      {
+        "case": "disabled-ess-cannot-rearm-retained-ram",
+        "passed": true,
+        "expected_success": true,
+        "done": true,
+        "assistant_writes": 0,
+        "unit_writes": 1,
+        "reset_requests": 2,
+        "resets": 1,
+        "fresh_read_records": 64,
+        "retained_image_matches": true,
+        "scalar_writes": 0
+      }
+    ],
+    "modern_removal_planning_unchanged": true,
+    "existing_nonempty_replacement_cases_passed": true,
+    "parser_truncation_checksum_and_capacity_negatives_passed": true,
+    "disabled_ess_cannot_rearm_retained_valid_ram": true,
+    "transport": "Production portable C++ using raw VE.Bus frames in memory; no physical adapter."
+  },
+  "guardrails": {
+    "fresh_complete_identity_and_descriptor_checks": true,
+    "independent_disable_plan_validation": true,
+    "zero_record_programming_state_or_payload_for_disable": true,
+    "full_original_bank_verified_after_any_actual_write": true,
+    "ignored_unit_flag_or_changed_retained_byte_is_failure": true,
+    "preexisting_plan_image_used_as_snapshot": true,
+    "no_additional_4096_byte_allocation": true,
+    "legacy_ess_requires_active_e0_presence": true,
+    "other_master_and_stale_plan_checks_retained": true,
+    "modern_serialization_unchanged": true,
+    "ui_recognizes_disable_as_applicable_assistant_change": true
+  },
+  "build": {
+    "name": "github-ota-20261112.4",
+    "release_version": 2026111204,
+    "bytes": 2811168,
+    "sha256": "d7f5aded3b5a4891a54b1590a0e660df0aab9b71e759108cc13a55fb77d0807a",
+    "static_ram_bytes": 110432,
+    "static_ram_percent": 33.7,
+    "runtime_ram_measured": false,
+    "flash_bytes": 2810797,
+    "published": false,
+    "installed": false,
+    "source_sha256": {
+      "requester.cpp": "3bfa27c770a26a4ddd1e1f7399fd53d998757379e54215b9161e493cd0ffc456",
+      "requester.h": "704b0da1b57d6c597d31d28ccb5237181dcd86459f4671b4c362dc27e3d08910",
+      "rvsc.cpp": "28aa9518d1d660e5359183390360dcec544500658ea42f750b1ada6d9e707c19",
+      "rvsc.h": "4ecfa257c19c75879bed3da8f494f6869dd529202deb75d1ebb2e2d37f3629b2",
+      "upload.cpp": "043e35311d23b8e261f8aa8bd6129040b927af91f022b184765cbf711e61117b",
+      "upload.h": "7d33bfa964653bf993809c1215c4661826350cab64414cbeb2900de98b18b192",
+      "main.cpp": "147d70d4055632d2b65db7817e993dd4230212166ff8e05cc3e7ec8a5d906201",
+      "diagnostics.h": "bc96ff23fa7bad5838b2b8919d7ea35e0b6e4c959e3d5af27cba116f38960a19"
+    }
+  },
+  "provenance": {
+    "genuine": "Observed legacy descriptors, access flags, eight stored version bytes and bank capacity.",
+    "synthetic": "All unit identities, saved values, program memory, authorization context and telemetry.",
+    "simulator_executes_assistant_programs": false,
+    "physical_459_version_reply_length_known": false
+  },
+  "real_inverter_contacted": false,
+  "remaining_hardware_validation": "Actual 459 unit reply length, program execution, disable/restart/recovery acceptance remain physical-unit evidence."
+}
