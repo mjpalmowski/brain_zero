@@ -1,0 +1,72 @@
+{
+  "format": "brain-zero-ota-readiness-reservation-v1",
+  "date": "2026-11-12",
+  "issue": "Routine automatic read-only charger refresh could cancel a firmware release download as inverter busy.",
+  "original_failure": {
+    "phase": "download",
+    "bytes_received": 54272,
+    "running_build": "github-ota-20261111.8",
+    "old_error_recorded_only_boolean": true,
+    "exact_original_failed_predicate_known": false,
+    "no_boot_or_inverter_configuration_change_observed": true
+  },
+  "readonly_runtime_observation": {
+    "samples": 155,
+    "not_ready_samples": 1,
+    "same_controller_boot": true,
+    "correlated_charger_state": "reading",
+    "charger_saving": false,
+    "observed_other_grid_mode_voltage_and_status_conditions_healthy": true,
+    "interpretation": "Confirms a routine-read readiness dip; does not identify the original download cancellation predicate.",
+    "agent_http_mutations": 0
+  },
+  "host_reproducer": {
+    "routine_watch_before_busy": false,
+    "routine_watch_after_busy": true,
+    "charger_saving": false,
+    "charger_stage": "reading",
+    "persistent_writes": 0,
+    "passed": true
+  },
+  "fix": {
+    "strict_check_and_reservation_under_same_state_lock": true,
+    "only_automatic_readonly_charger_refresh_deferred": true,
+    "reservation_held_until_finish_or_discard": true,
+    "all_error_paths_release_reservation": true,
+    "one_false_strict_sample_still_cancels": true,
+    "poll_ms": 100,
+    "final_staging_and_install_guards_retained": true,
+    "manual_upload_unchanged": true,
+    "first_failed_condition_persisted_as": "blocked_by"
+  },
+  "verification": {
+    "esp32_s3_build_passed": true,
+    "release_job_host_tests_passed": true,
+    "production_release_parser_host_tests_passed": true,
+    "periodic_refresh_boundary_case_passed": true,
+    "strict_entry_and_ownership_cases_passed": true,
+    "network_write_finish_task_launch_failures_release_reservation": true,
+    "real_unsafe_before_midstream_and_after_final_chunk_cancels": true,
+    "readiness_recovery_does_not_unlatch_cancellation": true,
+    "first_reason_survives_later_reason_and_recovery": true,
+    "hardware_download_of_fixed_running_code_tested": false
+  },
+  "build": {
+    "name": "github-ota-20261112.5",
+    "release_version": 2026111205,
+    "bytes": 2812624,
+    "sha256": "25889f7e4df7964eaa4b6988b682d62050d7e7d8bb1082eaf1b46c36481dbd95",
+    "static_ram_bytes": 110464,
+    "static_ram_percent": 33.7,
+    "runtime_ram_measured": false,
+    "sources_sha256": {
+      "diagnostics.h": "8de04397a073ff932865af9217977fb9eabfbe443098d14ba56b3df99fc02ebd",
+      "main.cpp": "bd7ab8d6f5b42199995c71cfe8ddec10cefe2c92e55ad8114f0fb68374b8e4dc",
+      "web.cpp": "9bc430563b05b5fdd2e3c5250e18c5b47e907593fd7022e9d70881b7dedb482c",
+      "firmware_release_job.cpp": "e63d82971073636e7c71b8dd106f88c425e07270624fbf4eed5ed09c7d7a3cfd",
+      "firmware_release_job.h": "919ec986e7bcfe57eb42a560538570f4b9a1499f877a2d4eb0e6fd0c029ca95f"
+    },
+    "job_test_sha256": "a2ff5ac765bf9b5e51ac2e1d5c2ebc1f702240b82a8c0cfa99925a05465178aa"
+  },
+  "privacy": "No network credentials, device identifiers, nonce tokens, saved schedules or owner configuration files included."
+}

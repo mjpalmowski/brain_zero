@@ -72,6 +72,9 @@ void listener_system(uint32_t &boot_id, bool &pending, const char *&message);
 bool listener_restart(char *why, size_t cap);
 bool listener_wifi_restart();
 bool listener_firmware_allowed();
+const char *listener_firmware_problem();
+const char *listener_firmware_download_begin();
+void listener_firmware_download_end();
 const char *listener_firmware_restart(firmware_ota::Action action);
 size_t listener_ac_input_json(char *out,size_t cap);
 bool listener_ac_input_request(bool ignore,uint32_t base,char *why,size_t cap);
@@ -907,7 +910,8 @@ void firmware_release_reply(int code, const char *error = nullptr) {
           s.phase, (unsigned long)s.build.size, unsigned(s.received), tf(s.build.preview),
           "public");
     o.str(s.build.tag);
-    o.add(",\"can_stage\":%s,\"message\":", tf(s.can_stage)); o.str(s.message); o.add("}");
+    o.add(",\"can_stage\":%s,\"blocked_by\":", tf(s.can_stage)); o.str(s.blocked_by);
+    o.add(",\"message\":"); o.str(s.message); o.add("}");
     server.sendHeader("Cache-Control", "no-store");
     server.send(code, "application/json", json);
 }
@@ -927,8 +931,8 @@ void firmware_release_check() {
 void firmware_release_stage() {
     const char *why = firmware_access();
     if (!why && firmware_release_job::busy()) why = OTA_BUSY;
-    if (!why && !listener_firmware_allowed()) why = "Connect mains and wait for inverter operations to finish.";
-    if (!why) why = firmware_release_job::stage(server.arg("tag").c_str());
+    if (!why) why = firmware_release_job::stage(server.arg("tag").c_str(),
+                                               listener_firmware_download_begin, listener_firmware_download_end);
     firmware_release_reply(why ? 409 : 202, why);
 }
 
@@ -1799,7 +1803,7 @@ void begin() {
 }
 
 void loop() {
-    firmware_release_job::poll(listener_firmware_allowed);
+    firmware_release_job::poll(listener_firmware_problem);
     if (!enabled) return;
     const uint32_t now = millis();
     if (!restart_shutdown) {

@@ -64,6 +64,12 @@ block the backup even when the inverter is not qualified for writes.
 
 The controller checks GitHub Releases for the version and checksum, then downloads the matching image over HTTPS from brain-zero.com. It verifies the SHA-256 before staging the image in the inactive slot. The update preserves saved settings and requires internet access, a synced clock, and a compatible ESP32-S3 partition layout.
 
+Release downloads defer the automatic read-only charger refresh until staging
+finishes or fails. This prevents that refresh from being mistaken for a busy
+inverter during download. Readiness is still checked every 100 ms, before
+finishing staging and again before installation. A cancellation records its
+first readiness condition as `blocked_by` in `/api/firmware/release`.
+
 If the page has only **Upload a build**, first download the Rev C application image and select **Upload and verify** once. This also works for locally built images. [GitHub Releases](https://github.com/mjpalmowski/brain_zero/releases)
 
 For a new public OTA release, set `RELEASE_VERSION` to the build date times 100 plus its sequence number. Use the matching `firmware-YYYYMMDD.N` GitHub tag. Publish the same `firmware.bin` under `/firmware/<tag>/firmware.bin` on brain-zero.com before publishing the GitHub release. Attach only that OTA application image to the release; include its checksum and links to build instructions, source and notices in the release description. Other boards use builds compiled from the repository.

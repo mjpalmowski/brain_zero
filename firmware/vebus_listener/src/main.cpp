@@ -123,6 +123,9 @@ bool system_restart_wifi = false;
 bool system_restart_firmware = false;
 bool system_restart_shutdown = false;
 const char *system_restart_message = "Ready";
+// Protected by state_lock, including its bus-task read. This reservation only
+// defers the automatic read-only charger refresh during release downloads.
+bool firmware_download_reserved = false;
 ha::Settings mqtt_settings;  // as saved in flash; changed on the MQTT page (listener_mqtt_set)
 bool ess_dirty = false;      // ESS settings changed by Home Assistant and not yet saved
 uint32_t ess_saved_ms = 0;
@@ -564,7 +567,7 @@ void bus_task(void *) {
         }
         requester.tick(now);
         if (uploader) uploader->step(requester, now, (int64_t)time(nullptr));
-        requester.watch_charger(now);
+        if (!firmware_download_reserved) requester.watch_charger(now);
         if (decoder.set_ess_register(requester.ess_setpoint_ram())) decide_now = true;
         bool any = take_report();
         xSemaphoreGive(state_lock);
@@ -860,18 +863,58 @@ bool listener_wifi_restart() {
     return true;
 }
 
-static bool firmware_safe_locked(int64_t now) {
+static const char *firmware_problem_locked(int64_t now) {
     // A bench S3 may be updated before it has ever seen an inverter.
     const auto &s = decoder.state();
     const bool bench = s.last_multi < 0 && s.last_master < 0 && !requester.settings_busy() && !requester.on();
-    return bench || wifi_restart_safe_locked(now);
+    if (bench) return nullptr;
+    // These are the same strict conditions used before the reservation existed.
+    // Return a stable literal from this one locked snapshot, rather than trying
+    // to reconstruct the reason after a transient condition has recovered.
+    if (requester.settings_busy()) return "An inverter settings, charger or control operation is running.";
+    if (requester.on()) return "An inverter test is running.";
+    if (ac_input.requested) return "AC input disconnection is requested.";
+    const int ignored = requester.ac_input_wire().actual(now);
+    if (ignored != 0) return ignored > 0 ? "AC input is disconnected." : "AC input status is stale or unavailable.";
+    if (pv_disable.requested) return "PV disable is requested.";
+    const auto &pv_wire = requester.pv_wire();
+    if (pv_wire.supported && pv_wire.actual(now) != 0) return "PV operation is disabled or its status is stale.";
+    if (ac_input.grid != 1) return "Inverter grid acceptance is not confirmed.";
+    if (!warnings::fresh(ac_input.latest.now, now, 2000000)) return "The inverter control sample is stale.";
+    if (!s.bus_fresh(now)) return "VE.Bus telemetry is stale.";
+    if (!fresh(s.mains_v, now, POWER_FRESH_US)) return "AC input voltage is stale or unavailable.";
+    if (!(s.mains_v.v > 100)) return "AC input voltage is too low or invalid.";
+    if (s.actual_mode != 7) return "The inverter is not in On mode.";
+    if (!warnings::fresh(s.actual_mode_t, now)) return "Inverter operating mode is stale.";
+    return nullptr;
 }
 
-bool listener_firmware_allowed() {
+static bool firmware_safe_locked(int64_t now) { return firmware_problem_locked(now) == nullptr; }
+
+const char *listener_firmware_problem() {
     xSemaphoreTake(state_lock, portMAX_DELAY);
-    const bool safe = firmware_safe_locked(esp_timer_get_time());
+    const char *problem = system_restart_at >= 0 ? "A controller restart is pending." :
+                          firmware_problem_locked(esp_timer_get_time());
     xSemaphoreGive(state_lock);
-    return system_restart_at < 0 && safe;
+    return problem;
+}
+
+bool listener_firmware_allowed() { return listener_firmware_problem() == nullptr; }
+
+const char *listener_firmware_download_begin() {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    const char *problem = firmware_download_reserved ? "A firmware download is already reserved." :
+                          system_restart_at >= 0 ? "A controller restart is pending." :
+                          firmware_problem_locked(esp_timer_get_time());
+    if (!problem) firmware_download_reserved = true;
+    xSemaphoreGive(state_lock);
+    return problem;
+}
+
+void listener_firmware_download_end() {
+    xSemaphoreTake(state_lock, portMAX_DELAY);
+    firmware_download_reserved = false;
+    xSemaphoreGive(state_lock);
 }
 
 const char *listener_firmware_restart(firmware_ota::Action action) {
