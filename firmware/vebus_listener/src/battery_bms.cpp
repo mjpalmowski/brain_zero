@@ -188,7 +188,10 @@ bool JkFeed::decode_status(int64_t now) {
     next.min_cell_v = 100;
     next.max_cell_v = 0;
     const uint32_t enabled = u32(frame_ + 54);
-    bool cells_ok = enabled && !(enabled & 0xff000000u);
+    // This qualified series-pack profile populates consecutive cells1..N.
+    // Reject holes instead of publishing a compact cell_count with missing or
+    // misnumbered cell values; other layouts need their own qualification.
+    bool cells_ok = enabled && !(enabled & 0xff000000u) && !(enabled & (enabled + 1u));
     float sum = 0;
     for (size_t i = 0; i < MAX_CELLS; ++i) {
         const float value = float(u16(frame_ + 6 + 2 * i)) * 0.001f;

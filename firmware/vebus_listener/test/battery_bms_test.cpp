@@ -169,6 +169,8 @@ int main() {
         assert(!f.accept(s.data(), s.size(), T + 3)); assert(f.view(T + 3).valid == IDENTITY);
         s = status(3); put32(s.data() + 118, 12000); checksum(s);
         assert(!f.accept(s.data(), s.size(), T + 4));
+        s = status(3); put32(s.data() + 54, 0xfffdu); put16(s.data() + 8, 0); put32(s.data() + 118, 49210); checksum(s);
+        assert(!f.accept(s.data(), s.size(), T + 4)); // unsupported sparse series-cell layout
         s = status(3); assert(f.accept(s.data(), s.size(), T + 5));
         const auto unsupported = identity("11.XW", "11.26"); assert(f.accept(unsupported.data(), unsupported.size(), T + 6));
         assert(!f.profile_ready()); assert(f.view(T + 6).valid == IDENTITY);
