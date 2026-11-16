@@ -112,7 +112,9 @@
     "Bench test mode",
     "Bluetooth addresses must use AA:BB:CC:DD:EE:FF",
     "Bluetooth batteries and charge limits",
+    "Bluetooth battery monitoring is paused for firmware update.",
     "Bluetooth connections",
+    "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.",
     "Boost factor must be 0.25 to 3.5 in 0.0625 steps",
     "Both packs are reporting",
     "Broker",
@@ -125,6 +127,7 @@
     "By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.",
     "Bypass",
     "Cached readings, control decisions and connection health.",
+    "Cancel",
     "Cancel before writing",
     "Cancelled: S3 bus control is unavailable",
     "Cancelled: another master is on the VE.Bus",
@@ -353,11 +356,14 @@
     "Fault report support is unavailable in this firmware.",
     "Feed in DC-coupled PV overvoltage",
     "Feedback",
+    "Finish the current firmware update first.",
     "Firmware build",
     "Firmware confirmed.",
     "Firmware download progress",
+    "Firmware operation cancelled.",
     "Firmware restart queued",
     "Firmware update",
+    "Firmware update mode timed out.",
     "Firmware update · brain_zero",
     "Firmware upload is incomplete.",
     "Flag writes / acknowledgements",
@@ -683,6 +689,7 @@
     "PowerAssist settings",
     "PowerAssist settings read from the inverter",
     "PowerAssist settings unavailable",
+    "Preparing firmware update.",
     "Preparing the submission…",
     "Preview release {tag} · {bytes} bytes.",
     "Previous Wi-Fi network restored.",
@@ -789,6 +796,7 @@
     "Restart VE.Bus system",
     "Restart brain_zero controller",
     "Restart brain_zero? Local control will pause briefly.",
+    "Restart cancelled: Bluetooth connections did not close.",
     "Restart outcome unknown. Refresh before retrying.",
     "Restart pending",
     "Restart queued after repeated Wi-Fi failures",
@@ -2820,7 +2828,15 @@
       "Within battery charge limits": "Binne batterylaailimiete",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nul onderbreek die aangevraagde laai. Vars SOC, seldata, laaitoestemming en beskermingstatus van albei batterypakke word vereis; ontbrekende data onderbreek laai terwyl hierdie funksie geaktiveer is. Stel al drie drempels in voordat jy dit aktiveer.",
       "Zero uses the capacity reported by the JK BMS.": "Nul gebruik die kapasiteit wat die JK BMS rapporteer.",
-      "Battery charge limit reached": "Batterylaailimiet bereik"
+      "Battery charge limit reached": "Batterylaailimiet bereik",
+      "Preparing firmware update.": "Berei firmware-opdatering voor.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Bluetooth-batterymonitering is vir die firmware-opdatering onderbreek.",
+      "Firmware operation cancelled.": "Firmwarebewerking gekanselleer.",
+      "Firmware update mode timed out.": "Firmware-opdateringsmodus het uitgetel.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-monitering word tydens opdateringkontroles en aflaaie onderbreek. Die beheerder herbegin eers en verbind weer met die batterye wanneer dit klaar is.",
+      "Finish the current firmware update first.": "Voltooi eers die huidige firmware-opdatering.",
+      "Cancel": "Kanselleer",
+      "Restart cancelled: Bluetooth connections did not close.": "Herbegin gekanselleer: Bluetooth-verbindings het nie gesluit nie."
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -4231,7 +4247,15 @@
       "Within battery charge limits": "V mezích limitů nabíjení baterií",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nula pozastaví požadované nabíjení. Jsou vyžadovány aktuální údaje o SOC, článcích, povolení nabíjení a stavu ochran obou baterií; chybějící údaje při zapnuté funkci nabíjení pozastaví. Před povolením nastavte všechny tři prahy.",
       "Zero uses the capacity reported by the JK BMS.": "Nula použije kapacitu hlášenou systémem JK BMS.",
-      "Battery charge limit reached": "Dosažen limit nabíjení baterie"
+      "Battery charge limit reached": "Dosažen limit nabíjení baterie",
+      "Preparing firmware update.": "Příprava aktualizace firmwaru.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Monitorování baterií přes Bluetooth je po dobu aktualizace firmwaru pozastaveno.",
+      "Firmware operation cancelled.": "Operace s firmwarem byla zrušena.",
+      "Firmware update mode timed out.": "Vypršel časový limit režimu aktualizace firmwaru.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Monitorování přes Bluetooth se při kontrole a stahování aktualizací pozastaví. Regulátor se nejprve restartuje a po dokončení se znovu připojí k bateriím.",
+      "Finish the current firmware update first.": "Nejprve dokončete probíhající aktualizaci firmwaru.",
+      "Cancel": "Zrušit",
+      "Restart cancelled: Bluetooth connections did not close.": "Restart byl zrušen: spojení Bluetooth nebyla ukončena."
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5642,7 +5666,15 @@
       "Within battery charge limits": "Inden for batteriets ladegrænser",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nul sætter den anmodede opladning på pause. Der kræves aktuelle data om SOC, celler, ladetilladelse og beskyttelsesstatus fra begge batterier; manglende data sætter opladningen på pause, mens funktionen er aktiveret. Indstil alle tre tærskler før aktivering.",
       "Zero uses the capacity reported by the JK BMS.": "Nul bruger den kapacitet, som JK BMS rapporterer.",
-      "Battery charge limit reached": "Batteriets ladegrænse er nået"
+      "Battery charge limit reached": "Batteriets ladegrænse er nået",
+      "Preparing firmware update.": "Forbereder firmware-opdatering.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Batteriovervågning via Bluetooth er sat på pause under firmware-opdateringen.",
+      "Firmware operation cancelled.": "Firmwarehandlingen er annulleret.",
+      "Firmware update mode timed out.": "Firmware-opdateringstilstandens tidsgrænse er overskredet.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-overvågning sættes på pause under søgning efter og download af opdateringer. Controlleren genstarter først og forbinder til batterierne igen, når handlingen er afsluttet.",
+      "Finish the current firmware update first.": "Afslut først den igangværende firmware-opdatering.",
+      "Cancel": "Annuller",
+      "Restart cancelled: Bluetooth connections did not close.": "Genstart annulleret: Bluetooth-forbindelserne blev ikke afbrudt."
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -7053,7 +7085,15 @@
       "Within battery charge limits": "Innerhalb der Batterieladegrenzen",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Null pausiert den angeforderten Ladevorgang. Aktuelle Daten zu SOC, Zellen, Ladefreigabe und Schutzstatus beider Batterien sind erforderlich; fehlen Daten bei aktivierter Funktion, wird das Laden pausiert. Vor dem Aktivieren alle drei Schwellenwerte einstellen.",
       "Zero uses the capacity reported by the JK BMS.": "Null verwendet die vom JK BMS gemeldete Kapazität.",
-      "Battery charge limit reached": "Ladegrenze der Batterie erreicht"
+      "Battery charge limit reached": "Ladegrenze der Batterie erreicht",
+      "Preparing firmware update.": "Firmware-Update wird vorbereitet.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Die Batterieüberwachung über Bluetooth ist während des Firmware-Updates pausiert.",
+      "Firmware operation cancelled.": "Firmware-Vorgang abgebrochen.",
+      "Firmware update mode timed out.": "Zeitlimit für den Firmware-Update-Modus überschritten.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Die Bluetooth-Überwachung pausiert während der Suche nach Updates und des Downloads. Der Controller startet zunächst neu und verbindet sich nach Abschluss wieder mit den Batterien.",
+      "Finish the current firmware update first.": "Schließen Sie zuerst das laufende Firmware-Update ab.",
+      "Cancel": "Abbrechen",
+      "Restart cancelled: Bluetooth connections did not close.": "Neustart abgebrochen: Bluetooth-Verbindungen wurden nicht getrennt."
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -8464,7 +8504,15 @@
       "Within battery charge limits": "Dentro de los límites de carga de batería",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Cero pausa la carga solicitada. Se necesitan datos recientes de estado de carga, celdas, permiso de carga y estado de protección de ambos bancos; si faltan datos, la carga se pausa mientras esta función esté habilitada. Ajuste los tres umbrales antes de habilitarla.",
       "Zero uses the capacity reported by the JK BMS.": "Cero utiliza la capacidad indicada por el BMS JK.",
-      "Battery charge limit reached": "Se ha alcanzado el límite de carga de la batería"
+      "Battery charge limit reached": "Se ha alcanzado el límite de carga de la batería",
+      "Preparing firmware update.": "Preparando la actualización de firmware.",
+      "Bluetooth battery monitoring is paused for firmware update.": "La monitorización de las baterías por Bluetooth está en pausa durante la actualización de firmware.",
+      "Firmware operation cancelled.": "Operación de firmware cancelada.",
+      "Firmware update mode timed out.": "Se ha agotado el tiempo del modo de actualización de firmware.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "La monitorización por Bluetooth se pausa mientras se buscan y descargan actualizaciones. El controlador se reinicia primero y vuelve a conectarse a las baterías al terminar.",
+      "Finish the current firmware update first.": "Finalice primero la actualización de firmware en curso.",
+      "Cancel": "Cancelar",
+      "Restart cancelled: Bluetooth connections did not close.": "Reinicio cancelado: las conexiones Bluetooth no se cerraron."
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9875,7 +9923,15 @@
       "Within battery charge limits": "Dans les limites de charge de batterie",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zéro suspend la charge demandée. Des données récentes de SOC, de cellules, d’autorisation de charge et d’état des protections des deux parcs sont nécessaires ; l’absence de données suspend la charge lorsque cette fonction est activée. Réglez les trois seuils avant de l’activer.",
       "Zero uses the capacity reported by the JK BMS.": "Zéro utilise la capacité indiquée par le BMS JK.",
-      "Battery charge limit reached": "Limite de charge de la batterie atteinte"
+      "Battery charge limit reached": "Limite de charge de la batterie atteinte",
+      "Preparing firmware update.": "Préparation de la mise à jour du micrologiciel.",
+      "Bluetooth battery monitoring is paused for firmware update.": "La surveillance des batteries par Bluetooth est suspendue pendant la mise à jour du micrologiciel.",
+      "Firmware operation cancelled.": "Opération sur le micrologiciel annulée.",
+      "Firmware update mode timed out.": "Le délai du mode de mise à jour du micrologiciel est dépassé.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "La surveillance par Bluetooth est suspendue pendant la recherche et le téléchargement des mises à jour. Le contrôleur redémarre d’abord et se reconnecte aux batteries une fois l’opération terminée.",
+      "Finish the current firmware update first.": "Terminez d’abord la mise à jour du micrologiciel en cours.",
+      "Cancel": "Annuler",
+      "Restart cancelled: Bluetooth connections did not close.": "Redémarrage annulé : les connexions Bluetooth n’ont pas été fermées."
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -11286,7 +11342,15 @@
       "Within battery charge limits": "Entro i limiti di carica della batteria",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero sospende la carica richiesta. Sono necessari dati aggiornati di SOC, celle, autorizzazione alla carica e stato delle protezioni di entrambi i banchi; la mancanza di dati sospende la carica mentre questa funzione è abilitata. Impostare tutte e tre le soglie prima di abilitarla.",
       "Zero uses the capacity reported by the JK BMS.": "Zero utilizza la capacità indicata dal BMS JK.",
-      "Battery charge limit reached": "Raggiunto il limite di carica della batteria"
+      "Battery charge limit reached": "Raggiunto il limite di carica della batteria",
+      "Preparing firmware update.": "Preparazione dell’aggiornamento firmware.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Il monitoraggio delle batterie tramite Bluetooth è sospeso durante l’aggiornamento firmware.",
+      "Firmware operation cancelled.": "Operazione firmware annullata.",
+      "Firmware update mode timed out.": "Tempo scaduto per la modalità di aggiornamento firmware.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Il monitoraggio tramite Bluetooth viene sospeso durante la ricerca e il download degli aggiornamenti. Il controller si riavvia prima e si ricollega alle batterie al termine.",
+      "Finish the current firmware update first.": "Completare prima l’aggiornamento firmware in corso.",
+      "Cancel": "Annulla",
+      "Restart cancelled: Bluetooth connections did not close.": "Riavvio annullato: le connessioni Bluetooth non sono state chiuse."
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -12697,7 +12761,15 @@
       "Within battery charge limits": "バッテリーの充電制限内です",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "ゼロを指定すると充電要求を一時停止します。両方のパックのSOC、セル、充電許可、保護状態の最新データが必要です。この機能が有効な間にデータが不足すると、充電を一時停止します。有効にする前に3つすべてのしきい値を設定してください。",
       "Zero uses the capacity reported by the JK BMS.": "ゼロを指定すると、JK BMSが通知する容量を使用します。",
-      "Battery charge limit reached": "バッテリーの充電上限に達しました"
+      "Battery charge limit reached": "バッテリーの充電上限に達しました",
+      "Preparing firmware update.": "ファームウェア更新を準備しています。",
+      "Bluetooth battery monitoring is paused for firmware update.": "ファームウェア更新のため、Bluetooth経由のバッテリー監視を一時停止しています。",
+      "Firmware operation cancelled.": "ファームウェア操作をキャンセルしました。",
+      "Firmware update mode timed out.": "ファームウェア更新モードがタイムアウトしました。",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "更新の確認とダウンロード中はBluetooth監視が一時停止します。最初にコントローラーが再起動し、完了後にバッテリーへ再接続します。",
+      "Finish the current firmware update first.": "先に現在のファームウェア更新を完了してください。",
+      "Cancel": "キャンセル",
+      "Restart cancelled: Bluetooth connections did not close.": "再起動をキャンセルしました。Bluetooth接続が切断されませんでした。"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -14108,7 +14180,15 @@
       "Within battery charge limits": "Binnen de laadlimieten van de accu's",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nul pauzeert het gevraagde laden. Actuele gegevens over SOC, cellen, toestemming voor laden en beveiligingsstatus van beide accu's zijn vereist; ontbrekende gegevens pauzeren het laden zolang deze functie is ingeschakeld. Stel alle drie de drempels in voordat u deze inschakelt.",
       "Zero uses the capacity reported by the JK BMS.": "Nul gebruikt de capaciteit die door het JK BMS wordt gemeld.",
-      "Battery charge limit reached": "Laadlimiet van de accu bereikt"
+      "Battery charge limit reached": "Laadlimiet van de accu bereikt",
+      "Preparing firmware update.": "Firmware-update voorbereiden.",
+      "Bluetooth battery monitoring is paused for firmware update.": "De batterijbewaking via Bluetooth is gepauzeerd voor de firmware-update.",
+      "Firmware operation cancelled.": "Firmwarebewerking geannuleerd.",
+      "Firmware update mode timed out.": "De tijdslimiet voor de firmware-updatemodus is verstreken.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-bewaking wordt gepauzeerd tijdens het zoeken naar en downloaden van updates. De controller start eerst opnieuw op en maakt na afloop weer verbinding met de batterijen.",
+      "Finish the current firmware update first.": "Voltooi eerst de huidige firmware-update.",
+      "Cancel": "Annuleren",
+      "Restart cancelled: Bluetooth connections did not close.": "Herstart geannuleerd: de Bluetooth-verbindingen zijn niet gesloten."
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -15519,7 +15599,15 @@
       "Within battery charge limits": "W granicach limitów ładowania akumulatorów",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero wstrzymuje żądane ładowanie. Wymagane są aktualne dane SOC, ogniw, zezwolenia na ładowanie i stanu zabezpieczeń obu akumulatorów; brak danych wstrzymuje ładowanie, gdy funkcja jest włączona. Przed włączeniem ustaw wszystkie trzy progi.",
       "Zero uses the capacity reported by the JK BMS.": "Zero oznacza użycie pojemności zgłaszanej przez JK BMS.",
-      "Battery charge limit reached": "Osiągnięto limit ładowania akumulatora"
+      "Battery charge limit reached": "Osiągnięto limit ładowania akumulatora",
+      "Preparing firmware update.": "Przygotowywanie aktualizacji oprogramowania.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Monitorowanie akumulatorów przez Bluetooth zostało wstrzymane na czas aktualizacji oprogramowania.",
+      "Firmware operation cancelled.": "Anulowano operację aktualizacji oprogramowania.",
+      "Firmware update mode timed out.": "Upłynął limit czasu trybu aktualizacji oprogramowania.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Monitorowanie przez Bluetooth jest wstrzymywane podczas sprawdzania i pobierania aktualizacji. Najpierw sterownik uruchamia się ponownie, a po zakończeniu ponownie łączy się z akumulatorami.",
+      "Finish the current firmware update first.": "Najpierw zakończ bieżącą aktualizację oprogramowania.",
+      "Cancel": "Anuluj",
+      "Restart cancelled: Bluetooth connections did not close.": "Anulowano ponowne uruchomienie: połączenia Bluetooth nie zostały zamknięte."
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -16930,7 +17018,15 @@
       "Within battery charge limits": "Dentro dos limites de carga da bateria",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero coloca o carregamento pedido em pausa. São necessários dados recentes do estado de carga, células, autorização de carga e estado das proteções de ambos os bancos; a falta de dados coloca o carregamento em pausa enquanto esta função estiver ativa. Defina os três limiares antes de a ativar.",
       "Zero uses the capacity reported by the JK BMS.": "Zero utiliza a capacidade indicada pelo BMS JK.",
-      "Battery charge limit reached": "Limite de carga da bateria atingido"
+      "Battery charge limit reached": "Limite de carga da bateria atingido",
+      "Preparing firmware update.": "A preparar a atualização de firmware.",
+      "Bluetooth battery monitoring is paused for firmware update.": "A monitorização das baterias por Bluetooth está em pausa durante a atualização de firmware.",
+      "Firmware operation cancelled.": "Operação de firmware cancelada.",
+      "Firmware update mode timed out.": "O modo de atualização de firmware excedeu o tempo limite.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "A monitorização por Bluetooth é suspensa durante a procura e a transferência de atualizações. O controlador reinicia primeiro e volta a ligar-se às baterias quando terminar.",
+      "Finish the current firmware update first.": "Conclua primeiro a atualização de firmware em curso.",
+      "Cancel": "Cancelar",
+      "Restart cancelled: Bluetooth connections did not close.": "Reinício cancelado: as ligações Bluetooth não foram encerradas."
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -18341,7 +18437,15 @@
       "Within battery charge limits": "В пределах ограничений зарядки батарей",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Ноль приостанавливает запрошенную зарядку. Необходимы актуальные данные о SOC, ячейках, разрешении зарядки и состоянии защиты обеих батарей; при отсутствии данных зарядка приостанавливается, пока эта функция включена. Перед включением задайте все три порога.",
       "Zero uses the capacity reported by the JK BMS.": "При нуле используется ёмкость, передаваемая JK BMS.",
-      "Battery charge limit reached": "Достигнут предел заряда батареи"
+      "Battery charge limit reached": "Достигнут предел заряда батареи",
+      "Preparing firmware update.": "Подготовка обновления прошивки.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Мониторинг аккумуляторов по Bluetooth приостановлен на время обновления прошивки.",
+      "Firmware operation cancelled.": "Операция с прошивкой отменена.",
+      "Firmware update mode timed out.": "Время ожидания в режиме обновления прошивки истекло.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Мониторинг по Bluetooth приостанавливается на время проверки и загрузки обновлений. Сначала контроллер перезапускается, а после завершения снова подключается к аккумуляторам.",
+      "Finish the current firmware update first.": "Сначала завершите текущее обновление прошивки.",
+      "Cancel": "Отмена",
+      "Restart cancelled: Bluetooth connections did not close.": "Перезапуск отменён: соединения Bluetooth не были закрыты."
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -19752,7 +19856,15 @@
       "Within battery charge limits": "În limitele de încărcare a bateriilor",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero suspendă încărcarea solicitată. Sunt necesare date actuale despre SOC, celule, permisiunea de încărcare și starea protecțiilor ambelor baterii; lipsa datelor suspendă încărcarea cât timp funcția este activată. Setați toate cele trei praguri înainte de activare.",
       "Zero uses the capacity reported by the JK BMS.": "Zero utilizează capacitatea raportată de JK BMS.",
-      "Battery charge limit reached": "Limita de încărcare a bateriei a fost atinsă"
+      "Battery charge limit reached": "Limita de încărcare a bateriei a fost atinsă",
+      "Preparing firmware update.": "Se pregătește actualizarea firmware-ului.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Monitorizarea bateriilor prin Bluetooth este întreruptă pe durata actualizării firmware-ului.",
+      "Firmware operation cancelled.": "Operațiunea firmware a fost anulată.",
+      "Firmware update mode timed out.": "Timpul alocat modului de actualizare a firmware-ului a expirat.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Monitorizarea prin Bluetooth se întrerupe în timpul verificării și descărcării actualizărilor. Controlerul repornește mai întâi și se reconectează la baterii după finalizare.",
+      "Finish the current firmware update first.": "Finalizați mai întâi actualizarea firmware-ului în curs.",
+      "Cancel": "Anulare",
+      "Restart cancelled: Bluetooth connections did not close.": "Repornire anulată: conexiunile Bluetooth nu au fost închise."
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -21163,7 +21275,15 @@
       "Within battery charge limits": "Inom batteriets laddningsgränser",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Noll pausar den begärda laddningen. Aktuella data om SOC, celler, tillstånd att ladda och skyddsstatus från båda batterierna krävs; saknade data pausar laddningen medan funktionen är aktiverad. Ställ in alla tre tröskelvärden före aktivering.",
       "Zero uses the capacity reported by the JK BMS.": "Noll använder den kapacitet som JK BMS rapporterar.",
-      "Battery charge limit reached": "Batteriets laddningsgräns har nåtts"
+      "Battery charge limit reached": "Batteriets laddningsgräns har nåtts",
+      "Preparing firmware update.": "Förbereder uppdatering av fast program.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Batteriövervakning via Bluetooth är pausad under uppdateringen av fast program.",
+      "Firmware operation cancelled.": "Åtgärden för fast program avbröts.",
+      "Firmware update mode timed out.": "Tidsgränsen för uppdateringsläget för fast program har överskridits.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-övervakning pausas när uppdateringar söks och hämtas. Styrenheten startar om först och ansluter till batterierna igen när åtgärden är klar.",
+      "Finish the current firmware update first.": "Slutför först den pågående uppdateringen av fast program.",
+      "Cancel": "Avbryt",
+      "Restart cancelled: Bluetooth connections did not close.": "Omstart avbruten: Bluetooth-anslutningarna kopplades inte från."
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -22574,7 +22694,15 @@
       "Within battery charge limits": "อยู่ภายในขีดจำกัดการชาร์จแบตเตอรี่",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "ค่าเป็นศูนย์จะหยุดคำขอชาร์จชั่วคราว ต้องมีข้อมูล SOC เซลล์ การอนุญาตให้ชาร์จ และสถานะการป้องกันล่าสุดจากทั้งสองแพ็ก หากข้อมูลขาดหายขณะเปิดใช้ฟังก์ชันนี้ การชาร์จจะหยุดชั่วคราว ตั้งค่าทั้งสามเกณฑ์ก่อนเปิดใช้",
       "Zero uses the capacity reported by the JK BMS.": "ค่าเป็นศูนย์จะใช้ความจุที่ JK BMS รายงาน",
-      "Battery charge limit reached": "ถึงขีดจำกัดการชาร์จแบตเตอรี่แล้ว"
+      "Battery charge limit reached": "ถึงขีดจำกัดการชาร์จแบตเตอรี่แล้ว",
+      "Preparing firmware update.": "กำลังเตรียมอัพเดตเฟิร์มแวร์",
+      "Bluetooth battery monitoring is paused for firmware update.": "หยุดการตรวจสอบแบตเตอรี่ผ่าน Bluetooth ชั่วคราวเพื่ออัพเดตเฟิร์มแวร์",
+      "Firmware operation cancelled.": "ยกเลิกการดำเนินการเกี่ยวกับเฟิร์มแวร์แล้ว",
+      "Firmware update mode timed out.": "หมดเวลาของโหมดอัพเดตเฟิร์มแวร์",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "การตรวจสอบผ่าน Bluetooth จะหยุดชั่วคราวระหว่างการตรวจหาและดาวน์โหลดอัพเดต ตัวควบคุมจะเริ่มต้นใหม่ก่อน แล้วเชื่อมต่อกับแบตเตอรี่อีกครั้งเมื่อเสร็จสิ้น",
+      "Finish the current firmware update first.": "โปรดดำเนินการอัพเดตเฟิร์มแวร์ปัจจุบันให้เสร็จก่อน",
+      "Cancel": "ยกเลิก",
+      "Restart cancelled: Bluetooth connections did not close.": "ยกเลิกการเริ่มต้นใหม่: ไม่สามารถปิดการเชื่อมต่อ Bluetooth ได้"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -23985,7 +24113,15 @@
       "Within battery charge limits": "Akü şarj sınırları içinde",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Sıfır, istenen şarjı duraklatır. Her iki akü grubundan güncel SOC, hücre, şarj izni ve koruma durumu verileri gereklidir; bu özellik etkinken eksik veri şarjı duraklatır. Etkinleştirmeden önce üç eşiği de ayarlayın.",
       "Zero uses the capacity reported by the JK BMS.": "Sıfır, JK BMS tarafından bildirilen kapasiteyi kullanır.",
-      "Battery charge limit reached": "Akü şarj sınırına ulaşıldı"
+      "Battery charge limit reached": "Akü şarj sınırına ulaşıldı",
+      "Preparing firmware update.": "Firmware güncellemesi hazırlanıyor.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Firmware güncellemesi için Bluetooth ile akü izleme duraklatıldı.",
+      "Firmware operation cancelled.": "Firmware işlemi iptal edildi.",
+      "Firmware update mode timed out.": "Firmware güncelleme modu zaman aşımına uğradı.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Güncellemeler denetlenirken ve indirilirken Bluetooth ile izleme duraklatılır. Kontrol cihazı önce yeniden başlar ve işlem tamamlandığında akülere yeniden bağlanır.",
+      "Finish the current firmware update first.": "Önce devam eden firmware güncellemesini tamamlayın.",
+      "Cancel": "İptal",
+      "Restart cancelled: Bluetooth connections did not close.": "Yeniden başlatma iptal edildi: Bluetooth bağlantıları kapatılamadı."
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -25396,7 +25532,15 @@
       "Within battery charge limits": "У межах обмежень заряджання батарей",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Нуль призупиняє запитане заряджання. Потрібні актуальні дані про SOC, комірки, дозвіл на заряджання та стан захисту обох батарей; за відсутності даних заряджання призупиняється, поки цю функцію ввімкнено. Перед увімкненням задайте всі три пороги.",
       "Zero uses the capacity reported by the JK BMS.": "Нуль означає використання ємності, яку повідомляє JK BMS.",
-      "Battery charge limit reached": "Досягнуто межі заряду акумулятора"
+      "Battery charge limit reached": "Досягнуто межі заряду акумулятора",
+      "Preparing firmware update.": "Підготовка оновлення прошивки.",
+      "Bluetooth battery monitoring is paused for firmware update.": "Моніторинг акумуляторів через Bluetooth призупинено на час оновлення прошивки.",
+      "Firmware operation cancelled.": "Операцію з прошивкою скасовано.",
+      "Firmware update mode timed out.": "Час очікування в режимі оновлення прошивки минув.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Моніторинг через Bluetooth призупиняється на час перевірки та завантаження оновлень. Спочатку контролер перезапускається, а після завершення знову підключається до акумуляторів.",
+      "Finish the current firmware update first.": "Спочатку завершіть поточне оновлення прошивки.",
+      "Cancel": "Скасувати",
+      "Restart cancelled: Bluetooth connections did not close.": "Перезапуск скасовано: з’єднання Bluetooth не були закриті."
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -26807,7 +26951,15 @@
       "Within battery charge limits": "未超出电池充电限制",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "设为零会暂停请求充电。必须获得两个电池组的最新SOC、单体数据、充电许可和保护状态；此功能启用时，数据缺失会暂停充电。启用前，请设置全部三个阈值。",
       "Zero uses the capacity reported by the JK BMS.": "设为零时，使用JK BMS上报的容量。",
-      "Battery charge limit reached": "已达到电池充电上限"
+      "Battery charge limit reached": "已达到电池充电上限",
+      "Preparing firmware update.": "正在准备固件更新。",
+      "Bluetooth battery monitoring is paused for firmware update.": "固件更新期间，蓝牙电池监测已暂停。",
+      "Firmware operation cancelled.": "固件操作已取消。",
+      "Firmware update mode timed out.": "固件更新模式已超时。",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "检查和下载更新时，蓝牙监测会暂停。控制器首先重新启动，完成后会重新连接电池。",
+      "Finish the current firmware update first.": "请先完成当前的固件更新。",
+      "Cancel": "取消",
+      "Restart cancelled: Bluetooth connections did not close.": "已取消重新启动：蓝牙连接未能关闭。"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -28218,7 +28370,15 @@
       "Within battery charge limits": "ضمن حدود شحن البطارية",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "تؤدي القيمة صفر إلى إيقاف الشحن المطلوب مؤقتًا. يلزم توفر بيانات حديثة لحالة الشحن والخلايا والسماح بالشحن وحالة الحماية من المجموعتين؛ ويؤدي غياب البيانات إلى إيقاف الشحن مؤقتًا أثناء تمكين هذه الميزة. اضبط العتبات الثلاث كلها قبل تمكينها.",
       "Zero uses the capacity reported by the JK BMS.": "تستخدم القيمة صفر السعة التي يبلغ عنها نظام إدارة البطارية JK.",
-      "Battery charge limit reached": "تم بلوغ حد شحن البطارية"
+      "Battery charge limit reached": "تم بلوغ حد شحن البطارية",
+      "Preparing firmware update.": "جارٍ التحضير لتحديث البرنامج الثابت.",
+      "Bluetooth battery monitoring is paused for firmware update.": "تم إيقاف مراقبة البطاريات عبر Bluetooth مؤقتًا لتحديث البرنامج الثابت.",
+      "Firmware operation cancelled.": "تم إلغاء عملية البرنامج الثابت.",
+      "Firmware update mode timed out.": "انتهت مهلة وضع تحديث البرنامج الثابت.",
+      "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "تتوقف المراقبة عبر Bluetooth مؤقتًا أثناء البحث عن التحديثات وتنزيلها. يُعاد تشغيل وحدة التحكم أولًا، ثم تتصل بالبطاريات مجددًا عند الانتهاء.",
+      "Finish the current firmware update first.": "أكمل تحديث البرنامج الثابت الجاري أولًا.",
+      "Cancel": "إلغاء",
+      "Restart cancelled: Bluetooth connections did not close.": "تم إلغاء إعادة التشغيل: لم تُغلق اتصالات Bluetooth."
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."

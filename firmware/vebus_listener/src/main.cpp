@@ -30,6 +30,9 @@
 // is inverted with it.
 #include <Arduino.h>
 #include <Preferences.h>
+#include <WiFi.h>
+#include <esp_ota_ops.h>
+#include <esp_system.h>
 #include <atomic>
 #include <math.h>
 #include <memory>
@@ -42,15 +45,20 @@
 #include "esp_timer.h"
 #include "controller_time.h"
 #include "diagnostics.h"
+#include "debug_log.h"
 #include "ess_policy.h"
 #include "ess_lease.h"
 #include "external_battery.h"
+#include "battery_settings.h"
 #include "firmware_ota.h"
+#include "firmware_release_job.h"
+#include "firmware_maintenance.h"
 #include "ha_mqtt.h"
 #include "hal/uart_ll.h"
 #include "mqtt_link.h"
 #include "multiplus_ii.h"
 #include "requester.h"
+#include "restart_bluetooth.h"
 #include "rvsc.h"
 #include "soc/gpio_struct.h"
 #include "upload.h"
@@ -102,6 +110,10 @@ constexpr int64_t READ_FRESH_US = 300000000;  // a file is shown against a read 
 ess::Settings ess_settings;  // as saved in flash; changed by the page or UART0 (listener_ess_set)
 ess_lease::Lease transient_charge;
 external_battery::Feed battery_input;
+BatterySettings battery_settings;
+battery_control::Inputs bms_inputs;
+battery_control::Guard bms_guard;
+battery_control::View bms_guard_view;
 constexpr char TIME_ZONE_KEY[] = "time-zone";
 const controller_time::Zone *time_zone = nullptr;
 bool manual_time_zone = false;
@@ -121,7 +133,9 @@ uint32_t system_boot_id = 0;
 int64_t system_restart_at = -1;
 bool system_restart_wifi = false;
 bool system_restart_firmware = false;
+bool system_restart_maintenance = false;
 bool system_restart_shutdown = false;
+restart_bluetooth::Guard restart_bluetooth_guard;
 const char *system_restart_message = "Ready";
 // Protected by state_lock, including its bus-task read. This reservation only
 // defers the automatic read-only charger refresh during release downloads.
@@ -150,8 +164,7 @@ char report[1024];
 
 // Status lines go to UART0 and are copied to the native USB port.
 void write_both(const char *text, size_t n) {
-    Serial.write(reinterpret_cast<const uint8_t *>(text), n);
-    Serial0.write(reinterpret_cast<const uint8_t *>(text), n);
+    debug_log::write(debug_log::Target::BOTH, text, n);
 }
 
 void say(const char *fmt, ...) {
@@ -181,7 +194,7 @@ void emit() {
         for (size_t i = 0; i < frame_len; i++) n += snprintf(line + n, sizeof line - n, " %02X", frame[i]);
         line[n++] = '\n';
     }
-    Serial0.write(reinterpret_cast<const uint8_t *>(line), n);
+    debug_log::write(debug_log::Target::UART_DEBUG, line, n);
     stats.frames++;
     xSemaphoreTake(state_lock, portMAX_DELAY);
     bool counted = false;
@@ -328,6 +341,36 @@ external_battery::View battery_view(int64_t now) {
     return out;
 }
 
+// Selected BLE measurements are separate from the MQTT external-charger feed.
+// This reads only the small cache copied by the Arduino loop, never BLE locks
+// from the VE.Bus task. Defaults leave the existing controller policy unchanged.
+external_battery::View policy_battery_view(int64_t now) {
+    auto out=battery_view(now);
+    if(battery_settings.control.soc_source==battery_control::SocSource::EXISTING)return out;
+    float soc=0,voltage=0;
+    out.enabled=true;
+    out.soc_valid=battery_control::selected_soc(battery_settings.control,bms_inputs,now,soc);
+    out.voltage_valid=battery_control::selected_voltage(battery_settings.control,bms_inputs,now,voltage);
+    out.connected=out.soc_valid;
+    out.soc=soc;out.voltage=voltage;
+    const unsigned i=unsigned(battery_settings.control.soc_source)-1;
+    out.soc_age_s=out.soc_valid?float(now-bms_inputs.soc_at[i])/1e6f:-1;
+    out.sync_verified=out.soc_valid && fabsf(soc-out.sync_target)<=0.5f && out.sync_age_s>=0 && out.sync_age_s<15 &&
+        decoder.state().soc.t>requester.soc_sync().last_soc &&
+        fresh(decoder.state().soc,now,15000000) && fabsf(decoder.state().soc.v-out.sync_target)<=0.5f;
+    return out;
+}
+
+// Unwind the snapshot frame before web/MQTT handlers use the Arduino task stack.
+__attribute__((noinline)) void sample_bms_cache() {
+    const int64_t now=esp_timer_get_time();
+    battery_ble::View view;battery_ble::view(view,now);
+    if(battery_settings.ble.jk_capacity_ah>0) {view.jk.capacity_ah=battery_settings.ble.jk_capacity_ah;view.jk.valid|=battery_bms::CAPACITY;}
+    const auto bank=battery_bms::aggregate(view.jk,view.pace,battery_settings.ble.pace_capacity_ah);
+    const auto input=battery_control::inputs(view.jk,view.pace,bank,now);
+    xSemaphoreTake(state_lock,portMAX_DELAY);bms_inputs=input;xSemaphoreGive(state_lock);
+}
+
 // With state_lock held: decide from the decoded state, hand the result to the requester, and put a
 // line in `line` when what is decided changes in kind (running, state, schedule, flag word).
 bool run_policy(int64_t now, char *line, size_t cap) {
@@ -349,7 +392,8 @@ bool run_policy(int64_t now, char *line, size_t cap) {
     }
     in.soc_valid = st.soc.t >= control_epoch && fresh(st.soc, now, SOC_FRESH_US);
     in.soc = st.soc.v;
-    const auto battery = battery_input.view(now);
+    const auto battery = policy_battery_view(now);
+    if(battery_settings.control.soc_source!=battery_control::SocSource::EXISTING)in.soc_valid=battery.soc_valid;
     if (battery.soc_valid) { in.soc_valid = true; in.soc = battery.soc; }
     if (battery.enabled || battery_input.synchronization_started()) {
         requester.external_battery(battery.soc_valid, battery.soc,
@@ -369,7 +413,9 @@ bool run_policy(int64_t now, char *line, size_t cap) {
             ? readback : st.setpoint_w;
         last = setpoint.t >= control_epoch && fresh(setpoint, now, SETPOINT_FRESH_US) ? (int)lroundf(setpoint.v) : 0;
     }
-    const ess::Settings effective = transient_charge.effective(ess_settings, now);
+    ess::Settings effective = transient_charge.effective(ess_settings, now);
+    bms_guard_view=bms_guard.update(battery_settings.control,bms_inputs,now);
+    in.charge_guard_w=bms_guard_view.limited?bms_guard_view.charge_cap_w:-1;
     in.charge_window = transient_charge.charge_window(ess_settings, now);
     in.grid_hold = transient_charge.active(now) && effective.max_charge_w == 0;
     ess_inputs = in;
@@ -398,7 +444,7 @@ bool run_policy(int64_t now, char *line, size_t cap) {
     ai.ess_running=ess_settings.enabled;
     ai.mode_on=ac_input.mode_on(st.actual_mode,st.actual_mode_t,now);
     ai.telemetry=st.bus_fresh(now) && fresh(st.acout_w,now,POWER_FRESH_US);
-    ai.soc_valid=battery.soc_valid || fresh(st.soc,now,15000000);
+    ai.soc_valid=battery.soc_valid || (battery_settings.control.soc_source==battery_control::SocSource::EXISTING && fresh(st.soc,now,15000000));
     ai.soc=battery.soc_valid ? battery.soc : st.soc.v;
     ai.soc_source=battery.soc_valid ? "External battery" : "Inverter";
     ai.voltage_valid=fresh(st.bat_v,now,POWER_FRESH_US);ai.voltage=st.bat_v.v;
@@ -421,7 +467,10 @@ bool run_policy(int64_t now, char *line, size_t cap) {
     int normal = ess_settings.dc_pv_feed_in ? 0 : ess::FLAG_NO_DC_PV_FEED_IN;
     const bool ess_allowed = ess_candidate && hold_voltage_ok;
     const bool write = ess_allowed && (control_epoch < 0 || in.power_valid) && decision.write;
-    requester.target(write, decision.setpoint_w, ess_allowed ? (write ? decision.flags : normal) : -1);
+    // A stale AC-out reading suspends setpoint writes, but must not clear a
+    // battery-protection NO_CHARGE flag. Disabling ESS still restores normal.
+    const bool guard_stop=ess_settings.enabled && in.charge_guard_w>=0 && (decision.flags&ess::FLAG_NO_CHARGE);
+    requester.target(write, decision.setpoint_w, ess_allowed ? ((write||guard_stop) ? decision.flags : normal) : -1);
     if (policy.changed()) memory_dirty = true;
     static uint32_t last_kind = 0xFFFFFFFF;
     const ess::Decision &d = decision;
@@ -450,6 +499,9 @@ void save_mqtt(const ha::Settings &s) { prefs.putBytes("mqtt", &s, sizeof s); }
 
 void load_settings() {
     battery_input.enabled(prefs.getBool("extbat", false));
+    BatterySettings bm;
+    if(prefs.getBytesLength("bms")==sizeof bm && prefs.getBytes("bms",&bm,sizeof bm)==sizeof bm &&
+       battery_ble::normalize(bm.ble) && battery_control::valid(bm.control))battery_settings=bm;
     acinput::Config ac;
     if(prefs.getBytesLength("acinput")==sizeof ac && prefs.getBytes("acinput",&ac,sizeof ac)==sizeof ac && acinput::valid(ac))ac_input.config=ac;
     pvdisable::Config pv;
@@ -823,6 +875,18 @@ static bool manual_restart_busy_locked(int64_t now) {
            pv_disable.requested || (requester.pv_wire().supported && requester.pv_wire().actual(now) != 0);
 }
 
+static bool restart_pause_bluetooth() {
+    auto disabled = battery_settings.ble;
+    disabled.enabled = false;
+    return battery_ble::apply(disabled); // Runtime-only pause; saved settings are unchanged.
+}
+static bool restart_restore_bluetooth() {
+    if (!firmware_release_job::worker_idle() || firmware_ota::uploading()) return false;
+    return battery_ble::apply(battery_settings.ble);
+}
+static const restart_bluetooth::Hooks restart_bluetooth_hooks{
+    restart_pause_bluetooth, battery_ble::quiescent, restart_restore_bluetooth};
+
 bool listener_restart(char *why, size_t cap) {
     xSemaphoreTake(state_lock, portMAX_DELAY);
     const bool busy = manual_restart_busy_locked(esp_timer_get_time());
@@ -830,6 +894,10 @@ bool listener_restart(char *why, size_t cap) {
     if (busy || system_restart_at >= 0) {
         snprintf(why, cap, "%s", busy ? "Reconnect AC input and wait for inverter operations to finish" : "Controller restart already pending");
         return false;
+    }
+    if (restart_bluetooth_guard.restoring() || !firmware_release_job::worker_idle() || firmware_ota::uploading() ||
+        firmware_maintenance::state().active() || firmware_maintenance::state().pending()) {
+        snprintf(why, cap, "Finish the current firmware update first."); return false;
     }
     system_restart_at = esp_timer_get_time() + 1000000; // send the HTTP response first
     system_restart_message = "Controller restart queued";
@@ -917,7 +985,89 @@ void listener_firmware_download_end() {
     xSemaphoreGive(state_lock);
 }
 
+static const char *maintenance_queue(firmware_maintenance::Action action, const firmware_release::Build *build) {
+    if (const char *why = listener_firmware_problem()) return why;
+    const auto ota = firmware_ota::status();
+    const auto *running = esp_ota_get_running_partition();
+    if (!running || ota.trial || ota.staged || ota.queued != firmware_ota::Action::NONE || firmware_ota::uploading())
+        return "Finish the current firmware update before checking GitHub.";
+    if (const char *why = firmware_maintenance::state().prepare(firmware_maintenance::record(), action, build,
+                                                               running->address, diagnostics::RELEASE_VERSION)) return why;
+    system_restart_maintenance = true;
+    system_restart_at = esp_timer_get_time() + 1500000;
+    system_restart_message = "Preparing firmware update.";
+    return nullptr;
+}
+static const char *maintenance_request_problem() {
+    if (restart_bluetooth_guard.restoring()) return "Finish the current firmware update first.";
+    if (!firmware_release_job::worker_idle()) return "A GitHub firmware operation is already in progress.";
+    const auto ota = firmware_ota::status();
+    if (!ota.max_bytes || ota.trial || ota.staged || ota.queued != firmware_ota::Action::NONE || firmware_ota::uploading())
+        return "Finish the current firmware update before checking GitHub.";
+    const auto maintenance = firmware_maintenance::status(millis());
+    if (maintenance.pending || (maintenance.active && strcmp(maintenance.phase, "available")))
+        return "A GitHub firmware operation is already in progress.";
+    return nullptr;
+}
+const char *listener_firmware_release_check() {
+    if (const char *why = maintenance_request_problem()) return why;
+    if (battery_ble::allocated()) return maintenance_queue(firmware_maintenance::Action::CHECK, nullptr);
+    firmware_maintenance::state().activity(millis());
+    return firmware_release_job::check(diagnostics::RELEASE_VERSION, firmware_ota::status().max_bytes);
+}
+const char *listener_firmware_release_stage(const char *tag) {
+    if (const char *why = maintenance_request_problem()) return why;
+    firmware_release::Build build;
+    if (const char *why = firmware_release_job::selection(tag, build)) return why;
+    if (battery_ble::allocated()) return maintenance_queue(firmware_maintenance::Action::STAGE, &build);
+    const char *why = firmware_release_job::stage(tag, listener_firmware_download_begin, listener_firmware_download_end);
+    if (!why) firmware_maintenance::state().activity(millis());
+    return why;
+}
+const char *listener_firmware_maintenance_cancel() {
+    auto &maintenance = firmware_maintenance::state();
+    if (maintenance.pending() && system_restart_maintenance) {
+        system_restart_at = -1; system_restart_maintenance = false;
+        if (system_restart_shutdown) web::cancel_recovery_restart();
+        system_restart_shutdown = false;
+        maintenance.abort_request(firmware_maintenance::record());
+        restart_bluetooth_guard.cancel(restart_bluetooth_hooks);
+        return nullptr;
+    }
+    if (!maintenance.active()) return "No firmware upload is in progress.";
+    maintenance.cancel();
+    return nullptr;
+}
+void listener_firmware_maintenance_discarded() { firmware_maintenance::state().discarded(millis()); }
+static const char *maintenance_check() {
+    const auto ota = firmware_ota::status();
+    if (ota.trial || ota.staged || ota.queued != firmware_ota::Action::NONE || firmware_ota::uploading())
+        return "Finish the current firmware update before checking GitHub.";
+    return firmware_release_job::check(diagnostics::RELEASE_VERSION, ota.max_bytes);
+}
+static const char *maintenance_stage(const firmware_release::Build &build) {
+    return firmware_release_job::resume_stage(build, listener_firmware_download_begin, listener_firmware_download_end);
+}
+static bool maintenance_resume_ble() {
+    return system_restart_at < 0 && battery_ble::apply(battery_settings.ble);
+}
+static void maintenance_poll() {
+    if (!firmware_maintenance::state().active()) return;
+    using Job = firmware_maintenance::Job;
+    const char *phase = firmware_release_job::status().phase;
+    Job job = !strcmp(phase, "checking") ? Job::CHECKING : !strcmp(phase, "available") ? Job::AVAILABLE :
+              !strcmp(phase, "current") ? Job::CURRENT : !strcmp(phase, "downloading") ? Job::DOWNLOADING :
+              !strcmp(phase, "staged") ? Job::STAGED : !strcmp(phase, "error") ? Job::ERROR : Job::IDLE;
+    if (firmware_ota::status().staged) job = Job::STAGED;
+    const firmware_maintenance::Poll input{millis(), WiFi.status() == WL_CONNECTED && time(nullptr) >= 1704067200,
+        firmware_release_job::worker_idle() && !firmware_ota::uploading(), listener_firmware_problem(), job};
+    const firmware_maintenance::Hooks hooks{maintenance_check, maintenance_stage, firmware_release_job::cancel,
+                                           maintenance_resume_ble};
+    firmware_maintenance::state().poll(firmware_maintenance::record(), input, hooks);
+}
+
 const char *listener_firmware_restart(firmware_ota::Action action) {
+    if (restart_bluetooth_guard.restoring()) return "Finish the current firmware update first.";
     if (!listener_firmware_allowed()) return "Connect mains and wait for inverter operations to finish.";
     if (const char *why = firmware_ota::queue(action)) return why;
     system_restart_firmware = true;
@@ -1003,6 +1153,42 @@ void listener_battery_input(external_battery::View &out) {
     xSemaphoreTake(state_lock, portMAX_DELAY);
     out = battery_view(esp_timer_get_time());
     xSemaphoreGive(state_lock);
+}
+
+void listener_selected_battery(external_battery::View &out) {
+    xSemaphoreTake(state_lock,portMAX_DELAY);out=policy_battery_view(esp_timer_get_time());xSemaphoreGive(state_lock);
+}
+void listener_bms_settings(BatterySettings &out) {
+    xSemaphoreTake(state_lock,portMAX_DELAY);out=battery_settings;xSemaphoreGive(state_lock);
+}
+void listener_bms_guard(battery_control::View &out) {
+    xSemaphoreTake(state_lock,portMAX_DELAY);out=bms_guard_view;xSemaphoreGive(state_lock);
+}
+bool listener_bms_set(BatterySettings next,char *why,size_t cap) {
+    if (firmware_maintenance::state().active() || firmware_maintenance::state().pending() ||
+        system_restart_at >= 0 || restart_bluetooth_guard.restoring()) {
+        snprintf(why,cap,"Finish the current firmware update first."); return false;
+    }
+    const char *error=nullptr;
+    if(!battery_ble::normalize(next.ble,&error)) {snprintf(why,cap,"%s",error?error:"Invalid Bluetooth settings");return false;}
+    if(!battery_control::valid(next.control,why,cap))return false;
+    if(!next.ble.enabled && (next.control.charge_guard || next.control.soc_source!=battery_control::SocSource::EXISTING)) {
+        snprintf(why,cap,"Enable Bluetooth before selecting a battery control source");return false;
+    }
+    const auto source=next.control.soc_source;
+    if((source==battery_control::SocSource::JK || source==battery_control::SocSource::BANK || next.control.charge_guard) && !next.ble.jk_address[0]) {
+        snprintf(why,cap,"Configure the JK Bluetooth address first");return false;
+    }
+    if((source==battery_control::SocSource::PACE || source==battery_control::SocSource::BANK || next.control.charge_guard) && !next.ble.pace_address[0]) {
+        snprintf(why,cap,"Configure the PACE bridge Bluetooth address first");return false;
+    }
+    if(prefs.putBytes("bms",&next,sizeof next)!=sizeof next) {snprintf(why,cap,"Could not save battery settings");return false;}
+    xSemaphoreTake(state_lock,portMAX_DELAY);
+    battery_settings=next;bms_inputs={};bms_guard.reset();decide_now=true;
+    xSemaphoreGive(state_lock);
+    if(!battery_ble::apply(next.ble)) {snprintf(why,cap,"Battery settings saved; Bluetooth could not start. Check diagnostics.");return false;}
+    mqtt_link::announce_batteries();
+    return true;
 }
 
 bool listener_battery_input_enabled(bool value, char *why, size_t cap) {
@@ -1276,7 +1462,7 @@ void listener_diagnostics(diagnostics::Cache &v) {
     v.faults = requester.fault_report();
     if(!v.faults.firmware)v.faults.firmware=requester.ac_input_wire().firmware;
     v.led_code=faults::led_code(decoder.state(),v.now);
-    v.external_battery = battery_view(v.now);
+    v.external_battery = policy_battery_view(v.now);
     const auto &soc = decoder.state().soc; const auto &sync = requester.soc_sync();
     v.own_soc_valid = fresh(soc,v.now,SOC_FRESH_US); v.own_soc = soc.v;
     v.sync_target = sync.target_soc; v.sync_sent = sync.soc_sent;
@@ -1328,10 +1514,10 @@ void setup() {
     }
     setenv("TZ", ess_settings.tz, 1);
     tzset();
-    Serial0.setTxBufferSize(16384);  // frames queue here instead of stalling the bus task
+    Serial0.setTxBufferSize(2048);  // diagnostics drop on backpressure; VE.Bus never waits for this ring
     Serial0.begin(OUT_BAUD);
-    Serial.setTxBufferSize(16384);
-    Serial.setTxTimeoutMs(0);  // never block when nothing reads the USB port
+    Serial.setTxBufferSize(2048);
+    Serial.setTxTimeoutMs(0);  // debug_log also checks connection and free space before writing
     Serial.begin(115200);
 
     uart_config_t cfg = {};
@@ -1363,17 +1549,29 @@ void setup() {
     requester.monitor_alarm_status(true);
     requester.control(VEBUS_CONTROL_AT_BOOT);
     firmware_ota::begin();
+    const auto *running = esp_ota_get_running_partition();
+    firmware_maintenance::state().boot(firmware_maintenance::record(), esp_reset_reason() == ESP_RST_SW,
+                                      running ? running->address : 0, diagnostics::RELEASE_VERSION, millis());
     // Wi-Fi runs on core 0, so the bus task goes on core 1 with UART1's interrupt (set up here).
     xTaskCreatePinnedToCore(bus_task, "vebus", 8192, nullptr, 20, nullptr, 1);
     web::begin();
     configTzTime(ess_settings.tz, "pool.ntp.org", "time.google.com", "time.cloudflare.com");
     mqtt_link::begin(mqtt_settings);
+    battery_ble::begin(battery_settings.ble, firmware_maintenance::state().active());
 }
 
 void loop() {
     read_commands();
     sample_warning_history();
+    battery_ble::loop();
+    static uint32_t last_bms_sample=0;
+    if(millis()-last_bms_sample>=100) {
+        sample_bms_cache();
+        last_bms_sample=millis();
+    }
     web::loop();
+    maintenance_poll();
+    restart_bluetooth_guard.retry_restore(restart_bluetooth_hooks);
     mqtt_link::loop();
     static uint32_t last_voltage_save = 0;
     if (voltage_hold_dirty && millis() - last_voltage_save >= 1000) {
@@ -1407,16 +1605,24 @@ void loop() {
         xSemaphoreTake(state_lock, portMAX_DELAY);
         const int64_t now = esp_timer_get_time();
         const bool busy = system_restart_wifi ? !wifi_restart_safe_locked(now) :
-                          system_restart_firmware ? !firmware_safe_locked(now) : manual_restart_busy_locked(now);
+                          (system_restart_firmware || system_restart_maintenance) ? !firmware_safe_locked(now) : manual_restart_busy_locked(now);
         ess::Settings settings = ess_settings;
         ess::Memory memory = policy.memory;
         xSemaphoreGive(state_lock);
         const char *cancelled = nullptr;
         bool save_pending = voltage_hold_dirty;
+        const auto bluetooth = !busy && !save_pending && !system_restart_wifi
+            ? restart_bluetooth_guard.poll(millis(), battery_ble::allocated(), restart_bluetooth_hooks)
+            : restart_bluetooth::Result::READY;
         if (busy || save_pending ||
             (system_restart_shutdown && !web::recovery_restart_ready())) {
             cancelled = system_restart_wifi ? "Wi-Fi restart deferred: grid or controller busy"
                                             : "Restart cancelled: grid, operations or settings storage are not ready";
+        } else if (bluetooth == restart_bluetooth::Result::FAILED) {
+            cancelled = "Restart cancelled: Bluetooth connections did not close.";
+        } else if (bluetooth == restart_bluetooth::Result::WAIT) {
+            // Keep Wi-Fi alive until both peers have acknowledged disconnect.
+            system_restart_at = esp_timer_get_time() + 50000;
         } else if (!system_restart_shutdown) {
             // Let the browser receive the response and the AP see the station leave.
             // A plain ESP.restart() can leave an unusable association on this AP.
@@ -1440,7 +1646,10 @@ void loop() {
             system_restart_message = cancelled;
             if (system_restart_shutdown) web::cancel_recovery_restart();
             if (system_restart_firmware) firmware_ota::cancel_restart(cancelled);
+            if (system_restart_maintenance) firmware_maintenance::state().abort_request(firmware_maintenance::record());
+            restart_bluetooth_guard.cancel(restart_bluetooth_hooks);
             system_restart_wifi = system_restart_firmware = false;
+            system_restart_maintenance = false;
             system_restart_shutdown = false;
         }
     }

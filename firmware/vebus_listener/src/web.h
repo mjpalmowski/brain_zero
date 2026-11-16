@@ -23,6 +23,7 @@
 #include "ess_lease.h"
 #include "external_battery.h"
 #include "inverter_controls.h"
+#include "battery_settings.h"
 
 class String;
 struct cJSON;
@@ -92,6 +93,10 @@ void loop();                           // often, from the Arduino loop: serves r
 // Broker requests use the same controls as HTTP and return a shared reply buffer.
 // Call only from the Arduino loop and consume the reply before the next web or MQTT call.
 const char *controller_request(const char *name, bool write, const cJSON *fields);
+// Shared serializer workspace, only from the Arduino loop after a synchronous
+// HTTP/RPC handler has returned. The caller must not retain it or call back into
+// web handlers while using it. MQTT enqueue copies the payload before reuse.
+char *loop_scratch(size_t &capacity);
 bool local_host(const String &host);    // permitted controller names and station IP, without port
 void reconnect();                      // cycle the station from the Arduino loop, leaving VE.Bus running
 bool reset_wifi();                     // physical serial console: restore the provisioned Wi-Fi network
@@ -107,6 +112,10 @@ size_t describe(char *out, size_t cap);  // "wifi=..." for the status line
 bool listener_ess_set(const ess::Settings &settings, char *why, size_t cap, bool save_now,
                       bool legacy_zone = false);
 void listener_battery_input(external_battery::View &out);
+void listener_selected_battery(external_battery::View &out);
+void listener_bms_settings(BatterySettings &out);
+void listener_bms_guard(battery_control::View &out);
+bool listener_bms_set(BatterySettings settings,char *why,size_t cap);
 bool listener_battery_input_enabled(bool value, char *why, size_t cap);
 void listener_battery_input_connection(bool connected);
 bool listener_battery_input_message(const char *payload, size_t size, bool retained,
@@ -114,3 +123,7 @@ bool listener_battery_input_message(const char *payload, size_t size, bool retai
 void listener_ess_lease(ess_lease::View &out);
 const char *listener_ess_lease_set(const char *id, uint32_t ttl_s, int charge_w);
 const char *listener_ess_lease_clear(const char *id);
+const char *listener_firmware_release_check();
+const char *listener_firmware_release_stage(const char *tag);
+const char *listener_firmware_maintenance_cancel();
+void listener_firmware_maintenance_discarded();

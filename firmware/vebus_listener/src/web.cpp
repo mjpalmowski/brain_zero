@@ -17,10 +17,12 @@
 #include "dashboard.h"
 #include "compatibility_profile.h"
 #include "console_auth.h"
+#include "crash_dump.h"
 #include "controller_time.h"
 #include "device_page.h"
 #include "device_settings.h"
 #include "diagnostics.h"
+#include "debug_log.h"
 #include "diagnostics_page.h"
 #include "esp_system.h"
 #include "esp_attr.h"
@@ -32,10 +34,13 @@
 #include "firmware_ota.h"
 #include "firmware_page.h"
 #include "firmware_release_job.h"
+#include "firmware_maintenance.h"
 #include "ha_mqtt.h"
 #include "mcp_server.h"
 #include "mqtt_link.h"
 #include "mqtt_page.h"
+#include "battery_page.h"
+#include "battery_mqtt.h"
 #include "multi_page.h"
 #include "inverter_page.h"
 #include "requester.h"
@@ -134,19 +139,21 @@ EssView view;  // handlers run on the Arduino loop task only
 void start_station() {
     WiFi.setHostname(HOSTNAME);
     WiFi.mode(WIFI_STA);
-    WiFi.setSleep(false);
+    // IDF 4.4 requires modem sleep for the shared Wi-Fi/BLE radio. Keep the
+    // Arduino cached mode consistent so driver recovery cannot disable it.
+    WiFi.setSleep(battery_ble::radio_requires_sleep()?WIFI_PS_MIN_MODEM:WIFI_PS_NONE);
     WiFi.setAutoReconnect(true);
 #ifdef WIFI_TX_POWER_QDBM
     const esp_err_t result = esp_wifi_set_max_tx_power(WIFI_TX_POWER_QDBM);
-    if (result != ESP_OK) Serial0.printf("# wifi: setting transmit limit failed (%s)\n", esp_err_to_name(result));
+    if (result != ESP_OK) debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: setting transmit limit failed (%s)\n", esp_err_to_name(result));
 #endif
 #ifdef WIFI_CHANNEL_WIDTH_20
     const esp_err_t width_result = esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT20);
-    if (width_result != ESP_OK) Serial0.printf("# wifi: setting channel width failed (%s)\n", esp_err_to_name(width_result));
+    if (width_result != ESP_OK) debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: setting channel width failed (%s)\n", esp_err_to_name(width_result));
 #endif
 #ifdef WIFI_LEGACY_BG
     const esp_err_t protocol_result = esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G);
-    if (protocol_result != ESP_OK) Serial0.printf("# wifi: setting legacy protocol failed (%s)\n", esp_err_to_name(protocol_result));
+    if (protocol_result != ESP_OK) debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: setting legacy protocol failed (%s)\n", esp_err_to_name(protocol_result));
 #endif
     const auto &join = network_trial.testing() ? candidate : network;
     WiFi.begin(join.ssid, join.password);
@@ -161,7 +168,7 @@ void refresh_mdns(const IPAddress &ip, uint32_t now) {
         MDNS.addService("http", "tcp", 80);
         // Android devices without .local DNS can use DNS-SD to find the default address.
         if (mdns_service_add(HOSTNAME, "_brain-zero", "_tcp", 80, nullptr, 0) != ESP_OK) {
-            Serial0.println("# wifi: mobile discovery service unavailable");
+            debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: mobile discovery service unavailable\r\n");
         }
     }
 
@@ -176,7 +183,7 @@ void refresh_mdns(const IPAddress &ip, uint32_t now) {
     if (mdns_delegate_hostname_add(LEGACY_HOSTNAME, &legacy) == ESP_OK) {
         mdns_alias_ip = ip;
     } else {
-        Serial0.println("# wifi: old hostname alias unavailable");
+        debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: old hostname alias unavailable\r\n");
     }
 }
 
@@ -200,7 +207,7 @@ void cycle_station(uint32_t now, const char *reason) {
     if (cycle != Cycle::IDLE) return;
     ++wifi_cycles;
     wifi_policy.cycled(now);
-    Serial0.printf("# wifi: rejoining (%s), cycles=%lu, last_disconnect=%u, ap=%s, channel=%d\n",
+    debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: rejoining (%s), cycles=%lu, last_disconnect=%u, ap=%s, channel=%d\n",
                    reason, (unsigned long)wifi_cycles, disconnect_reason.load(),
                    WiFi.BSSIDstr().c_str(), WiFi.channel());
     pause_station(now);
@@ -872,6 +879,13 @@ const char *firmware_access() {
     return nullptr;
 }
 
+void maintenance_json(Out &o) {
+    const auto m=firmware_maintenance::status(millis());
+    o.add("{\"phase\":");o.str(m.phase);
+    o.add(",\"pending\":%s,\"active\":%s,\"remaining_s\":%u,\"message\":",tf(m.pending),tf(m.active),unsigned(m.remaining_s));
+    o.str(m.message);o.add("}");
+}
+
 void firmware_reply(int code, const char *why = nullptr) {
     char json[768];
     Out o(json, sizeof json);
@@ -895,6 +909,7 @@ void firmware_reply(int code, const char *why = nullptr) {
               tf(listener_firmware_allowed()), tf(s.staged), tf(s.trial), tf(pending), tf(firmware_release_job::busy()));
         o.str(s.token);
         o.add(",\"message\":"); o.str(s.message);
+        o.add(",\"bluetooth_allocated\":%s,\"maintenance\":",tf(battery_ble::allocated()));maintenance_json(o);
     }
     o.add("}");
     server.sendHeader("Cache-Control", "no-store");
@@ -904,14 +919,15 @@ void firmware_reply(int code, const char *why = nullptr) {
 void firmware_release_reply(int code, const char *error = nullptr) {
     if (error) { console_error(code, error); return; }
     const auto s = firmware_release_job::status();
-    char json[512];
+    char json[768];
     Out o(json, sizeof json);
     o.add("{\"ok\":true,\"status\":\"%s\",\"size\":%lu,\"received\":%u,\"preview\":%s,\"channel\":\"%s\",\"tag\":",
           s.phase, (unsigned long)s.build.size, unsigned(s.received), tf(s.build.preview),
           "public");
     o.str(s.build.tag);
     o.add(",\"can_stage\":%s,\"blocked_by\":", tf(s.can_stage)); o.str(s.blocked_by);
-    o.add(",\"message\":"); o.str(s.message); o.add("}");
+    o.add(",\"message\":"); o.str(s.message);
+    o.add(",\"maintenance\":");maintenance_json(o);o.add("}");
     server.sendHeader("Cache-Control", "no-store");
     server.send(code, "application/json", json);
 }
@@ -923,7 +939,7 @@ void firmware_release_check() {
         const auto s = firmware_ota::status();
         if (!s.max_bytes || s.trial || s.staged || s.queued != firmware_ota::Action::NONE)
             why = "Finish the current firmware update before checking GitHub.";
-        else why = firmware_release_job::check(diagnostics::RELEASE_VERSION, s.max_bytes);
+        else why = listener_firmware_release_check();
     }
     firmware_release_reply(why ? 409 : 202, why);
 }
@@ -931,9 +947,14 @@ void firmware_release_check() {
 void firmware_release_stage() {
     const char *why = firmware_access();
     if (!why && firmware_release_job::busy()) why = OTA_BUSY;
-    if (!why) why = firmware_release_job::stage(server.arg("tag").c_str(),
-                                               listener_firmware_download_begin, listener_firmware_download_end);
+    if (!why) why = listener_firmware_release_stage(server.arg("tag").c_str());
     firmware_release_reply(why ? 409 : 202, why);
+}
+
+void firmware_release_cancel() {
+    const char *why=firmware_access();
+    if(!why)why=listener_firmware_maintenance_cancel();
+    firmware_release_reply(why?409:202,why);
 }
 
 size_t firmware_size() {
@@ -971,6 +992,7 @@ void firmware_upload_chunk() {
         }
         request.error = firmware_ota::start(firmware_size());
         request.owns = !request.error;
+        if(request.owns)firmware_maintenance::state().activity(millis());
     } else if (up.status == UPLOAD_FILE_WRITE && request.owns && !request.error) {
         request.error = firmware_ota::write(up.buf, up.currentSize);
     } else if (up.status == UPLOAD_FILE_END) {
@@ -982,7 +1004,10 @@ void finish_firmware_upload() {
     auto &request = firmware_upload;
     const char *why = request.error;
     if (!why) why = request.owns && request.complete ? firmware_ota::finish() : "No complete application file received.";
-    if (why && request.owns) firmware_ota::discard(why);
+    if (why && request.owns) {
+        firmware_ota::discard(why);
+        listener_firmware_maintenance_discarded();
+    }
     request = {};
     firmware_reply(why ? 400 : 200, why);
 }
@@ -1451,6 +1476,58 @@ void handle_upload_clear() {
 // ---------------------------------------------------------------- MQTT
 
 void handle_mqtt_page() { server.send_P(200, "text/html", MQTT_HTML); }
+void handle_battery_page() { server.send_P(200,"text/html",BATTERY_HTML); }
+
+void bms_link_json(Out &o,const battery_ble::LinkView &s) {
+    o.add("{\"state\":");o.str(battery_ble::state_name(s.state));
+    o.add(",\"hci_connected\":%s",tf(s.hci_connected));
+    o.add(",\"configured\":%s,\"connected\":%s,\"attempts\":%u,\"connections\":%u,\"notifications\":%u,\"dropped\":%u,\"retry_ms\":%u,\"last_error\":%d,\"rssi\":%d,\"stack_min_free\":%u,\"notification_age_s\":%.3f,\"accepted\":%u,\"refused\":%u,\"checksum_errors\":%u}",
+          tf(s.configured),tf(s.connected),s.attempts,s.connections,s.notifications,s.dropped,s.retry_ms,s.last_error,s.rssi,s.stack_min_free,s.notification_age_s,s.decoder.accepted,s.decoder.refused,s.decoder.checksum_errors);
+}
+void handle_bms_get(ControlExchange &io) {
+    BatterySettings cfg;listener_bms_settings(cfg);
+    struct Snapshot {battery_ble::View ble;battery_bms::Snapshot bank;};
+    std::unique_ptr<Snapshot> snapshot(new(std::nothrow) Snapshot);
+    if(!snapshot){io.send(503,"application/json","{\"error\":\"Not enough memory for a settings snapshot\"}");return;}
+    auto &v=snapshot->ble;battery_ble::view(v,esp_timer_get_time());
+    const float measured_capacity=v.jk.capacity_ah;const auto measured_valid=v.jk.valid;
+    if(cfg.ble.jk_capacity_ah>0){v.jk.capacity_ah=cfg.ble.jk_capacity_ah;v.jk.valid|=battery_bms::CAPACITY;}
+    snapshot->bank=battery_bms::aggregate(v.jk,v.pace,cfg.ble.pace_capacity_ah);
+    v.jk.capacity_ah=measured_capacity;v.jk.valid=measured_valid;
+    const auto &bank=snapshot->bank;
+    battery_control::View guard;listener_bms_guard(guard);
+    Out o(control_body,CONTROL_BODY_BYTES);
+    o.add("{\"settings\":{\"enabled\":%s,\"jk_address\":",tf(cfg.ble.enabled));o.str(cfg.ble.jk_address);
+    o.add(",\"pace_address\":");o.str(cfg.ble.pace_address);
+    o.add(",\"jk_capacity_ah\":%.2f,\"pace_capacity_ah\":%.2f,\"soc_source\":%u,\"charge_guard\":%s,\"max_soc\":%u,\"max_cell_mv\":%u,\"max_delta_mv\":%u,\"limited_charge_w\":%u}",
+          cfg.ble.jk_capacity_ah,cfg.ble.pace_capacity_ah,unsigned(cfg.control.soc_source),tf(cfg.control.charge_guard),cfg.control.max_soc,cfg.control.max_cell_mv,cfg.control.max_delta_mv,cfg.control.limited_charge_w);
+    const battery_bms::Snapshot *packs[]={&v.jk,&v.pace,&bank};
+    for(unsigned i=0;i<3;++i){o.add(",\"%s\":",battery_mqtt::peer_name(i));if(battery_mqtt::state_json(*packs[i],json_fragment,sizeof json_fragment))o.add("%s",json_fragment);else{o.cut=true;o.add("{}");}}
+    o.add(",\"guard\":{\"enabled\":%s,\"limited\":%s,\"data_valid\":%s,\"charge_cap_w\":%d,\"reason\":",tf(guard.enabled),tf(guard.limited),tf(guard.data_valid),guard.charge_cap_w);o.str(guard.reason);o.add("},\"links\":{\"jk\":");bms_link_json(o,v.jk_link);o.add(",\"pace\":");bms_link_json(o,v.pace_link);
+    o.add("},\"memory\":{\"ble_initialized\":%s,\"starting\":%s,\"deferred\":%s,\"heap_total\":%u,\"heap_used\":%u,\"heap_free\":%u,\"min_heap\":%u,\"largest_free_block\":%u}}",
+          tf(v.initialized),tf(v.starting),tf(v.deferred),v.internal_heap_total,v.internal_heap_used,v.free_heap,v.min_free_heap,v.largest_free_block);
+    io.sendHeader("Cache-Control","no-store");io.send(o.cut?500:200,"application/json",o.cut?"{\"error\":\"Battery snapshot overflow\"}":control_body);
+}
+void handle_bms_post(ControlExchange &io) {
+    const auto update=firmware_maintenance::status(millis());
+    if(update.active||update.pending){io.send(409,"application/json","{\"error\":\"Finish the current firmware update first.\"}");return;}
+    static const char *allowed[]={"enabled","jk_address","pace_address","jk_capacity_ah","pace_capacity_ah","soc_source","charge_guard","max_soc","max_cell_mv","max_delta_mv","limited_charge_w"};
+    bool unknown=io.args()==0 || io.args()>int(sizeof allowed/sizeof allowed[0]);
+    for(int n=0;n<io.args();++n){const String key=io.argName(n);bool found=false;for(const auto *name:allowed)if(key==name)found=true;for(int j=0;j<n;++j)if(key==io.argName(j))found=false;if(!found)unknown=true;}
+    BatterySettings cfg;listener_bms_settings(cfg);Fields f(io);char why[160]="";
+    f.get("enabled",&cfg.ble.enabled);f.get_text("jk_address",cfg.ble.jk_address,sizeof cfg.ble.jk_address);f.get_text("pace_address",cfg.ble.pace_address,sizeof cfg.ble.pace_address);
+    f.get("jk_capacity_ah",&cfg.ble.jk_capacity_ah,0,10000);f.get("pace_capacity_ah",&cfg.ble.pace_capacity_ah,0,10000);
+    long value;if(f.get_long("soc_source",&value,0,3))cfg.control.soc_source=battery_control::SocSource(value);
+    f.get("charge_guard",&cfg.control.charge_guard);
+    if(f.get_long("max_soc",&value,0,100))cfg.control.max_soc=uint8_t(value);
+    if(f.get_long("max_cell_mv",&value,0,4500))cfg.control.max_cell_mv=uint16_t(value);
+    if(f.get_long("max_delta_mv",&value,0,1000))cfg.control.max_delta_mv=uint16_t(value);
+    if(f.get_long("limited_charge_w",&value,0,5000))cfg.control.limited_charge_w=uint16_t(value);
+    if(unknown || f.bad[0])snprintf(why,sizeof why,"Invalid battery setting");
+    else if(cfg.control.soc_source==battery_control::SocSource::BANK && cfg.ble.pace_capacity_ah<=0)snprintf(why,sizeof why,"Set the PACE capacity before selecting combined SOC");
+    else if(listener_bms_set(cfg,why,sizeof why)){handle_bms_get(io);return;}
+    Out o(control_body,CONTROL_BODY_BYTES);o.add("{\"error\":");o.str(why);o.add("}");io.send(400,"application/json",control_body);
+}
 
 void battery_input_json(Out &o) {
     external_battery::View v; listener_battery_input(v);
@@ -1585,6 +1662,7 @@ const ControlRoute CONTROL_ROUTES[] = {
     {"ess", handle_ess_get, handle_ess_post},
     {"ess/lease", handle_ess_lease_get, handle_ess_lease_post},
     {"battery-input", handle_battery_input_get, handle_battery_input_post},
+    {"bms", handle_bms_get, handle_bms_post},
     {"inverter", handle_inverter_get, handle_inverter_post},
     {"charger", handle_charger_get, handle_charger_post},
     {"charger/read", nullptr, handle_charger_read},
@@ -1597,6 +1675,8 @@ const ControlRoute CONTROL_ROUTES[] = {
     {"pv-disable/settings", nullptr, [](ControlExchange &io) { handle_pv_post(io, true); }},
 };
 }
+
+char *loop_scratch(size_t &capacity) { capacity=sizeof json_fragment;return json_fragment; }
 
 const char *controller_request(const char *name, bool write, const cJSON *fields) {
     ControlExchange io(fields, control_body, CONTROL_BODY_BYTES);
@@ -1650,7 +1730,7 @@ void begin() {
             if (lost.reason != WIFI_REASON_ASSOC_LEAVE) {
                 disconnect_reason.store(lost.reason);
                 ++disconnect_count;
-                Serial0.printf("# wifi: disconnected reason=%u ap=%02X:%02X:%02X:%02X:%02X:%02X\n",
+                debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: disconnected reason=%u ap=%02X:%02X:%02X:%02X:%02X:%02X\n",
                                unsigned(lost.reason), lost.bssid[0], lost.bssid[1], lost.bssid[2],
                                lost.bssid[3], lost.bssid[4], lost.bssid[5]);
             }
@@ -1663,7 +1743,7 @@ void begin() {
             esp_wifi_get_protocol(WIFI_IF_STA, &protocols);
             wifi_bandwidth_t width = WIFI_BW_HT20;
             const bool width_known = esp_wifi_get_bandwidth(WIFI_IF_STA, &width) == ESP_OK;
-            Serial0.printf("# wifi: associated ap=%02X:%02X:%02X:%02X:%02X:%02X channel=%u auth=%u tx_qdbm=%d width=%u protocols=0x%02X\n",
+            debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: associated ap=%02X:%02X:%02X:%02X:%02X:%02X channel=%u auth=%u tx_qdbm=%d width=%u protocols=0x%02X\n",
                            joined.bssid[0], joined.bssid[1], joined.bssid[2], joined.bssid[3],
                            joined.bssid[4], joined.bssid[5], unsigned(joined.channel),
                            unsigned(joined.authmode), int(tx_power), width_known ? (width == WIFI_BW_HT20 ? 20u : 40u) : 0u,
@@ -1723,6 +1803,11 @@ void begin() {
     private_route("/", HTTP_GET, handle_root);
     private_route("/diagnostics",HTTP_GET,[]{server.send_P(200,"text/html",DIAGNOSTICS_HTML);});
     private_route("/api/diagnostics",HTTP_GET,handle_diagnostics_get);
+    private_route("/api/diagnostics/crash",HTTP_GET,[]{
+        if(!same_origin()){console_error(403,"Open the controller using its local address.");return;}
+        if(const char *why=firmware_access()){console_error(403,why);return;}
+        crash_dump::download(server);
+    });
     private_route("/api/diagnostics/fault-report/read",HTTP_POST,handle_fault_report_read);
     private_route("/ess", HTTP_GET, handle_ess_page);
     private_route("/inverter", HTTP_GET, handle_inverter_page);
@@ -1744,6 +1829,7 @@ void begin() {
     });
     private_route("/api/firmware/release/check", HTTP_POST, firmware_release_check);
     private_route("/api/firmware/release/stage", HTTP_POST, firmware_release_stage);
+    private_route("/api/firmware/release/cancel",HTTP_POST,firmware_release_cancel);
     private_route("/api/firmware/upload", HTTP_POST, finish_firmware_upload, firmware_upload_chunk);
     private_route("/api/firmware/install", HTTP_POST, [] { firmware_action(firmware_ota::Action::INSTALL); });
     private_route("/api/firmware/rollback", HTTP_POST, [] { firmware_action(firmware_ota::Action::ROLLBACK); });
@@ -1762,6 +1848,7 @@ void begin() {
             else {
                 firmware_ota::discard("Staged image discarded. Current firmware will continue to run.");
                 firmware_release_job::discarded();
+                listener_firmware_maintenance_discarded();
             }
         }
         firmware_reply(why ? 409 : 200, why);
@@ -1769,6 +1856,7 @@ void begin() {
     private_route("/api/warning-history", HTTP_GET, handle_warning_history_get);
     private_route("/mqtt", HTTP_GET, [] { redirect("/settings/mqtt"); });
     private_route("/settings/mqtt", HTTP_GET, handle_mqtt_page);
+    private_route("/settings/battery", HTTP_GET, handle_battery_page);
     private_route("/multi", HTTP_GET, handle_multi_page);
     private_route("/api/settings", HTTP_GET, handle_settings_get);
     private_route("/api/settings.rvsc", HTTP_GET, handle_settings_file);
@@ -1892,7 +1980,7 @@ void mark_recovery_restart() {
 
 void begin_restart_shutdown() {
     restart_shutdown = true;
-    Serial0.println("# wifi: leaving access point before controller restart");
+    debug_log::printf(debug_log::Target::UART_DEBUG,"# wifi: leaving access point before controller restart\r\n");
     pause_station(millis());
 }
 

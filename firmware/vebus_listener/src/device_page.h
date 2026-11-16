@@ -37,7 +37,7 @@ R"HTML(
 <div class="actions"><button id="wifi-keep">Keep network</button><button id="wifi-revert">Restore previous network</button></div>
 </div>
 <output id="wifi-message" role="status"></output>
-<h3>MQTT</h3><p><a href="/settings/mqtt">MQTT and Home Assistant</a></p></section>
+<h3>MQTT</h3><p><a href="/settings/mqtt">MQTT and Home Assistant</a></p><h3>Batteries</h3><p><a href="/settings/battery">Bluetooth batteries and charge limits</a></p></section>
 
 <section><h2>Remote Console</h2><p id="password-state" role="status"></p>
 <form id="password" autocomplete="off">

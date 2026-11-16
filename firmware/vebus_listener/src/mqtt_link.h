@@ -17,5 +17,6 @@ void loop();                                // often, from the Arduino loop
 size_t status_json(char *out, size_t cap);  // {"state":"connected",...} for the pages
 // Optional measurements use this fixed, per-controller base-topic suffix.
 const char *battery_topic();
+void announce_batteries();
 
 }  // namespace mqtt_link

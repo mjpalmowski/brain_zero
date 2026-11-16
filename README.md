@@ -10,6 +10,8 @@ The [brain_zero firmware source](firmware/vebus_listener) lives in this reposito
 
 All brain_zero devices use the same firmware. Optional external-battery SOC and voltage, plus external charging-current measurements, can be supplied over MQTT and configured at runtime. [Home Assistant](home-assistant/custom_components/brain_zero) owns installation-specific overnight and free-power plans and coordinates external chargers. Its optional adapter imports existing plans and preserves entity IDs when migrating from earlier firmware.
 
+[Bluetooth battery monitoring](docs/bms-bluetooth.md) adds direct JK readings and a PACE CAN-to-BLE bridge, with per-pack MQTT sensors and optional charge limits under **Settings → Batteries**. Charge limits start off and the existing ESS SOC source remains selected until you change it.
+
 The screenshots show the local web interface with example data. Select a screenshot to open it full size.
 
 **Dashboard** · Battery state of charge and live AC and DC measurements.

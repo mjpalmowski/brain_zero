@@ -1,0 +1,51 @@
+# Merge this package into the existing PACE monitor, retaining its Wi-Fi, OTA,
+# API/MQTT sensors and existing CAN receiver. Give that CAN bus the id below.
+# Requires ESPHome 2026.10.2. Place components/pace_can_ble beside the device YAML.
+# The bridge timestamps the first ESPHome CAN receive callback, not the CAN ISR.
+# Keep rx_queue_len <= max_frames_per_loop; a >250ms loop stall drops pending
+# samples and quarantines input for 500ms while the driver drains old receives.
+substitutions:
+  pace_can_id: pace_can_bus
+
+# Keep Wi-Fi modem sleep enabled for Wi-Fi/BLE coexistence. A parent YAML
+# explicitly setting NONE overrides package defaults; change that value to LIGHT.
+wifi:
+  power_save_mode: light
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [pace_can_ble]
+
+esp32_ble:
+  name: brain_zero PACE
+
+esp32_ble_server:
+  id: pace_ble_server
+  max_clients: 1
+  manufacturer: brain_zero
+  model: PACE CAN BLE bridge
+  services:
+    - uuid: e6c00001-b5a3-4f4f-9b8d-73d619b32720
+      advertise: true
+      characteristics:
+        - id: pace_ble_metadata
+          uuid: e6c00002-b5a3-4f4f-9b8d-73d619b32720
+          read: true
+          write: false
+          write_no_response: false
+          value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - id: pace_ble_frames
+          uuid: e6c00003-b5a3-4f4f-9b8d-73d619b32720
+          read: false
+          write: false
+          write_no_response: false
+          notify: true
+
+pace_can_ble:
+  id: pace_can_ble_transport
+  canbus_id: ${pace_can_id}
+  server_id: pace_ble_server
+  metadata_id: pace_ble_metadata
+  frames_id: pace_ble_frames

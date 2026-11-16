@@ -11,6 +11,7 @@
 #include "victron_telemetry.h"
 #include "vebus_state.h"
 #include "web.h"
+#include "battery_mqtt.h"
 
 void listener_state(vebus::State &out);  // main.cpp
 void listener_ess(web::EssView &out);    // main.cpp
@@ -35,6 +36,9 @@ std::atomic<bool> up{false}, announce{false};
 char status_topic[64], state_topic[64], command_filter[64], ha_status_topic[48];
 char rpc_request_topic[48];
 char battery_input_topic[80];
+char bms_state_topic[80];
+uint32_t bms_last_ms=0,bms_batch_ms=0;
+unsigned bms_cursor=3;
 char recent_write_ids[16][33];
 unsigned next_write_id = 0;
 uint32_t last_rpc_ms = 0;
@@ -101,7 +105,7 @@ void gx_publish() {
     // Refresh each small batch, including after backpressure or reconnection.
     listener_state(gx_snapshot.bus);
     external_battery::View battery;
-    listener_battery_input(battery);
+    listener_selected_battery(battery);
     gx_snapshot.external_soc_valid=battery.soc_valid;
     gx_snapshot.external_voltage_valid=battery.voltage_valid;
     gx_snapshot.external_soc=battery.soc;
@@ -250,26 +254,56 @@ void publish_discovery(uint32_t now) {
     if (discovery_cursor < 0 || now - discovery_at < DISCOVERY_GAP_MS) return;
     discovery_at = now;
     static char topic[160], payload[1024];
-    if (ha::discovery(discovery_cursor, cfg, ids, !cfg.discovery, topic, sizeof topic, payload, sizeof payload)) {
+    const int base_count=ha::entity_count();
+    bool ready;
+    if(discovery_cursor<base_count)ready=ha::discovery(discovery_cursor,cfg,ids,!cfg.discovery,topic,sizeof topic,payload,sizeof payload);
+    else {
+        BatterySettings b;listener_bms_settings(b);
+        ready=battery_mqtt::discovery(discovery_cursor-base_count,cfg,ids,!cfg.discovery || !b.ble.enabled,
+                                      topic,sizeof topic,payload,sizeof payload);
+    }
+    if (ready) {
         if (esp_mqtt_client_enqueue(client, topic, payload, strlen(payload), 1, 1, true) < 0) return;
         ++published;
     }
-    if (++discovery_cursor >= ha::entity_count()) discovery_cursor = -1;
+    if (++discovery_cursor >= base_count+battery_mqtt::entity_count()) discovery_cursor = -1;
 }
 
 bool publish_state() {
     static vebus::State st;
     static web::EssView v;
-    static char json[2048];
     listener_state(st);
     listener_ess(v);
     ha::Extra x;
     x.rssi = WiFi.RSSI();
     x.uptime_s = millis() / 1000;
-    size_t n = ha::state_json(st, v, esp_timer_get_time(), x, json, sizeof json);
-    if (!n || esp_mqtt_client_enqueue(client, state_topic, json, n, 0, 0, true) < 0) return false;
+    size_t capacity;char *const state_scratch=web::loop_scratch(capacity);
+    size_t n = ha::state_json(st, v, esp_timer_get_time(), x, state_scratch, capacity);
+    if (!n || esp_mqtt_client_enqueue(client, state_topic, state_scratch, n, 0, 0, true) < 0) return false;
     ++published;
     return true;
+}
+
+// Release the measurement stack frame before MQTT allocates/copies its outbox.
+__attribute__((noinline)) size_t bms_payload(const BatterySettings &settings,unsigned peer,char *out,size_t capacity) {
+    battery_ble::View view;battery_ble::view(view,esp_timer_get_time());
+    if(peer==0)return battery_mqtt::state_json(view.jk,out,capacity);
+    if(peer==1)return battery_mqtt::state_json(view.pace,out,capacity);
+    if(settings.ble.jk_capacity_ah>0) {view.jk.capacity_ah=settings.ble.jk_capacity_ah;view.jk.valid|=battery_bms::CAPACITY;}
+    const auto bank=battery_bms::aggregate(view.jk,view.pace,settings.ble.pace_capacity_ah);
+    return battery_mqtt::state_json(bank,out,capacity);
+}
+
+void publish_bms(uint32_t ms) {
+    if(bms_cursor>=3 && ms-bms_last_ms>=uint32_t(cfg.interval_s)*1000u) {bms_cursor=0;bms_last_ms=ms;}
+    if(bms_cursor>=3 || ms-bms_batch_ms<120)return;
+    bms_batch_ms=ms;
+    BatterySettings settings;listener_bms_settings(settings);
+    if(!settings.ble.enabled) {bms_cursor=3;return;}
+    size_t capacity;char *const state_scratch=web::loop_scratch(capacity);
+    const size_t n=bms_payload(settings,bms_cursor,state_scratch,capacity);
+    snprintf(bms_state_topic,sizeof bms_state_topic,"%s/bms/%s",cfg.base,battery_mqtt::peer_name(bms_cursor));
+    if(n && esp_mqtt_client_enqueue(client,bms_state_topic,state_scratch,n,1,0,true)>=0) {++bms_cursor;++published;}
 }
 
 bool request_id(const char *id) {
@@ -435,6 +469,7 @@ void loop() {
         snprintf(ids.url, sizeof ids.url, "http://%s/", WiFi.localIP().toString().c_str());
         state_now = true;
         gx_last_ms = ms - 5000;
+        bms_last_ms=ms-uint32_t(cfg.interval_s)*1000u;
     }
     if (esp_mqtt_client_get_outbox_size(client) >= OUTBOX_LIMIT) return;
     if ((state_now || ms - last_state_ms >= cfg.interval_s * 1000u) && ms - state_attempt_ms >= GX_GAP_MS) {
@@ -443,10 +478,13 @@ void loop() {
     }
     publish_discovery(ms);
     if (esp_mqtt_client_get_outbox_size(client) >= OUTBOX_LIMIT) return;
+    publish_bms(ms);
+    if (esp_mqtt_client_get_outbox_size(client) >= OUTBOX_LIMIT) return;
     gx_publish();
 }
 
 const char *battery_topic() { return battery_input_topic; }
+void announce_batteries() { announce=true; }
 
 size_t status_json(char *out, size_t cap) {
     char error[112];

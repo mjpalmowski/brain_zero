@@ -29,10 +29,11 @@ R"HTML(
 <p id="error" class="error" role="alert" hidden></p>
 <section id="release-card" class="card">
 <h2>GitHub Releases</h2>
+<p id="battery-update-note" class="muted" hidden>Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.</p>
 <p id="release-status" class="muted" role="status" aria-live="polite">Check GitHub for a newer firmware build.</p>
 <p id="release-version" hidden></p>
 <progress id="release-progress" aria-label="Firmware download progress" hidden></progress>
-<div class="row"><button id="release-check" type="button" disabled>Check for updates</button><button id="release-stage" class="primary" type="button" hidden disabled>Download and verify</button></div>
+<div class="row"><button id="release-check" type="button" disabled>Check for updates</button><button id="release-stage" class="primary" type="button" hidden disabled>Download and verify</button><button id="release-cancel" type="button" hidden disabled>Cancel</button></div>
 </section>
 <section id="upload-card" class="card">
 <h2>Upload a build</h2>
@@ -62,7 +63,8 @@ let state=null,release=null,watchRelease=false,busy=false,restart=null,reading=f
 function error(message=''){el('error').textContent=tr(message);el('error').hidden=!message}
 function render(){
     const s=state, f=el('file').files[0];
-    const releaseBusy=!!s?.release_busy||release?.status==='checking'||release?.status==='downloading';
+    const maintenance=s?.maintenance||release?.maintenance;
+    const releaseBusy=!!s?.release_busy||!!maintenance?.pending||release?.status==='checking'||release?.status==='downloading';
     const ready=!!s?.token&&!busy&&!releaseBusy&&!restart&&!s.pending;
     const offer=release?.status==='available'&&release.tag&&release.size>0;
     const downloading=release?.status==='downloading';
@@ -72,7 +74,10 @@ function render(){
     el('release-check').disabled=!ready||!s.max_bytes||s.trial||s.staged;
     el('release-stage').hidden=!offer;
     el('release-stage').disabled=el('release-check').disabled||!s.safe||!offer||release.can_stage===false||release.size>s.max_bytes;
-    const releaseMessage=release?.status==='staged'&&!s?.staged?'':release?.message;
+    el('battery-update-note').hidden=!s?.bluetooth_allocated&&!maintenance?.active&&!maintenance?.pending;
+    el('release-cancel').hidden=!maintenance?.active||!!s?.staged;
+    el('release-cancel').disabled=busy||!!restart||!!s?.pending||!s?.token;
+    const releaseMessage=maintenance?.pending||(maintenance?.active&&release?.status==='idle')?maintenance.message:(release?.status==='staged'&&!s?.staged?'':release?.message);
     el('release-status').textContent=tr(releaseMessage||'Check GitHub for a newer firmware build.');
     el('release-version').hidden=!offer;
     el('release-version').textContent=offer?format(release.preview?'Preview release {tag} · {bytes} bytes.':'Release {tag} · {bytes} bytes.',{tag:release.tag,bytes:bytes(release.size)}):'';
@@ -103,11 +108,11 @@ async function refresh(){
         if(!r.ok)throw Error();
         const next=await r.json();
         if(generation!==actionGeneration)return;
-        if(lastBootId!==undefined&&next.boot_id!==lastBootId){release=null;watchRelease=false}
+        if(lastBootId!==undefined&&next.boot_id!==lastBootId){release=null;watchRelease=!!next.maintenance?.active||!!next.maintenance?.pending||!!restart?.maintenance}
         lastBootId=next.boot_id;
         state=next;
         if(restart&&(state.boot_id!==restart.boot||!state.pending&&Date.now()>restart.since+4000))restart=null;
-        if(watchRelease||state.release_busy){
+        if(watchRelease||state.release_busy||state.maintenance?.active||state.maintenance?.pending){
             watchRelease=true;
             try{
                 const r=await fetch('/api/firmware/release',{cache:'no-store',signal:AbortSignal.timeout(3500)});
@@ -115,7 +120,7 @@ async function refresh(){
                 if(!r.ok||!nextRelease.ok)throw Error();
                 if(generation===actionGeneration){
                     release=nextRelease;
-                    watchRelease=state.release_busy||release.status==='checking'||release.status==='downloading';
+                    watchRelease=state.release_busy||release.status==='checking'||release.status==='downloading'||release.maintenance?.active||release.maintenance?.pending;
                 }
             }catch{
                 if(generation===actionGeneration)release={message:'Could not read the GitHub update status.'};
@@ -131,22 +136,24 @@ async function refresh(){
     }finally{reading=false;render()}
 }
 async function releaseAction(action){
-    const s=state,button=el(action==='check'?'release-check':'release-stage');
+    const s=state,button=el('release-'+action);
     if(button.disabled||!s?.token)return;
     const body=action==='stage'?new URLSearchParams({tag:release.tag}):undefined;
     actionGeneration++;
     busy=true;error();render();
-    el('release-status').textContent=tr(action==='check'?'Starting the GitHub release check…':'Starting the firmware download…');
+    el('release-status').textContent=tr(action==='check'?'Starting the GitHub release check…':action==='cancel'?'Cancel':'Starting the firmware download…');
     try{
         const r=await fetch('/api/firmware/release/'+action,{method:'POST',headers:{'X-Brain-Zero-OTA':s.token},body,signal:AbortSignal.timeout(5000)});
         const next=await r.json();
         if(!r.ok||!next.ok)throw Error(next.error||'Action refused.');
         release=next;
+        if(next.maintenance?.pending){restart={boot:s.boot_id,since:Date.now(),maintenance:true};el('status').textContent=tr(next.maintenance.message)}
     }catch(e){error(e.message)}
     finally{watchRelease=true;busy=false;render();void refresh()}
 }
 el('release-check').addEventListener('click',()=>releaseAction('check'));
 el('release-stage').addEventListener('click',()=>releaseAction('stage'));
+el('release-cancel').addEventListener('click',()=>releaseAction('cancel'));
 el('file').addEventListener('change',()=>{error();render()});
 el('upload').addEventListener('click',()=>{
     const f=el('file').files[0], s=state;
