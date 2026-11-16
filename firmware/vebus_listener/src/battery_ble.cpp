@@ -167,7 +167,6 @@ struct Link {
         portEXIT_CRITICAL(&queue_lock);
         if (accepted) { ++notifications; last_notification_ms = millis(); }
         else { ++dropped; queue_problem = true; }
-        if (task) xTaskNotifyGive(task);
     }
 };
 
@@ -210,15 +209,12 @@ Settings settings_copy(uint32_t *revision = nullptr) {
 
 void Callbacks::onConnect(NimBLEClient *) {
     link->connected = true; ++link->connections;
-    if (link->task) xTaskNotifyGive(link->task);
 }
 void Callbacks::onConnectFail(NimBLEClient *, int reason) {
     link->last_error = reason; link->connected = false;
-    if (link->task) xTaskNotifyGive(link->task);
 }
 void Callbacks::onDisconnect(NimBLEClient *, int reason) {
     link->last_error = reason; link->connected = false; ++link->epoch;
-    if (link->task) xTaskNotifyGive(link->task);
 }
 
 void disconnected(Link &link) {
@@ -366,7 +362,7 @@ void run_link(void *argument) {
             link.next_retry_ms = 0; link.backoff_ms = 1000;
             link.state = configured ? State::WAITING : State::OFF;
             link.configuration_revision = revision;
-            if (!configured) { ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100)); continue; }
+            if (!configured) { vTaskDelay(pdMS_TO_TICKS(100)); continue; }
         }
         link.configuration_revision = revision;
         if (!link.connected.load()) {
@@ -375,11 +371,11 @@ void run_link(void *argument) {
             disconnected(link);
             if (link.client->isConnected()) {
                 link.client->disconnect();
-                ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100)); continue;
+                vTaskDelay(pdMS_TO_TICKS(100)); continue;
             }
             const uint32_t retry_at = link.next_retry_ms.load();
             if (retry_at && int32_t(millis() - retry_at) < 0) {
-                ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100)); continue;
+                vTaskDelay(pdMS_TO_TICKS(100)); continue;
             }
             if (!xSemaphoreTake(link.owner->operation_lock, pdMS_TO_TICKS(50))) continue;
             // Only one GAP connection procedure runs at a time; the other
@@ -434,7 +430,10 @@ void run_link(void *argument) {
                 if (!accepted) link.last_error = METADATA_ERROR;
             }
         }
-        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(20));
+        // NimBLE's synchronous GATT waits own the default task-notification
+        // slot. Application callbacks must not signal or consume that slot:
+        // doing so can release a GATT wait before its stack callback is done.
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
 
@@ -603,20 +602,18 @@ bool apply(const Settings &settings) {
     if (canonical.enabled && !runtime && !creation_in_progress) {
         creation_in_progress = true; create = true;
     }
-    Runtime *r = runtime;
     portEXIT_CRITICAL(&settings_lock);
     bool success = true;
     if (create) {
         success = create_runtime();
         portENTER_CRITICAL(&settings_lock);
-        creation_in_progress = false; r = runtime;
+        creation_in_progress = false;
         if (!success && desired_revision == revision) {
             desired = previous;
             boot_deferred = previously_deferred;
         }
         portEXIT_CRITICAL(&settings_lock);
     }
-    if (r) for (auto &link : r->links) if (link.task) xTaskNotifyGive(link.task);
     return success;
 }
 
