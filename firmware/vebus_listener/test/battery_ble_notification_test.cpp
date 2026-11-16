@@ -61,7 +61,11 @@ public:
 #include "actual_nimble_wait.inc"
 #pragma GCC diagnostic pop
 
-class NimBLEClient {};
+class NimBLEClient {
+public:
+    bool connected = false;
+    bool isConnected() const { return connected; }
+};
 struct Link;
 struct Callbacks {
     explicit Callbacks(Link *value) : link(value) {}
@@ -72,12 +76,17 @@ struct Callbacks {
 };
 constexpr size_t MAX_NOTIFICATION = battery_ble::detail::NOTIFICATION_BYTES;
 int64_t esp_timer_get_time() { return 1000000; }
-uint32_t millis() { return 1000; }
+uint32_t fake_millis = 1000;
+uint32_t millis() { return fake_millis; }
 #define portENTER_CRITICAL(mutex) (mutex)->lock()
 #define portEXIT_CRITICAL(mutex) (mutex)->unlock()
 struct Link {
+    enum class State { OFF, STREAMING };
+    NimBLEClient *client = nullptr;
     std::atomic<bool> connected{false}, queue_problem{false};
     std::atomic<uint32_t> connections{0}, epoch{1}, notifications{0}, dropped{0}, last_notification_ms{0};
+    std::atomic<uint32_t> deadline_ms{0}, configuration_revision{0};
+    std::atomic<State> state{State::OFF};
     std::atomic<int> last_error{0};
     std::atomic<TaskHandle_t> task{nullptr};
     std::mutex queue_lock;
@@ -85,6 +94,20 @@ struct Link {
     void enqueue(const uint8_t *, size_t, uint32_t);
 };
 #include "actual_ble_callbacks.inc"
+
+using State = Link::State;
+struct Runtime {
+    Link links[2];
+    std::atomic<bool> initialized{false}, starting{true};
+    std::atomic<uint32_t> startup_idle_revision{0};
+};
+Runtime *runtime = nullptr;
+bool creation_in_progress = false, gap_active = false;
+struct { bool enabled = false; } desired;
+uint32_t desired_revision = 7;
+std::mutex settings_lock;
+int ble_gap_conn_active() { return gap_active; }
+#include "actual_runtime_helpers.inc"
 
 void wait_until_waiting(FakeTask &task) {
     std::unique_lock<std::mutex> lock(task.mutex);
@@ -126,5 +149,50 @@ int main() {
         battery_ble::detail::Notification copied{};
         assert(link.pending.pop(copied) && copied.length == 20 && copied.data[0] == 1);
     }
+    {
+        assert(OPERATION_MS == 5500 && CONNECT_TIMEOUT_MS == 10000 && CONNECT_GUARD_MS == 12000);
+        assert(CONNECT_GUARD_MS > CONNECT_TIMEOUT_MS + 1000);
+        assert(operation_deadline() == 6500 && operation_deadline(CONNECT_GUARD_MS) == 13000);
+        for (uint32_t duration : {OPERATION_MS, CONNECT_GUARD_MS}) {
+            fake_millis = UINT32_MAX - duration + 1;
+            assert(operation_deadline(duration) == 1); // Zero remains the no-operation sentinel.
+            fake_millis = UINT32_MAX - 50;
+            const auto deadline = operation_deadline(duration);
+            assert(deadline != 0 && int32_t(deadline - fake_millis) > 0);
+        }
+    }
+    {
+        assert(quiescent());
+        desired.enabled = true; assert(quiescent()); // A deferred boot has no allocated host.
+        creation_in_progress = true; assert(!quiescent());
+        creation_in_progress = false;
+        Runtime allocated; runtime = &allocated;
+        assert(!quiescent()); // Future attempts are still enabled.
+        desired.enabled = false;
+        assert(!quiescent()); // Startup has not acknowledged this disable.
+        allocated.startup_idle_revision = 6; assert(!quiescent());
+        allocated.startup_idle_revision = 7; assert(quiescent());
+        allocated.startup_idle_revision = 0; assert(!quiescent()); // Init in progress.
+        allocated.initialized = true; assert(!quiescent()); // Worker setup in progress.
+        allocated.starting = false;
+        NimBLEClient clients[2];
+        allocated.links[0].client = &clients[0]; allocated.links[1].client = &clients[1];
+        assert(quiescent()); // Allocation failure left no worker that could reconnect.
+        clients[0].connected = true; assert(!quiescent()); clients[0].connected = false;
+        gap_active = true; assert(!quiescent()); gap_active = false;
+        allocated.links[0].deadline_ms = 123; assert(!quiescent()); allocated.links[0].deadline_ms = 0;
+        FakeTask worker;
+        for (auto &link : allocated.links) {
+            link.task = &worker; link.configuration_revision = 7;
+        }
+        assert(quiescent());
+        allocated.links[1].state = State::STREAMING; assert(!quiescent());
+        allocated.links[1].state = State::OFF;
+        ++desired_revision; assert(!quiescent()); // Invalidated flags alone are not a worker acknowledgement.
+        allocated.links[0].configuration_revision = desired_revision; assert(!quiescent());
+        allocated.links[1].configuration_revision = desired_revision; assert(quiescent());
+        runtime = nullptr;
+    }
     std::puts("Pinned NimBLE notification collision reproduced; production connect/disconnect/queue callbacks cannot release GATT waits");
+    std::puts("Actual runtime helpers: separate GAP/GATT budgets, millis wrap, init/GAP closure and worker-revision quiescence passed");
 }

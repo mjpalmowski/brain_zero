@@ -54,6 +54,9 @@ bool begin(const Settings &settings, bool defer = false);
 bool apply(const Settings &settings);
 // Includes startup/failed startup and disabled monitoring with a retained host.
 bool allocated();
+// After apply() disables a temporary copy, wait for worker acknowledgement and
+// real GAP closure before an intentional restart. Never deinitializes the host.
+bool quiescent();
 // IDF 4.4 Wi-Fi/Bluetooth coexistence requires modem sleep. True from an
 // enable request through the retained BLE host lifetime, including disconnects.
 // Cheap radio-policy query: no snapshots, allocations or blocking BLE calls.

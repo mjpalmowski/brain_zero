@@ -33,12 +33,18 @@ def main() -> None:
     assert not calls, f"Application runtime must not touch NimBLE's default notification slot: {calls}"
     assert "vTaskDelay(pdMS_TO_TICKS(20))" in runtime
     assert "vTaskDelay(pdMS_TO_TICKS(100))" in runtime
+    assert "setConnectTimeout(CONNECT_TIMEOUT_MS)" in runtime
+    assert "operation_deadline(CONNECT_GUARD_MS)" in function(runtime, "bool connect_link(")
     callbacks = "\n".join(function(runtime, name) for name in (
         "void Callbacks::onConnect(", "void Callbacks::onConnectFail(", "void Callbacks::onDisconnect("))
     enqueue = function(runtime, "void enqueue(").replace("void enqueue(", "void Link::enqueue(", 1)
     upstream = args.nimble_utils.read_text(encoding="utf-8")
     waits = "\n".join(function(upstream, name) for name in (
         "bool NimBLEUtils::taskWait(", "void NimBLEUtils::taskRelease("))
+    helpers = "\n".join(re.search(pattern, runtime).group(0) for pattern in (
+        r"constexpr uint32_t OPERATION_MS\s*=.*?;", r"constexpr uint32_t CONNECT_TIMEOUT_MS\s*=.*?;"))
+    helpers += "\n" + function(runtime, "uint32_t operation_deadline(")
+    helpers += "\n" + function(runtime, "bool quiescent(")
     cxx = str(Path(args.cxx).resolve()) if Path(args.cxx).exists() else args.cxx
     env = os.environ.copy()
     if Path(cxx).is_file():
@@ -47,6 +53,7 @@ def main() -> None:
         work = Path(folder)
         (work / "actual_nimble_wait.inc").write_text(waits, encoding="utf-8")
         (work / "actual_ble_callbacks.inc").write_text(callbacks + "\n" + enqueue, encoding="utf-8")
+        (work / "actual_runtime_helpers.inc").write_text(helpers, encoding="utf-8")
         executable = work / ("isolation.exe" if os.name == "nt" else "isolation")
         subprocess.run([cxx, "-std=c++11", "-O2", "-Wall", "-Wextra", "-Werror", "-pthread",
                         "-I" + str(work), "-I" + str(root / "firmware/vebus_listener/src"),

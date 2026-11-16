@@ -68,6 +68,7 @@ const char *state_name(State s) {
 #include <NimBLERemoteService.h>
 #include <NimBLERemoteCharacteristic.h>
 #include <NimBLEAttValue.h>
+#include "nimble/nimble/host/include/host/ble_gap.h"
 #include <WiFi.h>
 #include <atomic>
 #include <new>
@@ -88,6 +89,7 @@ constexpr char PACE_METADATA[] = "e6c00002-b5a3-4f4f-9b8d-73d619b32720";
 constexpr char PACE_FRAMES[] = "e6c00003-b5a3-4f4f-9b8d-73d619b32720";
 constexpr size_t MAX_NOTIFICATION = detail::NOTIFICATION_BYTES;
 constexpr uint32_t OPERATION_MS = 5500, RETRY_MAX_MS = 30000;
+constexpr uint32_t CONNECT_TIMEOUT_MS = 10000, CONNECT_GUARD_MS = 12000;
 constexpr int MEMORY_ERROR = -1001, SERVICE_ERROR = -1002, PROPERTIES_ERROR = -1003;
 constexpr int SUBSCRIBE_ERROR = -1004, METADATA_ERROR = -1005, IDENTITY_TIMEOUT = -1006;
 constexpr int READ_REQUEST_ERROR = -1007, STREAM_TIMEOUT = -1008;
@@ -95,8 +97,8 @@ constexpr int NOTIFICATION_OVERFLOW = -1009;
 constexpr int ADAPTER_RESTARTED = -1010;
 constexpr int WIFI_COEX_ERROR = -1012;
 
-uint32_t operation_deadline() {
-    const uint32_t deadline = millis() + OPERATION_MS;
+uint32_t operation_deadline(uint32_t duration = OPERATION_MS) {
+    const uint32_t deadline = millis() + duration;
     return deadline ? deadline : 1;  // Zero denotes no operation, including millis wrap.
 }
 
@@ -177,6 +179,7 @@ struct Runtime {
     SemaphoreHandle_t operation_lock = nullptr;
     TimerHandle_t guard_timer = nullptr;
     std::atomic<bool> initialized{false}, starting{true};
+    std::atomic<uint32_t> startup_idle_revision{0};
     Runtime() {
         for (unsigned i = 0; i < 2; ++i) { links[i].owner = this; links[i].index = i; }
     }
@@ -279,7 +282,9 @@ bool read_request(Link &link, uint8_t opcode) {
 
 bool connect_link(Link &link, const char *address) {
     link.state = State::CONNECTING; link.last_error = 0; ++link.attempts;
-    link.deadline_ms = operation_deadline();
+    // GAP discovery needs more airtime when another pack and Wi-Fi share the
+    // radio. The GATT operations below retain their shorter individual guard.
+    link.deadline_ms = operation_deadline(CONNECT_GUARD_MS);
     const bool connected = link.client->connect(NimBLEAddress(std::string(address), BLE_ADDR_PUBLIC), true, false, true);
     link.deadline_ms = 0;
     if (!connected || !link.connected.load()) return false;
@@ -479,15 +484,28 @@ bool prepare_coexistence() {
 
 void start_worker(void *argument) {
     auto &r = *static_cast<Runtime *>(argument);
+    uint32_t retry_at = 0;
     for (;;) {
-        if (!settings_copy().enabled) { vTaskDelay(pdMS_TO_TICKS(100)); continue; }
+        uint32_t revision;
+        const Settings settings = settings_copy(&revision);
+        if (!settings.enabled) {
+            r.startup_idle_revision = revision;
+            vTaskDelay(pdMS_TO_TICKS(100)); continue;
+        }
+        r.startup_idle_revision = 0;
+        if (retry_at && int32_t(millis() - retry_at) < 0) {
+            vTaskDelay(pdMS_TO_TICKS(100)); continue;
+        }
         const bool coexistence = prepare_coexistence();
         if (coexistence && NimBLEDevice::init("brain_zero")) break;
         for (auto &link : r.links) {
             link.state = State::STACK_FAILED;
             link.last_error = coexistence ? 0 : WIFI_COEX_ERROR;
         }
-        vTaskDelay(pdMS_TO_TICKS(30000));
+        // Keep an initialization failure's backoff responsive to a temporary
+        // disable, so a maintenance restart can acknowledge quiescence.
+        retry_at = operation_deadline(RETRY_MAX_MS);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     NimBLEDevice::setMTU(64);
     for (auto &link : r.links) {
@@ -495,7 +513,7 @@ void start_worker(void *argument) {
         if (!link.client) { link.state = State::NO_MEMORY; continue; }
         link.client->setClientCallbacks(&link.callbacks, false);
         link.client->setSelfDelete(false, false);
-        link.client->setConnectTimeout(3500);
+        link.client->setConnectTimeout(CONNECT_TIMEOUT_MS);
         // 30-60ms interval, no slave latency, six-second supervision timeout.
         link.client->setConnectionParams(24, 48, 0, 600);
         link.state = State::WAITING;
@@ -504,13 +522,14 @@ void start_worker(void *argument) {
         for (auto &link : r.links) link.state = State::NO_MEMORY;
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
-    r.initialized = true; r.starting = false;
+    r.initialized = true;
     if (r.links[1].client) {
         TaskHandle_t task = nullptr;
         if (xTaskCreate(run_link, "bms-pace", 4096, &r.links[1], 1, &task) != pdPASS)
             r.links[1].state = State::NO_MEMORY;
         else r.links[1].task = task;
     }
+    r.starting = false;
     if (r.links[0].client) run_link(&r.links[0]);
     // Keep the task handle valid for health snapshots even after allocation
     // failure; deleting it would leave a dangling stack-watermark handle.
@@ -580,6 +599,27 @@ bool allocated() {
     const bool have_resources = runtime != nullptr || creation_in_progress;
     portEXIT_CRITICAL(&settings_lock);
     return have_resources;
+}
+
+bool quiescent() {
+    portENTER_CRITICAL(&settings_lock);
+    Runtime *r = runtime;
+    const bool creating = creation_in_progress, enabled = desired.enabled;
+    const uint32_t revision = desired_revision;
+    portEXIT_CRITICAL(&settings_lock);
+    if (creating) return false;
+    if (!r) return true;
+    if (enabled) return false;
+    if (!r->initialized.load()) return r->startup_idle_revision.load() == revision;
+    if (r->starting.load()) return false;
+    if (ble_gap_conn_active()) return false;
+    for (auto &link : r->links) {
+        if (!link.client) continue;
+        if (link.client->isConnected() || link.deadline_ms.load()) return false;
+        if (link.task && (link.state.load() != State::OFF ||
+                          link.configuration_revision.load() != revision)) return false;
+    }
+    return true;
 }
 
 bool radio_requires_sleep() {
@@ -675,6 +715,7 @@ void view(View &out, int64_t now_us) {
 #else
 namespace battery_ble {
 bool allocated() { return false; }
+bool quiescent() { return true; }
 bool radio_requires_sleep() { return false; }
 }
 #endif  // ARDUINO_ARCH_ESP32
