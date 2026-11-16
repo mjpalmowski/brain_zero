@@ -107,7 +107,8 @@ int main() {
         s.poll(r, ready(), hooks);
         const int previous = resumes;
         s.poll(r, ready(2000, done, false), hooks); assert(resumes == previous);
-        s.poll(r, ready(2000, done), hooks); assert(resumes == previous + 1 && !s.active());
+        s.poll(r, ready(2000, done), hooks);
+        assert(resumes == previous + 1 && !s.active() && !s.status(2000).message[0]);
     }
     {
         State s; Record r{}; boot(s, r, Action::STAGE);

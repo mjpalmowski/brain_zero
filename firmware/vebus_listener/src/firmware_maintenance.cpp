@@ -120,7 +120,7 @@ void State::poll(Record &r, const Poll &in, const Hooks &hooks) {
         phase_ = Phase::STAGED; idle_at_ = in.now;
     }
     if (phase_ == Phase::RESUMING && in.worker_idle && hooks.resume_ble()) {
-        phase_ = Phase::NORMAL; r = {}; cancelled_ = cancel_sent_ = false;
+        phase_ = Phase::NORMAL; r = {}; cancelled_ = cancel_sent_ = false; message_ = "";
     }
 }
 }
