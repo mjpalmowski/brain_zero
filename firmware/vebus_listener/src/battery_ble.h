@@ -17,7 +17,7 @@ struct Settings {
 
 enum class State : uint8_t {
     OFF, STARTING, WAITING, CONNECTING, DISCOVERING, IDENTIFYING,
-    CLOCK_WAIT, STREAMING, BACKOFF, NO_MEMORY, STACK_FAILED
+    CLOCK_WAIT, STREAMING, BACKOFF, NO_MEMORY, STACK_FAILED, DEFERRED
 };
 
 struct LinkView {
@@ -31,7 +31,7 @@ struct LinkView {
 };
 
 struct View {
-    bool enabled = false, initialized = false, starting = false;
+    bool enabled = false, initialized = false, starting = false, deferred = false;
     battery_bms::Snapshot jk, pace;
     LinkView jk_link, pace_link;
     uint32_t free_heap = 0, min_free_heap = 0, largest_free_block = 0;
@@ -47,8 +47,13 @@ const char *state_name(State state);
 // enabled configuration starts low-priority workers; disabled boot is allocation
 // free. Disabling disconnects immediately; allocated BLE resources are retained
 // until restart to avoid tearing down a host while callbacks are active.
-bool begin(const Settings &settings);
+// A one-shot maintenance boot can retain the saved configuration but defer all
+// radio allocations until apply(settings). Deferral refuses an existing host;
+// releasing an active host requires a controlled restart, not in-place teardown.
+bool begin(const Settings &settings, bool defer = false);
 bool apply(const Settings &settings);
+// Includes startup/failed startup and disabled monitoring with a retained host.
+bool allocated();
 // IDF 4.4 Wi-Fi/Bluetooth coexistence requires modem sleep. True from an
 // enable request through the retained BLE host lifetime, including disconnects.
 // Cheap radio-policy query: no snapshots, allocations or blocking BLE calls.
