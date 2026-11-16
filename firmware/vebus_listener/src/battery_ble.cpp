@@ -555,7 +555,10 @@ void loop() {
 }
 
 void view(View &out, int64_t now_us) {
-    out = View{};
+    // Construct the defaults directly in the caller's object. Assigning a
+    // View{} here puts a second full snapshot on the small Arduino task stack.
+    out.~View();
+    new (&out) View{};
     portENTER_CRITICAL(&settings_lock);
     const Settings settings = desired;
     Runtime *r = runtime;
