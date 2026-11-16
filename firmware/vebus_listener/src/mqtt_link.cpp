@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <atomic>
+#include <new>
 
 #include "esp_mac.h"
 #include "esp_timer.h"
@@ -12,6 +13,7 @@
 #include "vebus_state.h"
 #include "web.h"
 #include "battery_mqtt.h"
+#include "mqtt_rpc_gate.h"
 
 void listener_state(vebus::State &out);  // main.cpp
 void listener_ess(web::EssView &out);    // main.cpp
@@ -42,6 +44,10 @@ unsigned bms_cursor=3;
 char recent_write_ids[16][33];
 unsigned next_write_id = 0;
 uint32_t last_rpc_ms = 0;
+// One Home Assistant request may wait for the outbox to drain; see mqtt_rpc_gate.h. It lives on
+// the heap only while it waits: static RAM has a fixed budget (ram_budget.ld).
+Message *rpc_pending = nullptr;
+uint32_t rpc_answered = 0, rpc_deferred = 0, rpc_stale = 0, rpc_busy = 0, rpc_reply_failed = 0;
 uint32_t published = 0, commands = 0, refused = 0;
 uint32_t last_state_ms = 0, state_attempt_ms = 0;
 bool state_now = false;
@@ -321,12 +327,9 @@ bool valid_fields(const cJSON *fields) {
     return true;
 }
 
+// Called only once mqtt_rpc::gate() says ANSWER.
 void controller_rpc(const Message &m) {
-    const uint32_t now_ms = millis();
-    if (m.retained || !up || !client || now_ms - last_rpc_ms < 100 ||
-        esp_timer_get_time() - m.received_at > 3000000 ||
-        esp_mqtt_client_get_outbox_size(client) >= OUTBOX_LIMIT) return;
-    last_rpc_ms = now_ms;
+    last_rpc_ms = millis();
     cJSON *root = cJSON_ParseWithLengthOpts(m.payload, strlen(m.payload) + 1, nullptr, 1);
     const auto *id = cJSON_GetObjectItemCaseSensitive(root, "id");
     if (!cJSON_IsString(id) || !request_id(id->valuestring)) {
@@ -364,8 +367,39 @@ void controller_rpc(const Message &m) {
     snprintf(topic, sizeof topic, "brain_zero/%s/reply/%s", gx_id.installation, id->valuestring);
     cJSON_Delete(root);
     // QoS 1 acknowledges the response to the controller and gives it a distinct outbox ID.
-    esp_mqtt_client_enqueue(client, topic, response, strlen(response), 1, 0, true);
+    if (esp_mqtt_client_enqueue(client, topic, response, strlen(response), 1, 0, true) < 0) ++rpc_reply_failed;
+    else ++rpc_answered;
     if (write) state_now = true;
+}
+
+// True once the request is answered or dropped; false while it must wait.
+bool serve_rpc(const Message &m) {
+    const bool connected = up && client;
+    switch (mqtt_rpc::gate(m.retained, connected, millis() - last_rpc_ms, esp_timer_get_time() - m.received_at,
+                           connected ? esp_mqtt_client_get_outbox_size(client) : 0, OUTBOX_LIMIT)) {
+    case mqtt_rpc::Gate::ANSWER: controller_rpc(m); return true;
+    case mqtt_rpc::Gate::WAIT: return false;
+    case mqtt_rpc::Gate::DROP_STALE: ++rpc_stale; return true;
+    case mqtt_rpc::Gate::IGNORE: return true;
+    }
+    return true;
+}
+
+void receive_rpc(const Message &m) {
+    // Home Assistant sends its next request only after a reply or its own timeout, by which time a
+    // waiting one is stale. A second client's overlapping request is refused, and counted.
+    if (rpc_pending) {
+        if (!serve_rpc(*rpc_pending)) {
+            ++rpc_busy;
+            return;
+        }
+        delete rpc_pending;
+        rpc_pending = nullptr;
+    }
+    if (serve_rpc(m)) return;
+    rpc_pending = new (std::nothrow) Message(m);
+    if (rpc_pending) ++rpc_deferred;
+    else ++rpc_busy;
 }
 
 void handle(const Message &m) {
@@ -375,7 +409,7 @@ void handle(const Message &m) {
         return;
     }
     if (!strcmp(m.topic, rpc_request_topic)) {
-        controller_rpc(m);
+        receive_rpc(m);
         return;
     }
     gx::Request request;
@@ -462,6 +496,14 @@ void loop() {
     }
     Message m;
     for (int budget = 0; budget < 8 && xQueueReceive(inbox, &m, 0); ++budget) handle(m);
+    if (rpc_pending) {
+        if (serve_rpc(*rpc_pending)) {
+            delete rpc_pending;
+            rpc_pending = nullptr;
+        } else if (client && up) {
+            return;  // hold background publishing so the outbox drains for the reply
+        }
+    }
     if (!client || !up) return;
     if (announce.exchange(false)) {
         discovery_cursor = 0;
@@ -512,6 +554,15 @@ size_t status_json(char *out, size_t cap) {
             ",\"victron_gx\":{\"installation_id\":\"%s\",\"read_only\":true,\"sensors\":%d,\"published\":%lu,\"read_requests\":%lu,\"refused_requests\":%lu,\"outbox_bytes\":%d}",
             gx_id.installation, gx::sensor_count(), (unsigned long)gx_published, (unsigned long)gx_reads, (unsigned long)gx_refused,
             client ? esp_mqtt_client_get_outbox_size(client) : 0);
+        if (extra < 0 || size_t(extra) >= cap - n) return 0;
+        n += extra;
+    }
+    if (n < cap) {
+        int extra = snprintf(out + n, cap - n,
+            ",\"rpc\":{\"answered\":%lu,\"deferred\":%lu,\"dropped_stale\":%lu,\"refused_busy\":%lu,"
+            "\"reply_failed\":%lu,\"waiting\":%s}",
+            (unsigned long)rpc_answered, (unsigned long)rpc_deferred, (unsigned long)rpc_stale,
+            (unsigned long)rpc_busy, (unsigned long)rpc_reply_failed, rpc_pending ? "true" : "false");
         if (extra < 0 || size_t(extra) >= cap - n) return 0;
         n += extra;
     }
