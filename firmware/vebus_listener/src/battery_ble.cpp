@@ -73,6 +73,10 @@ const char *state_name(State s) {
 #include "esp_timer.h"
 #include "freertos/timers.h"
 
+#ifndef BRAIN_ZERO_BLE_BOOT_RECOVERY
+#define BRAIN_ZERO_BLE_BOOT_RECOVERY 0
+#endif
+
 namespace battery_ble {
 namespace {
 
@@ -188,6 +192,12 @@ Settings desired;
 Runtime *runtime = nullptr;
 bool creation_in_progress = false;
 uint32_t desired_revision = 0;
+#if BRAIN_ZERO_BLE_BOOT_RECOVERY
+// Diagnostic builds can expose a saved crash before retrying Bluetooth. Only
+// an explicit settings apply starts it; normal builds reconnect automatically.
+bool boot_recovery_active = false;
+constexpr int BOOT_RECOVERY = -1011;
+#endif
 
 Settings settings_copy(uint32_t *revision = nullptr) {
     portENTER_CRITICAL(&settings_lock);
@@ -522,7 +532,24 @@ void link_view(Link &link, LinkView &out, const Settings &settings, int64_t now_
 
 }  // namespace
 
-bool begin(const Settings &settings) { return apply(settings); }
+bool begin(const Settings &settings) {
+#if BRAIN_ZERO_BLE_BOOT_RECOVERY
+    if (settings.enabled) {
+        Settings canonical = settings;
+        if (!normalize(canonical)) return false;
+        portENTER_CRITICAL(&settings_lock);
+        const bool deferred = runtime == nullptr && !creation_in_progress;
+        if (deferred) {
+            desired = canonical;
+            ++desired_revision;
+            boot_recovery_active = true;
+        }
+        portEXIT_CRITICAL(&settings_lock);
+        if (deferred) return true;
+    }
+#endif
+    return apply(settings);
+}
 
 bool apply(const Settings &settings) {
     Settings canonical = settings;
@@ -531,6 +558,9 @@ bool apply(const Settings &settings) {
     portENTER_CRITICAL(&settings_lock);
     const Settings previous = desired;
     desired = canonical;
+#if BRAIN_ZERO_BLE_BOOT_RECOVERY
+    boot_recovery_active = false;
+#endif
     const uint32_t revision = ++desired_revision;
     if (canonical.enabled && !runtime && !creation_in_progress) {
         creation_in_progress = true; create = true;
@@ -564,6 +594,9 @@ void view(View &out, int64_t now_us) {
     Runtime *r = runtime;
     const uint32_t revision = desired_revision;
     const bool creating = creation_in_progress;
+#if BRAIN_ZERO_BLE_BOOT_RECOVERY
+    const bool recovery = boot_recovery_active;
+#endif
     portEXIT_CRITICAL(&settings_lock);
     out.enabled = settings.enabled;
     if (r) {
@@ -581,6 +614,14 @@ void view(View &out, int64_t now_us) {
         if (r->links[0].configuration_revision.load() != revision) out.jk = {};
         if (r->links[1].configuration_revision.load() != revision) out.pace = {};
     } else { out.starting = creating; }
+#if BRAIN_ZERO_BLE_BOOT_RECOVERY
+    if (recovery) {
+        out.jk_link.configured = settings.enabled && settings.jk_address[0];
+        out.pace_link.configured = settings.enabled && settings.pace_address[0];
+        if (out.jk_link.configured) { out.jk_link.state = State::STACK_FAILED; out.jk_link.last_error = BOOT_RECOVERY; }
+        if (out.pace_link.configured) { out.pace_link.state = State::STACK_FAILED; out.pace_link.last_error = BOOT_RECOVERY; }
+    }
+#endif
     // A disable must invalidate the public snapshot immediately, even if a
     // worker is finishing a blocked BLE operation or disconnect callback.
     if (!settings.enabled || !settings.jk_address[0]) { out.jk = {}; out.jk_link.state = State::OFF; }
