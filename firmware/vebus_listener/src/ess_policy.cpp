@@ -1,5 +1,6 @@
 #include "ess_policy.h"
 
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -329,7 +330,11 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
     const bool hold = d.grid_hold || d.voltage_hold;
     uint16_t flags = s.dc_pv_feed_in ? 0 : FLAG_NO_DC_PV_FEED_IN;
     if (d.charge_inhibited || schedule_grid_hold_) flags |= FLAG_NO_CHARGE;
-    const int out = in.power_valid ? (int)lroundf(in.acout_w) : 0;  // AC-out, + = drawn by the loads
+    // Leave room for the power limits in the integer setpoint arithmetic.
+    const bool power_known = in.power_valid && isfinite(in.acout_w) &&
+                             double(in.acout_w) > double(INT_MIN) + HARD_MAX_W &&
+                             double(in.acout_w) <= double(INT_MAX) - HARD_MAX_W;
+    const int out = power_known ? (int)lroundf(in.acout_w) : 0;  // AC-out, + = drawn by the loads
     char grid[24];
     grid_words(s.grid_setpoint_w, grid, sizeof grid);
     int sp = -s.grid_setpoint_w;  // on the bus, + = export
@@ -454,7 +459,7 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
                 flags |= FLAG_NO_FEED_IN;
             }
         }
-        if (!in.power_valid && (charge_w >= 0 || s.max_charge_w >= 0 || discharge_w > 0)) {
+        if (!power_known && (charge_w >= 0 || s.max_charge_w >= 0 || discharge_w > 0)) {
             append(d.why, sizeof d.why, ", no AC-out reading");
         }
     }
@@ -470,6 +475,38 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
         append(d.why, sizeof d.why, ", capped at %d W", cap);
     }
     d.setpoint_w = clamp(last_w + clamp(d.target_w - last_w, -RAMP_W, RAMP_W), -cap, cap);
+
+    // Battery protection is the final authority, including in external control.
+    // It also constrains the ramp: tightening a limit must not leave an old,
+    // stronger charge request active while the ordinary ramp catches up.
+    if (in.charge_guard_w != -1) {
+        bool inhibit = in.charge_guard_w <= 0 || in.charge_guard_w > HARD_MAX_W || !power_known;
+        bool limited = inhibit;
+        if (!inhibit) {
+            // Use the measured fractional AC-out value, rounding towards less
+            // charging. On the bus, charge W = -(setpoint W + AC-out W).
+            const double lower_w = ceil(-double(in.charge_guard_w) - double(in.acout_w));
+            // Respect the safety cap and any normal-mode export limit. If the
+            // constraints cannot coexist, the no-charge flag is authoritative.
+            const int upper_w = s.mode != Mode::EXTERNAL_CONTROL && s.max_feed_in_w >= 0
+                                    ? (s.max_feed_in_w < cap ? s.max_feed_in_w : cap) : cap;
+            if (lower_w > upper_w) {
+                inhibit = limited = true;
+            } else if (lower_w > -cap) {
+                const int minimum_w = int(lower_w);
+                limited = d.target_w < minimum_w || d.setpoint_w < minimum_w;
+                d.target_w = max_of(d.target_w, minimum_w);
+                d.setpoint_w = max_of(d.setpoint_w, minimum_w);
+            }
+        }
+        if (inhibit) {
+            flags |= FLAG_NO_CHARGE;
+            d.charging = false;
+            d.charge_inhibited = true;
+        }
+        if (limited) snprintf(d.why, sizeof d.why, "%s", power_known ? "Battery charge limit reached"
+                                                                   : "Battery data unavailable: charging paused");
+    }
     d.flags = flags;
     return d;
 }

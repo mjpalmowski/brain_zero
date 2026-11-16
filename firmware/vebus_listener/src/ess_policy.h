@@ -104,6 +104,7 @@ struct Inputs {
     bool grid_hold = false;        // overnight target reached, until the local window ends
     bool charge_window = false;    // recurring or dated MultiPlus charging is scheduled, even if already at its target
     int64_t now = 0, voltage_at = -1;  // monotonic microseconds; bat_v is measured when voltage_at is recent
+    int charge_guard_w = -1;       // transient limit in every mode; -1 disables, 0 immediately prohibits charging
 };
 
 struct Decision {
@@ -116,7 +117,7 @@ struct Decision {
     bool charging = false;         // charging on purpose: schedule, keep charged, recharge
     bool grid_hold = false;
     bool voltage_hold = false;
-    bool charge_inhibited = false;  // voltage protection allows MultiPlus charging only in a scheduled window
+    bool charge_inhibited = false;  // voltage protection or the transient battery guard prohibits charging
     bool capped = false;           // the safety cap cut the setpoint
     float active_soc_limit = -1;   // no discharge at or below this SOC; -1 = none
     char why[112] = "";            // what the setpoint follows, for the page

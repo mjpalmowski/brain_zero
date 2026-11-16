@@ -90,6 +90,7 @@
     "Battery and charging policy",
     "Battery capacity must be 0 to 10000 Ah",
     "Battery charge limit is outside its range",
+    "Battery charge limit reached",
     "Battery charging, from the grid or solar; surplus solar is exported instead.",
     "Battery control",
     "Battery current",
@@ -2818,7 +2819,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Wanneer geaktiveer, beperk hierdie limiete die MultiPlus se laaiversoek tydelik. Hulle herkonfigureer nie die omskakelaar of beheer ander laaiers nie.",
       "Within battery charge limits": "Binne batterylaailimiete",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nul onderbreek die aangevraagde laai. Vars SOC, seldata, laaitoestemming en beskermingstatus van albei batterypakke word vereis; ontbrekende data onderbreek laai terwyl hierdie funksie geaktiveer is. Stel al drie drempels in voordat jy dit aktiveer.",
-      "Zero uses the capacity reported by the JK BMS.": "Nul gebruik die kapasiteit wat die JK BMS rapporteer."
+      "Zero uses the capacity reported by the JK BMS.": "Nul gebruik die kapasiteit wat die JK BMS rapporteer.",
+      "Battery charge limit reached": "Batterylaailimiet bereik"
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -4228,7 +4230,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Po povolení tyto limity dočasně omezují požadavek na nabíjení MultiPlus. Nemění konfiguraci měniče ani neřídí jiné nabíječky.",
       "Within battery charge limits": "V mezích limitů nabíjení baterií",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nula pozastaví požadované nabíjení. Jsou vyžadovány aktuální údaje o SOC, článcích, povolení nabíjení a stavu ochran obou baterií; chybějící údaje při zapnuté funkci nabíjení pozastaví. Před povolením nastavte všechny tři prahy.",
-      "Zero uses the capacity reported by the JK BMS.": "Nula použije kapacitu hlášenou systémem JK BMS."
+      "Zero uses the capacity reported by the JK BMS.": "Nula použije kapacitu hlášenou systémem JK BMS.",
+      "Battery charge limit reached": "Dosažen limit nabíjení baterie"
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5638,7 +5641,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Når disse grænser er aktiveret, begrænser de midlertidigt MultiPlus' anmodede ladeeffekt. De ændrer ikke inverterens konfiguration og styrer ikke andre ladere.",
       "Within battery charge limits": "Inden for batteriets ladegrænser",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nul sætter den anmodede opladning på pause. Der kræves aktuelle data om SOC, celler, ladetilladelse og beskyttelsesstatus fra begge batterier; manglende data sætter opladningen på pause, mens funktionen er aktiveret. Indstil alle tre tærskler før aktivering.",
-      "Zero uses the capacity reported by the JK BMS.": "Nul bruger den kapacitet, som JK BMS rapporterer."
+      "Zero uses the capacity reported by the JK BMS.": "Nul bruger den kapacitet, som JK BMS rapporterer.",
+      "Battery charge limit reached": "Batteriets ladegrænse er nået"
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -7048,7 +7052,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Wenn aktiviert, begrenzen diese Werte vorübergehend die angeforderte Ladeleistung des MultiPlus. Sie ändern weder die Wechselrichterkonfiguration noch steuern sie andere Ladegeräte.",
       "Within battery charge limits": "Innerhalb der Batterieladegrenzen",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Null pausiert den angeforderten Ladevorgang. Aktuelle Daten zu SOC, Zellen, Ladefreigabe und Schutzstatus beider Batterien sind erforderlich; fehlen Daten bei aktivierter Funktion, wird das Laden pausiert. Vor dem Aktivieren alle drei Schwellenwerte einstellen.",
-      "Zero uses the capacity reported by the JK BMS.": "Null verwendet die vom JK BMS gemeldete Kapazität."
+      "Zero uses the capacity reported by the JK BMS.": "Null verwendet die vom JK BMS gemeldete Kapazität.",
+      "Battery charge limit reached": "Ladegrenze der Batterie erreicht"
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -8458,7 +8463,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Al habilitarse, estos límites restringen temporalmente la solicitud de carga del MultiPlus. No reconfiguran el inversor ni controlan otros cargadores.",
       "Within battery charge limits": "Dentro de los límites de carga de batería",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Cero pausa la carga solicitada. Se necesitan datos recientes de estado de carga, celdas, permiso de carga y estado de protección de ambos bancos; si faltan datos, la carga se pausa mientras esta función esté habilitada. Ajuste los tres umbrales antes de habilitarla.",
-      "Zero uses the capacity reported by the JK BMS.": "Cero utiliza la capacidad indicada por el BMS JK."
+      "Zero uses the capacity reported by the JK BMS.": "Cero utiliza la capacidad indicada por el BMS JK.",
+      "Battery charge limit reached": "Se ha alcanzado el límite de carga de la batería"
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9868,7 +9874,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Lorsqu’elles sont activées, ces limites plafonnent temporairement la demande de charge du MultiPlus. Elles ne reconfigurent pas le convertisseur et ne commandent pas d’autres chargeurs.",
       "Within battery charge limits": "Dans les limites de charge de batterie",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zéro suspend la charge demandée. Des données récentes de SOC, de cellules, d’autorisation de charge et d’état des protections des deux parcs sont nécessaires ; l’absence de données suspend la charge lorsque cette fonction est activée. Réglez les trois seuils avant de l’activer.",
-      "Zero uses the capacity reported by the JK BMS.": "Zéro utilise la capacité indiquée par le BMS JK."
+      "Zero uses the capacity reported by the JK BMS.": "Zéro utilise la capacité indiquée par le BMS JK.",
+      "Battery charge limit reached": "Limite de charge de la batterie atteinte"
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -11278,7 +11285,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Quando sono abilitati, questi limiti riducono temporaneamente la richiesta di carica del MultiPlus. Non riconfigurano l’inverter e non controllano altri caricabatterie.",
       "Within battery charge limits": "Entro i limiti di carica della batteria",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero sospende la carica richiesta. Sono necessari dati aggiornati di SOC, celle, autorizzazione alla carica e stato delle protezioni di entrambi i banchi; la mancanza di dati sospende la carica mentre questa funzione è abilitata. Impostare tutte e tre le soglie prima di abilitarla.",
-      "Zero uses the capacity reported by the JK BMS.": "Zero utilizza la capacità indicata dal BMS JK."
+      "Zero uses the capacity reported by the JK BMS.": "Zero utilizza la capacità indicata dal BMS JK.",
+      "Battery charge limit reached": "Raggiunto il limite di carica della batteria"
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -12688,7 +12696,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "有効にすると、これらの制限によってMultiPlusへの充電要求が一時的に制限されます。インバーターの設定変更や、他の充電器の制御は行いません。",
       "Within battery charge limits": "バッテリーの充電制限内です",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "ゼロを指定すると充電要求を一時停止します。両方のパックのSOC、セル、充電許可、保護状態の最新データが必要です。この機能が有効な間にデータが不足すると、充電を一時停止します。有効にする前に3つすべてのしきい値を設定してください。",
-      "Zero uses the capacity reported by the JK BMS.": "ゼロを指定すると、JK BMSが通知する容量を使用します。"
+      "Zero uses the capacity reported by the JK BMS.": "ゼロを指定すると、JK BMSが通知する容量を使用します。",
+      "Battery charge limit reached": "バッテリーの充電上限に達しました"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -14098,7 +14107,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Wanneer deze limieten zijn ingeschakeld, begrenzen ze tijdelijk het gevraagde laadvermogen van de MultiPlus. Ze wijzigen de omvormerconfiguratie niet en sturen geen andere laders aan.",
       "Within battery charge limits": "Binnen de laadlimieten van de accu's",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Nul pauzeert het gevraagde laden. Actuele gegevens over SOC, cellen, toestemming voor laden en beveiligingsstatus van beide accu's zijn vereist; ontbrekende gegevens pauzeren het laden zolang deze functie is ingeschakeld. Stel alle drie de drempels in voordat u deze inschakelt.",
-      "Zero uses the capacity reported by the JK BMS.": "Nul gebruikt de capaciteit die door het JK BMS wordt gemeld."
+      "Zero uses the capacity reported by the JK BMS.": "Nul gebruikt de capaciteit die door het JK BMS wordt gemeld.",
+      "Battery charge limit reached": "Laadlimiet van de accu bereikt"
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -15508,7 +15518,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Po włączeniu limity te tymczasowo ograniczają żądaną moc ładowania MultiPlus. Nie zmieniają konfiguracji inwertera ani nie sterują innymi ładowarkami.",
       "Within battery charge limits": "W granicach limitów ładowania akumulatorów",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero wstrzymuje żądane ładowanie. Wymagane są aktualne dane SOC, ogniw, zezwolenia na ładowanie i stanu zabezpieczeń obu akumulatorów; brak danych wstrzymuje ładowanie, gdy funkcja jest włączona. Przed włączeniem ustaw wszystkie trzy progi.",
-      "Zero uses the capacity reported by the JK BMS.": "Zero oznacza użycie pojemności zgłaszanej przez JK BMS."
+      "Zero uses the capacity reported by the JK BMS.": "Zero oznacza użycie pojemności zgłaszanej przez JK BMS.",
+      "Battery charge limit reached": "Osiągnięto limit ładowania akumulatora"
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -16918,7 +16929,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Quando ativados, estes limites restringem temporariamente o pedido de carga do MultiPlus. Não reconfiguram o inversor nem controlam outros carregadores.",
       "Within battery charge limits": "Dentro dos limites de carga da bateria",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero coloca o carregamento pedido em pausa. São necessários dados recentes do estado de carga, células, autorização de carga e estado das proteções de ambos os bancos; a falta de dados coloca o carregamento em pausa enquanto esta função estiver ativa. Defina os três limiares antes de a ativar.",
-      "Zero uses the capacity reported by the JK BMS.": "Zero utiliza a capacidade indicada pelo BMS JK."
+      "Zero uses the capacity reported by the JK BMS.": "Zero utiliza a capacidade indicada pelo BMS JK.",
+      "Battery charge limit reached": "Limite de carga da bateria atingido"
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -18328,7 +18340,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "При включении эти пределы временно ограничивают запрошенную мощность заряда MultiPlus. Они не меняют конфигурацию инвертора и не управляют другими зарядными устройствами.",
       "Within battery charge limits": "В пределах ограничений зарядки батарей",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Ноль приостанавливает запрошенную зарядку. Необходимы актуальные данные о SOC, ячейках, разрешении зарядки и состоянии защиты обеих батарей; при отсутствии данных зарядка приостанавливается, пока эта функция включена. Перед включением задайте все три порога.",
-      "Zero uses the capacity reported by the JK BMS.": "При нуле используется ёмкость, передаваемая JK BMS."
+      "Zero uses the capacity reported by the JK BMS.": "При нуле используется ёмкость, передаваемая JK BMS.",
+      "Battery charge limit reached": "Достигнут предел заряда батареи"
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -19738,7 +19751,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Când sunt activate, aceste limite plafonează temporar puterea de încărcare solicitată pentru MultiPlus. Nu reconfigurează invertorul și nu controlează alte încărcătoare.",
       "Within battery charge limits": "În limitele de încărcare a bateriilor",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Zero suspendă încărcarea solicitată. Sunt necesare date actuale despre SOC, celule, permisiunea de încărcare și starea protecțiilor ambelor baterii; lipsa datelor suspendă încărcarea cât timp funcția este activată. Setați toate cele trei praguri înainte de activare.",
-      "Zero uses the capacity reported by the JK BMS.": "Zero utilizează capacitatea raportată de JK BMS."
+      "Zero uses the capacity reported by the JK BMS.": "Zero utilizează capacitatea raportată de JK BMS.",
+      "Battery charge limit reached": "Limita de încărcare a bateriei a fost atinsă"
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -21148,7 +21162,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "När dessa gränser är aktiverade begränsar de tillfälligt den begärda laddeffekten för MultiPlus. De ändrar inte växelriktarens konfiguration och styr inte andra laddare.",
       "Within battery charge limits": "Inom batteriets laddningsgränser",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Noll pausar den begärda laddningen. Aktuella data om SOC, celler, tillstånd att ladda och skyddsstatus från båda batterierna krävs; saknade data pausar laddningen medan funktionen är aktiverad. Ställ in alla tre tröskelvärden före aktivering.",
-      "Zero uses the capacity reported by the JK BMS.": "Noll använder den kapacitet som JK BMS rapporterar."
+      "Zero uses the capacity reported by the JK BMS.": "Noll använder den kapacitet som JK BMS rapporterar.",
+      "Battery charge limit reached": "Batteriets laddningsgräns har nåtts"
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -22558,7 +22573,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "เมื่อเปิดใช้ ขีดจำกัดเหล่านี้จะจำกัดคำขอชาร์จของ MultiPlus ชั่วคราว โดยไม่เปลี่ยนการตั้งค่าอินเวอร์เตอร์หรือควบคุมเครื่องชาร์จอื่น",
       "Within battery charge limits": "อยู่ภายในขีดจำกัดการชาร์จแบตเตอรี่",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "ค่าเป็นศูนย์จะหยุดคำขอชาร์จชั่วคราว ต้องมีข้อมูล SOC เซลล์ การอนุญาตให้ชาร์จ และสถานะการป้องกันล่าสุดจากทั้งสองแพ็ก หากข้อมูลขาดหายขณะเปิดใช้ฟังก์ชันนี้ การชาร์จจะหยุดชั่วคราว ตั้งค่าทั้งสามเกณฑ์ก่อนเปิดใช้",
-      "Zero uses the capacity reported by the JK BMS.": "ค่าเป็นศูนย์จะใช้ความจุที่ JK BMS รายงาน"
+      "Zero uses the capacity reported by the JK BMS.": "ค่าเป็นศูนย์จะใช้ความจุที่ JK BMS รายงาน",
+      "Battery charge limit reached": "ถึงขีดจำกัดการชาร์จแบตเตอรี่แล้ว"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -23968,7 +23984,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Etkinleştirildiğinde bu sınırlar MultiPlus şarj talebini geçici olarak sınırlar. İnvertörü yeniden yapılandırmaz veya diğer şarj cihazlarını kontrol etmez.",
       "Within battery charge limits": "Akü şarj sınırları içinde",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Sıfır, istenen şarjı duraklatır. Her iki akü grubundan güncel SOC, hücre, şarj izni ve koruma durumu verileri gereklidir; bu özellik etkinken eksik veri şarjı duraklatır. Etkinleştirmeden önce üç eşiği de ayarlayın.",
-      "Zero uses the capacity reported by the JK BMS.": "Sıfır, JK BMS tarafından bildirilen kapasiteyi kullanır."
+      "Zero uses the capacity reported by the JK BMS.": "Sıfır, JK BMS tarafından bildirilen kapasiteyi kullanır.",
+      "Battery charge limit reached": "Akü şarj sınırına ulaşıldı"
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -25378,7 +25395,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "Коли ці обмеження ввімкнено, вони тимчасово обмежують запитану потужність заряджання MultiPlus. Вони не змінюють конфігурацію інвертора та не керують іншими зарядними пристроями.",
       "Within battery charge limits": "У межах обмежень заряджання батарей",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "Нуль призупиняє запитане заряджання. Потрібні актуальні дані про SOC, комірки, дозвіл на заряджання та стан захисту обох батарей; за відсутності даних заряджання призупиняється, поки цю функцію ввімкнено. Перед увімкненням задайте всі три пороги.",
-      "Zero uses the capacity reported by the JK BMS.": "Нуль означає використання ємності, яку повідомляє JK BMS."
+      "Zero uses the capacity reported by the JK BMS.": "Нуль означає використання ємності, яку повідомляє JK BMS.",
+      "Battery charge limit reached": "Досягнуто межі заряду акумулятора"
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -26788,7 +26806,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "启用后，这些限制会暂时限制MultiPlus的充电请求，不会重新配置逆变器，也不会控制其他充电器。",
       "Within battery charge limits": "未超出电池充电限制",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "设为零会暂停请求充电。必须获得两个电池组的最新SOC、单体数据、充电许可和保护状态；此功能启用时，数据缺失会暂停充电。启用前，请设置全部三个阈值。",
-      "Zero uses the capacity reported by the JK BMS.": "设为零时，使用JK BMS上报的容量。"
+      "Zero uses the capacity reported by the JK BMS.": "设为零时，使用JK BMS上报的容量。",
+      "Battery charge limit reached": "已达到电池充电上限"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -28198,7 +28217,8 @@
       "When enabled, these limits temporarily cap the MultiPlus charge request. They do not reconfigure the inverter or control other chargers.": "عند التمكين، تحد هذه القيم مؤقتًا من طلب الشحن من MultiPlus. وهي لا تعيد ضبط العاكس ولا تتحكم في أجهزة الشحن الأخرى.",
       "Within battery charge limits": "ضمن حدود شحن البطارية",
       "Zero pauses requested charging. Fresh SOC, cells, charging permission and protection status from both packs are required; missing data pauses charging while this feature is enabled. Set all three thresholds before enabling it.": "تؤدي القيمة صفر إلى إيقاف الشحن المطلوب مؤقتًا. يلزم توفر بيانات حديثة لحالة الشحن والخلايا والسماح بالشحن وحالة الحماية من المجموعتين؛ ويؤدي غياب البيانات إلى إيقاف الشحن مؤقتًا أثناء تمكين هذه الميزة. اضبط العتبات الثلاث كلها قبل تمكينها.",
-      "Zero uses the capacity reported by the JK BMS.": "تستخدم القيمة صفر السعة التي يبلغ عنها نظام إدارة البطارية JK."
+      "Zero uses the capacity reported by the JK BMS.": "تستخدم القيمة صفر السعة التي يبلغ عنها نظام إدارة البطارية JK.",
+      "Battery charge limit reached": "تم بلوغ حد شحن البطارية"
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."
