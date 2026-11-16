@@ -67,10 +67,12 @@ const char *state_name(State s) {
 #include <NimBLERemoteService.h>
 #include <NimBLERemoteCharacteristic.h>
 #include <NimBLEAttValue.h>
+#include <WiFi.h>
 #include <atomic>
 #include <new>
 #include "esp_heap_caps.h"
 #include "esp_timer.h"
+#include "esp_wifi.h"
 #include "freertos/timers.h"
 
 #ifndef BRAIN_ZERO_BLE_BOOT_RECOVERY
@@ -90,6 +92,7 @@ constexpr int SUBSCRIBE_ERROR = -1004, METADATA_ERROR = -1005, IDENTITY_TIMEOUT 
 constexpr int READ_REQUEST_ERROR = -1007, STREAM_TIMEOUT = -1008;
 constexpr int NOTIFICATION_OVERFLOW = -1009;
 constexpr int ADAPTER_RESTARTED = -1010;
+constexpr int WIFI_COEX_ERROR = -1012;
 
 uint32_t operation_deadline() {
     const uint32_t deadline = millis() + OPERATION_MS;
@@ -458,12 +461,35 @@ void timer_guard(TimerHandle_t timer) {
     guard(*static_cast<Runtime *>(pvTimerGetTimerID(timer)));
 }
 
+bool prepare_coexistence() {
+    // IDF 4.4 aborts in coex_core_enable when Wi-Fi was set to PS_NONE.
+    // Use Arduino's enum overload as well as the driver query: its cached
+    // sleep policy is reapplied whenever Wi-Fi recovery recreates the driver.
+    // setSleep returns false when the cache already has the requested value.
+    WiFi.setSleep(WIFI_PS_MIN_MODEM);
+    wifi_ps_type_t actual = WIFI_PS_NONE;
+    esp_err_t result = esp_wifi_get_ps(&actual);
+    if (result == ESP_ERR_WIFI_NOT_INIT)
+        return WiFi.getSleep() == WIFI_PS_MIN_MODEM;
+    if (result != ESP_OK) return false;
+    if (actual != WIFI_PS_MIN_MODEM) {
+        if (esp_wifi_set_ps(WIFI_PS_MIN_MODEM) != ESP_OK) return false;
+        result = esp_wifi_get_ps(&actual);
+    }
+    return result == ESP_OK && actual == WIFI_PS_MIN_MODEM &&
+           WiFi.getSleep() == WIFI_PS_MIN_MODEM;
+}
+
 void start_worker(void *argument) {
     auto &r = *static_cast<Runtime *>(argument);
     for (;;) {
         if (!settings_copy().enabled) { vTaskDelay(pdMS_TO_TICKS(100)); continue; }
-        if (NimBLEDevice::init("brain_zero")) break;
-        for (auto &link : r.links) link.state = State::STACK_FAILED;
+        const bool coexistence = prepare_coexistence();
+        if (coexistence && NimBLEDevice::init("brain_zero")) break;
+        for (auto &link : r.links) {
+            link.state = State::STACK_FAILED;
+            link.last_error = coexistence ? 0 : WIFI_COEX_ERROR;
+        }
         vTaskDelay(pdMS_TO_TICKS(30000));
     }
     NimBLEDevice::setMTU(64);
@@ -549,6 +575,13 @@ bool begin(const Settings &settings) {
     }
 #endif
     return apply(settings);
+}
+
+bool radio_requires_sleep() {
+    portENTER_CRITICAL(&settings_lock);
+    const bool required = desired.enabled || runtime != nullptr;
+    portEXIT_CRITICAL(&settings_lock);
+    return required;
 }
 
 bool apply(const Settings &settings) {
@@ -637,4 +670,8 @@ void view(View &out, int64_t now_us) {
 }
 
 }  // namespace battery_ble
+#else
+namespace battery_ble {
+bool radio_requires_sleep() { return false; }
+}
 #endif  // ARDUINO_ARCH_ESP32

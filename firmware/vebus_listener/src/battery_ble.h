@@ -49,6 +49,10 @@ const char *state_name(State state);
 // until restart to avoid tearing down a host while callbacks are active.
 bool begin(const Settings &settings);
 bool apply(const Settings &settings);
+// IDF 4.4 Wi-Fi/Bluetooth coexistence requires modem sleep. True from an
+// enable request through the retained BLE host lifetime, including disconnects.
+// Cheap radio-policy query: no snapshots, allocations or blocking BLE calls.
+bool radio_requires_sleep();
 // Call frequently from the Arduino loop. Bounded, nonblocking cancellation of
 // overdue BLE operations; it never takes the inverter's lock or writes VE.Bus.
 void loop();
