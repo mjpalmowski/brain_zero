@@ -288,15 +288,35 @@ void Policy::restore_voltage_hold(uint16_t cv, bool latched) {
     voltage_threshold_cv_ = cv;
     voltage_latched_ = cv != 0 && latched;
     low_since_ = last_low_sample_ = -1;
+    high_since_ = last_high_sample_ = -1;
 }
 
 void Policy::update_voltage_hold(const Settings &s, const Inputs &in, bool charge_window) {
     if (voltage_threshold_cv_ != s.voltage_hold_cv) restore_voltage_hold(s.voltage_hold_cv, false);
     if (s.enabled && charge_window) voltage_latched_ = false;
-    if (voltage_latched_) return;
-    const bool low = s.enabled && voltage_threshold_cv_ && !charge_window &&
-                     in.voltage_at >= 0 && in.now >= in.voltage_at && in.now - in.voltage_at < HOLD_SAMPLE_MAX_US &&
-                     in.bat_v > 0 && in.bat_v <= voltage_threshold_cv_ / 100.0f;
+    const bool sample = in.voltage_at >= 0 && in.now >= in.voltage_at && in.now - in.voltage_at < HOLD_SAMPLE_MAX_US &&
+                        in.bat_v > 0;
+    if (voltage_latched_) {
+        // Release early once the battery stays above the release voltage, if one is set.
+        const bool high = s.enabled && s.voltage_release_cv > voltage_threshold_cv_ && sample &&
+                          in.bat_v > s.voltage_release_cv / 100.0f;
+        if (!high) {
+            high_since_ = last_high_sample_ = -1;
+            return;
+        }
+        if (last_high_sample_ < 0 || in.voltage_at < last_high_sample_ ||
+            in.voltage_at - last_high_sample_ >= HOLD_SAMPLE_MAX_US) high_since_ = in.voltage_at;
+        last_high_sample_ = in.voltage_at;
+        if (in.voltage_at - high_since_ >= RELEASE_DELAY_US) {
+            voltage_latched_ = false;
+            low_since_ = last_low_sample_ = -1;
+            high_since_ = last_high_sample_ = -1;
+        }
+        return;
+    }
+    high_since_ = last_high_sample_ = -1;
+    const bool low = s.enabled && voltage_threshold_cv_ && !charge_window && sample &&
+                     in.bat_v <= voltage_threshold_cv_ / 100.0f;
     if (!low) {
         low_since_ = last_low_sample_ = -1;
         return;
@@ -328,13 +348,19 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
     d.charge_inhibited = s.enabled && s.voltage_hold_cv && !charge_window;
     d.voltage_hold = d.charge_inhibited && voltage_latched_;
     const bool hold = d.grid_hold || d.voltage_hold;
-    uint16_t flags = s.dc_pv_feed_in ? 0 : FLAG_NO_DC_PV_FEED_IN;
-    if (d.charge_inhibited || schedule_grid_hold_) flags |= FLAG_NO_CHARGE;
     // Leave room for the power limits in the integer setpoint arithmetic.
     const bool power_known = in.power_valid && isfinite(in.acout_w) &&
                              double(in.acout_w) > double(INT_MIN) + HARD_MAX_W &&
                              double(in.acout_w) <= double(INT_MAX) - HARD_MAX_W;
     const int out = power_known ? (int)lroundf(in.acout_w) : 0;  // AC-out, + = drawn by the loads
+    // No charging from the grid outside the charge windows, nor once a window's target holds the
+    // grid. Surplus on AC-out may still charge the battery: the setpoint never imports more than
+    // the loads draw. Without an AC-out reading the two cannot be told apart, so then the
+    // no-charge flag stops all charging, as before.
+    const bool no_grid_charge = d.charge_inhibited || schedule_grid_hold_;
+    const int grid_charge_floor = -max_of(out, 0);  // on the bus: import at most the loads
+    uint16_t flags = s.dc_pv_feed_in ? 0 : FLAG_NO_DC_PV_FEED_IN;
+    if (no_grid_charge && !power_known) flags |= FLAG_NO_CHARGE;
     char grid[24];
     grid_words(s.grid_setpoint_w, grid, sizeof grid);
     int sp = -s.grid_setpoint_w;  // on the bus, + = export
@@ -425,7 +451,9 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
         // The limits that raise the setpoint first, then those that lower it, which win: the feed-in
         // limit over the charge limit, the inverter limit over the import limit.
         if (charge_w >= 0) {
-            sp = -charge_w - out;
+            // In a hold the grid supplies the loads and the battery is not discharged, but surplus
+            // on AC-out still charges it rather than being exported.
+            sp = -charge_w - (hold ? max_of(out, 0) : out);
             d.charging = !hold;
         }
         if (s.max_charge_w >= 0 && -s.max_charge_w - out > sp) {
@@ -463,6 +491,9 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
             append(d.why, sizeof d.why, ", no AC-out reading");
         }
     }
+    // A grid setpoint, an external setpoint or a limit that imports more than the loads draw would
+    // charge the battery from the grid. The floor is at most 0 W, so it never exceeds a feed-in limit.
+    if (no_grid_charge && power_known && sp < grid_charge_floor) sp = grid_charge_floor;
     if (bound_by) append(d.why, sizeof d.why, ", held by %s", bound_by);
 
     // The safety cap. Cutting an import would let the battery cover more of the loads than intended,
@@ -475,6 +506,12 @@ Decision Policy::decide(const Settings &s, const Inputs &in, int last_w) {
         append(d.why, sizeof d.why, ", capped at %d W", cap);
     }
     d.setpoint_w = clamp(last_w + clamp(d.target_w - last_w, -RAMP_W, RAMP_W), -cap, cap);
+    // Like the no-charge flag it replaces, stopping grid charging does not wait for the ramp.
+    if (no_grid_charge && power_known) {
+        const int floor_w = clamp(grid_charge_floor, -cap, cap);
+        d.target_w = max_of(d.target_w, floor_w);
+        d.setpoint_w = max_of(d.setpoint_w, floor_w);
+    }
 
     // Battery protection is the final authority, including in external control.
     // It also constrains the ramp: tightening a limit must not leave an old,
@@ -529,6 +566,9 @@ bool validate(const Settings &s, char *why, size_t cap) {
         bad = "the safety cap must be 0-5000 W";
     } else if (!valid_hold_voltage(s.voltage_hold_cv)) {
         bad = "the battery voltage threshold must be 8.00-80.00 V, or disabled";
+    } else if (s.voltage_release_cv &&
+               (!valid_hold_voltage(s.voltage_release_cv) || s.voltage_release_cv <= s.voltage_hold_cv)) {
+        bad = "the release voltage must be above the threshold and at most 80.00 V, or disabled";
     } else if (s.tz[0] == 0 || memchr(s.tz, 0, sizeof s.tz) == nullptr) {
         bad = "the time zone must be a POSIX TZ string of up to 47 characters";
     }

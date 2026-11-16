@@ -170,7 +170,6 @@
     "Charging",
     "Charging blocked by ESS flag",
     "Charging clock unavailable: accepting grid",
-    "Charging paused until the next window",
     "Charging requested",
     "Charging stage",
     "Charging takes priority: accepting grid",
@@ -398,6 +397,7 @@
     "Grid (AC-in)",
     "Grid after target",
     "Grid after target did not match the saved settings.",
+    "Grid charging paused until the next window",
     "Grid connected",
     "Grid hold requested",
     "Grid setpoint",
@@ -520,6 +520,7 @@
     "Last inverter frame",
     "Last reply delay",
     "Latest 32 episodes observed by the S3. Times use your browser’s time zone. After a telemetry gap, the clear time is when the S3 first sees the condition clear.",
+    "Leave empty to keep the grid until the next charge window.",
     "Leave the password blank to keep it for the current network. Reopen",
     "Leave the password blank to keep the one stored on the ESP32.",
     "Limit charge power",
@@ -926,6 +927,7 @@
     "Submitting your inverter data…",
     "Submitting…",
     "Sunday",
+    "Switch back above",
     "Switch to grid at",
     "Switch to inverter only? The battery will supply AC-out loads.",
     "Switching to battery",
@@ -940,7 +942,7 @@
     "Temporarily disable AC PV",
     "Test connection",
     "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.",
-    "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.",
+    "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.",
     "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.",
     "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.",
     "The app file does not fit the OTA slot.",
@@ -1563,7 +1565,6 @@
       "Charging": "Laai",
       "Charging blocked by ESS flag": "Laai geblokkeer deur ESS vlag",
       "Charging clock unavailable: accepting grid": "Laaiklok nie beskikbaar nie: aanvaar rooster",
-      "Charging paused until the next window": "Laai het onderbreek tot die volgende venster",
       "Charging requested": "Laai versoek",
       "Charging stage": "Laaifase",
       "Charging takes priority: accepting grid": "Laai neem prioriteit: aanvaarding van rooster",
@@ -2269,7 +2270,6 @@
       "Temporarily disable AC PV": "Deaktiveer AC PV tydelik",
       "Test connection": "Toets verbinding",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Die ESS-besluit is die beheerder se bedoeling. Die gemete toestand en terugskrywings wys wat die omskakelaar rapporteer.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "Die MultiPlus laai slegs in geskeduleerde vensters. As sy batteryspanning vir 5 sekondes by of onder die drempel bly, verskaf die rooster die vragte tot die volgende geskeduleerde MultiPlus-laaivenster.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "Die MultiPlus sal herbegin en AC-uit sal onderbreek word. Hou brain_zero aangedryf.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "Die S3 verfris hierdie momentopname terwyl dit 'n ondersteunde MultiPlus beheer. \"Lees foutverslag\" haal ook gestoorde aflostoetsbesonderhede. AC insetbeskikbaarheid en aflossluiting is afsonderlike aanduidings. Hernubare prioriteit wys die bedryfsmodus. Die aflostoets OK-vlag wys of 'n slaag aangedui is.",
       "The app file does not fit the OTA slot.": "Die toepassinglêer pas nie by die OTA-gleuf nie.",
@@ -2836,7 +2836,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-monitering word tydens opdateringkontroles en aflaaie onderbreek. Die beheerder herbegin eers en verbind weer met die batterye wanneer dit klaar is.",
       "Finish the current firmware update first.": "Voltooi eers die huidige firmware-opdatering.",
       "Cancel": "Kanselleer",
-      "Restart cancelled: Bluetooth connections did not close.": "Herbegin gekanselleer: Bluetooth-verbindings het nie gesluit nie."
+      "Restart cancelled: Bluetooth connections did not close.": "Herbegin gekanselleer: Bluetooth-verbindings het nie gesluit nie.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "Die MultiPlus laai slegs in geskeduleerde vensters vanaf die rooster; surplus op AC-uit laai steeds die battery. As sy batteryspanning vir 5 sekondes by of onder die drempel bly, verskaf die rooster die vragte tot die volgende geskeduleerde MultiPlus-laaivenster, of totdat die spanning vir 30 sekondes bo die terugskakelspanning bly.",
+      "Switch back above": "Skakel terug bo",
+      "Leave empty to keep the grid until the next charge window.": "Laat leeg om die rooster tot die volgende laaivenster te gebruik.",
+      "Grid charging paused until the next window": "Laai vanaf die rooster onderbreek tot die volgende venster"
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -2982,7 +2986,6 @@
       "Charging": "Nabíjení",
       "Charging blocked by ESS flag": "Nabíjení blokováno příznakem ESS",
       "Charging clock unavailable: accepting grid": "Nabíjecí hodiny nejsou k dispozici: přijímá se síť",
-      "Charging paused until the next window": "Nabíjení pozastaveno do dalšího okna",
       "Charging requested": "Požadováno nabíjení",
       "Charging stage": "Fáze nabíjení",
       "Charging takes priority: accepting grid": "Nabíjení má přednost: přijímání sítě",
@@ -3688,7 +3691,6 @@
       "Temporarily disable AC PV": "Dočasně deaktivujte AC PV",
       "Test connection": "Otestovat připojení",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Rozhodnutí ESS je záměrem správce. Naměřený stav a zpětné čtení ukazují, co střídač hlásí.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus se účtuje pouze v naplánovaných oknech. Pokud napětí baterie zůstane na nebo pod prahovou hodnotou po dobu 5 sekund, síť bude napájet zátěže až do dalšího plánovaného nabíjecího okna MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus se restartuje a výstup AC se přeruší. Udržujte brain_zero napájený.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 obnovuje tento snímek, zatímco ovládá podporovaný MultiPlus. „Přečíst zprávu o chybě“ také načte uložené podrobnosti o testu relé. Dostupnost vstupu AC a sepnutí relé jsou samostatné indikace. Priorita obnovitelných zdrojů ukazuje provozní režim. Příznak OK reléového testu ukazuje, zda bylo indikováno vyhovění.",
       "The app file does not fit the OTA slot.": "Soubor aplikace se nevejde do slotu OTA.",
@@ -4255,7 +4257,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Monitorování přes Bluetooth se při kontrole a stahování aktualizací pozastaví. Regulátor se nejprve restartuje a po dokončení se znovu připojí k bateriím.",
       "Finish the current firmware update first.": "Nejprve dokončete probíhající aktualizaci firmwaru.",
       "Cancel": "Zrušit",
-      "Restart cancelled: Bluetooth connections did not close.": "Restart byl zrušen: spojení Bluetooth nebyla ukončena."
+      "Restart cancelled: Bluetooth connections did not close.": "Restart byl zrušen: spojení Bluetooth nebyla ukončena.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus nabíjí ze sítě pouze v naplánovaných oknech; přebytek na AC výstupu baterii nabíjí i nadále. Pokud napětí baterie zůstane na nebo pod prahovou hodnotou po dobu 5 sekund, síť napájí zátěže až do dalšího plánovaného nabíjecího okna MultiPlus, nebo dokud napětí nezůstane 30 sekund nad napětím pro návrat.",
+      "Switch back above": "Přepnout zpět nad",
+      "Leave empty to keep the grid until the next charge window.": "Ponechte prázdné, aby síť napájela zátěže až do dalšího nabíjecího okna.",
+      "Grid charging paused until the next window": "Nabíjení ze sítě pozastaveno do dalšího okna"
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -4401,7 +4407,6 @@
       "Charging": "Oplader",
       "Charging blocked by ESS flag": "Opladning blokeret af ESS flag",
       "Charging clock unavailable: accepting grid": "Opladningsur er ikke tilgængeligt: accepterer gitter",
-      "Charging paused until the next window": "Opladningen blev sat på pause indtil næste vindue",
       "Charging requested": "Opladning anmodet",
       "Charging stage": "Ladetrin",
       "Charging takes priority: accepting grid": "Opladning har prioritet: accepterer nettet",
@@ -5107,7 +5112,6 @@
       "Temporarily disable AC PV": "Deaktiver AC PV midlertidigt",
       "Test connection": "Test forbindelse",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "ESS-beslutningen er controllerens hensigt. Den målte tilstand og aflæsninger viser, hvad inverteren rapporterer.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus oplader kun i planlagte vinduer. Hvis dets batterispænding forbliver på eller under tærsklen i 5 sekunder, leverer nettet belastningerne indtil det næste planlagte MultiPlus opladningsvindue.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus genstarter, og AC-out vil blive afbrudt. Hold brain_zero tændt.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 opdaterer dette øjebliksbillede, mens den styrer en understøttet MultiPlus. \"Læs fejlrapport\" henter også gemte relætestdetaljer. AC inputtilgængelighed og relælukning er separate indikationer. Fornybar prioritet viser driftstilstanden. Relæ-test OK-flaget viser, om der er angivet bestået.",
       "The app file does not fit the OTA slot.": "App-filen passer ikke til OTA-slot.",
@@ -5674,7 +5678,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-overvågning sættes på pause under søgning efter og download af opdateringer. Controlleren genstarter først og forbinder til batterierne igen, når handlingen er afsluttet.",
       "Finish the current firmware update first.": "Afslut først den igangværende firmware-opdatering.",
       "Cancel": "Annuller",
-      "Restart cancelled: Bluetooth connections did not close.": "Genstart annulleret: Bluetooth-forbindelserne blev ikke afbrudt."
+      "Restart cancelled: Bluetooth connections did not close.": "Genstart annulleret: Bluetooth-forbindelserne blev ikke afbrudt.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus oplader kun fra elnettet i planlagte vinduer; overskud på AC-ud oplader stadig batteriet. Hvis dets batterispænding forbliver på eller under tærsklen i 5 sekunder, leverer nettet belastningerne indtil det næste planlagte MultiPlus-opladningsvindue, eller indtil spændingen har været over tilbageskiftsspændingen i 30 sekunder.",
+      "Switch back above": "Skift tilbage over",
+      "Leave empty to keep the grid until the next charge window.": "Lad feltet være tomt for at bruge elnettet indtil næste opladningsvindue.",
+      "Grid charging paused until the next window": "Opladning fra elnettet sat på pause indtil næste vindue"
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -5820,7 +5828,6 @@
       "Charging": "Laden",
       "Charging blocked by ESS flag": "Laden durch ESS-Flag blockiert",
       "Charging clock unavailable: accepting grid": "Ladeuhr nicht verfügbar: Netz wird akzeptiert",
-      "Charging paused until the next window": "Der Ladevorgang wurde bis zum nächsten Fenster unterbrochen",
       "Charging requested": "Aufladung angefordert",
       "Charging stage": "Ladephase",
       "Charging takes priority: accepting grid": "Laden hat Vorrang: Netzannahme",
@@ -6526,7 +6533,6 @@
       "Temporarily disable AC PV": "Deaktivieren Sie vorübergehend AC PV",
       "Test connection": "Verbindung testen",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Die ESS-Entscheidung zeigt, was der Controller anfordert. Messwerte und Rückmeldungen zeigen, was der Wechselrichter meldet.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "Der MultiPlus lädt nur in geplanten Fenstern. Wenn die Batteriespannung 5 Sekunden lang auf oder unter dem Schwellenwert bleibt, versorgt das Netz die Lasten bis zum nächsten geplanten MultiPlus-Ladefenster.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "Der MultiPlus wird neu gestartet und der AC-Ausgang wird unterbrochen. Halten Sie den brain_zero mit Strom versorgt.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "Der S3 aktualisiert diesen Snapshot, während er einen unterstützten MultiPlus steuert. „Fehlerbericht lesen“ ruft auch gespeicherte Relaistestdetails ab. AC Eingangsverfügbarkeit und Relaisschließung sind separate Anzeigen. Die erneuerbare Priorität zeigt den Betriebsmodus an. Das Flag „Relaistest OK“ zeigt an, ob ein Bestehen angezeigt wurde.",
       "The app file does not fit the OTA slot.": "Die App-Datei passt nicht in den OTA-Slot.",
@@ -7093,7 +7099,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Die Bluetooth-Überwachung pausiert während der Suche nach Updates und des Downloads. Der Controller startet zunächst neu und verbindet sich nach Abschluss wieder mit den Batterien.",
       "Finish the current firmware update first.": "Schließen Sie zuerst das laufende Firmware-Update ab.",
       "Cancel": "Abbrechen",
-      "Restart cancelled: Bluetooth connections did not close.": "Neustart abgebrochen: Bluetooth-Verbindungen wurden nicht getrennt."
+      "Restart cancelled: Bluetooth connections did not close.": "Neustart abgebrochen: Bluetooth-Verbindungen wurden nicht getrennt.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "Der MultiPlus lädt nur in geplanten Fenstern aus dem Netz; Überschuss am AC-Ausgang lädt die Batterie weiterhin. Wenn die Batteriespannung 5 Sekunden lang auf oder unter dem Schwellenwert bleibt, versorgt das Netz die Lasten bis zum nächsten geplanten MultiPlus-Ladefenster oder bis die Spannung 30 Sekunden lang über der Rückschaltspannung bleibt.",
+      "Switch back above": "Oberhalb dieser Spannung zurückschalten",
+      "Leave empty to keep the grid until the next charge window.": "Leer lassen, um bis zum nächsten Ladefenster am Netz zu bleiben.",
+      "Grid charging paused until the next window": "Netzladung bis zum nächsten Fenster unterbrochen"
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -7239,7 +7249,6 @@
       "Charging": "Cargando",
       "Charging blocked by ESS flag": "Carga bloqueada por la bandera ESS",
       "Charging clock unavailable: accepting grid": "Reloj de carga no disponible: aceptando red",
-      "Charging paused until the next window": "Carga pausada hasta la siguiente ventana",
       "Charging requested": "Carga solicitada",
       "Charging stage": "Etapa de carga",
       "Charging takes priority: accepting grid": "La carga tiene prioridad: aceptar la red",
@@ -7945,7 +7954,6 @@
       "Temporarily disable AC PV": "Desactivar temporalmente AC PV",
       "Test connection": "Probar conexión",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "La decisión ESS indica lo que solicita el controlador. Las mediciones y confirmaciones proceden del inversor.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "El MultiPlus cobra solo en períodos programados. Si el voltaje de la batería se mantiene en el umbral o por debajo de él durante 5 segundos, la red suministra las cargas hasta la siguiente ventana de carga MultiPlus programada.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "El MultiPlus se reiniciará y la salida del AC se interrumpirá. Mantenga encendido el brain_zero.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "El S3 actualiza esta instantánea mientras controla un MultiPlus compatible. \"Leer informe de fallas\" también recupera los detalles almacenados de la prueba del relé. La disponibilidad de entrada AC y el cierre del relé son indicaciones separadas. La prioridad renovable muestra el modo de funcionamiento. La bandera OK de prueba de relevo muestra si se indicó un pase.",
       "The app file does not fit the OTA slot.": "El archivo de la aplicación no encaja en la ranura OTA.",
@@ -8512,7 +8520,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "La monitorización por Bluetooth se pausa mientras se buscan y descargan actualizaciones. El controlador se reinicia primero y vuelve a conectarse a las baterías al terminar.",
       "Finish the current firmware update first.": "Finalice primero la actualización de firmware en curso.",
       "Cancel": "Cancelar",
-      "Restart cancelled: Bluetooth connections did not close.": "Reinicio cancelado: las conexiones Bluetooth no se cerraron."
+      "Restart cancelled: Bluetooth connections did not close.": "Reinicio cancelado: las conexiones Bluetooth no se cerraron.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "El MultiPlus carga desde la red solo en ventanas programadas; el excedente en la salida de CA sigue cargando la batería. Si el voltaje de la batería se mantiene en el umbral o por debajo de él durante 5 segundos, la red suministra las cargas hasta la siguiente ventana de carga programada del MultiPlus, o hasta que el voltaje se mantenga por encima del voltaje de retorno durante 30 segundos.",
+      "Switch back above": "Volver por encima de",
+      "Leave empty to keep the grid until the next charge window.": "Déjelo vacío para usar la red hasta la siguiente ventana de carga.",
+      "Grid charging paused until the next window": "Carga desde la red pausada hasta la siguiente ventana"
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -8658,7 +8670,6 @@
       "Charging": "Chargement",
       "Charging blocked by ESS flag": "Charge bloquée par le drapeau ESS",
       "Charging clock unavailable: accepting grid": "Horloge de charge indisponible : acceptation du réseau",
-      "Charging paused until the next window": "Chargement en pause jusqu'à la fenêtre suivante",
       "Charging requested": "Charge demandée",
       "Charging stage": "Étape de charge",
       "Charging takes priority: accepting grid": "La recharge est prioritaire : accepter le réseau",
@@ -9364,7 +9375,6 @@
       "Temporarily disable AC PV": "Désactiver temporairement AC PV",
       "Test connection": "Tester la connexion",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "La décision ESS indique la demande du contrôleur. Les mesures et les confirmations proviennent de l’onduleur.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "Le MultiPlus facture uniquement dans les fenêtres planifiées. Si la tension de sa batterie reste égale ou inférieure au seuil pendant 5 secondes, le réseau alimente les charges jusqu'à la prochaine fenêtre de charge MultiPlus programmée.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "Le MultiPlus redémarrera et la sortie AC sera interrompue. Gardez le brain_zero alimenté.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "Le S3 actualise cet instantané pendant qu'il contrôle un MultiPlus pris en charge. « Lire le rapport de défaut » récupère également les détails de test de relais stockés. La disponibilité de l'entrée AC et la fermeture du relais sont des indications distinctes. La priorité renouvelable indique le mode de fonctionnement. Le drapeau OK du test de relais indique si une réussite a été indiquée.",
       "The app file does not fit the OTA slot.": "Le fichier de l'application ne correspond pas à l'emplacement OTA.",
@@ -9931,7 +9941,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "La surveillance par Bluetooth est suspendue pendant la recherche et le téléchargement des mises à jour. Le contrôleur redémarre d’abord et se reconnecte aux batteries une fois l’opération terminée.",
       "Finish the current firmware update first.": "Terminez d’abord la mise à jour du micrologiciel en cours.",
       "Cancel": "Annuler",
-      "Restart cancelled: Bluetooth connections did not close.": "Redémarrage annulé : les connexions Bluetooth n’ont pas été fermées."
+      "Restart cancelled: Bluetooth connections did not close.": "Redémarrage annulé : les connexions Bluetooth n’ont pas été fermées.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "Le MultiPlus ne charge depuis le réseau que dans les fenêtres planifiées ; le surplus sur la sortie CA charge toujours la batterie. Si la tension de sa batterie reste égale ou inférieure au seuil pendant 5 secondes, le réseau alimente les charges jusqu'à la prochaine fenêtre de charge MultiPlus programmée, ou jusqu'à ce que la tension reste au-dessus de la tension de retour pendant 30 secondes.",
+      "Switch back above": "Revenir au-dessus de",
+      "Leave empty to keep the grid until the next charge window.": "Laissez vide pour rester sur le réseau jusqu'à la prochaine fenêtre de charge.",
+      "Grid charging paused until the next window": "Charge depuis le réseau en pause jusqu'à la fenêtre suivante"
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -10077,7 +10091,6 @@
       "Charging": "Carica in corso",
       "Charging blocked by ESS flag": "Ricarica bloccata dal flag ESS",
       "Charging clock unavailable: accepting grid": "Orologio di ricarica non disponibile: rete in accettazione",
-      "Charging paused until the next window": "La ricarica è stata sospesa fino alla finestra successiva",
       "Charging requested": "Richiesta ricarica",
       "Charging stage": "Fase di carica",
       "Charging takes priority: accepting grid": "La ricarica ha la priorità: accettazione della rete",
@@ -10783,7 +10796,6 @@
       "Temporarily disable AC PV": "Disattiva temporaneamente AC PV",
       "Test connection": "Prova connessione",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "La decisione ESS mostra la richiesta del controller. Le misure e le conferme provengono dall’inverter.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus si ricarica solo nelle finestre programmate. Se la tensione della batteria rimane pari o inferiore alla soglia per 5 secondi, la rete alimenta i carichi fino alla successiva finestra di carica programmata MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus si riavvierà e AC-out verrà interrotto. Mantieni alimentato brain_zero.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "L'S3 aggiorna questa istantanea mentre controlla un MultiPlus supportato. \"Leggi rapporto guasti\" recupera anche i dettagli memorizzati del test dei relè. AC la disponibilità dell'ingresso e la chiusura del relè sono indicazioni separate. La priorità rinnovabile mostra la modalità operativa. Il flag OK del test relè mostra se è stato indicato un superamento.",
       "The app file does not fit the OTA slot.": "Il file dell'app non si adatta allo slot OTA.",
@@ -11350,7 +11362,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Il monitoraggio tramite Bluetooth viene sospeso durante la ricerca e il download degli aggiornamenti. Il controller si riavvia prima e si ricollega alle batterie al termine.",
       "Finish the current firmware update first.": "Completare prima l’aggiornamento firmware in corso.",
       "Cancel": "Annulla",
-      "Restart cancelled: Bluetooth connections did not close.": "Riavvio annullato: le connessioni Bluetooth non sono state chiuse."
+      "Restart cancelled: Bluetooth connections did not close.": "Riavvio annullato: le connessioni Bluetooth non sono state chiuse.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus si ricarica dalla rete solo nelle finestre programmate; l'eccedenza sull'uscita CA continua a caricare la batteria. Se la tensione della batteria rimane pari o inferiore alla soglia per 5 secondi, la rete alimenta i carichi fino alla successiva finestra di carica programmata MultiPlus, oppure finché la tensione non rimane sopra la tensione di ritorno per 30 secondi.",
+      "Switch back above": "Torna indietro sopra",
+      "Leave empty to keep the grid until the next charge window.": "Lascia vuoto per restare sulla rete fino alla successiva finestra di carica.",
+      "Grid charging paused until the next window": "Ricarica dalla rete sospesa fino alla finestra successiva"
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -11496,7 +11512,6 @@
       "Charging": "充電中",
       "Charging blocked by ESS flag": "ESSフラグにより充電がブロックされました",
       "Charging clock unavailable: accepting grid": "充電クロックが利用できません: グリッドを受け入れています",
-      "Charging paused until the next window": "次のウィンドウまで充電が一時停止されます",
       "Charging requested": "充電が要求されました",
       "Charging stage": "充電ステージ",
       "Charging takes priority: accepting grid": "充電が優先: グリッドを受け入れる",
@@ -12202,7 +12217,6 @@
       "Temporarily disable AC PV": "AC PV を一時的に無効にする",
       "Test connection": "接続をテスト",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "ESS の決定はコントローラーの意図によるものです。測定された状態とリードバックは、インバータが報告する内容を示します。",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus は、スケジュールされたウィンドウでのみ充電されます。バッテリ電圧が 5 秒間閾値以下に留まる場合、グリッドは次にスケジュールされた MultiPlus 充電ウィンドウまで負荷を供給します。",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus が再起動し、AC-out が中断されます。 brain_zero の電源を入れたままにしてください。",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 は、サポートされている MultiPlus を制御している間に、このスナップショットを更新します。 「障害レポートの読み取り」は、保存されているリレーテストの詳細も取得します。 AC 入力の可用性とリレーの閉鎖は別個の表示です。再生可能優先度は動作モードを示します。リレーテスト OK フラグは、合格が示されたかどうかを示します。",
       "The app file does not fit the OTA slot.": "アプリ ファイルが OTA スロットに適合しません。",
@@ -12769,7 +12783,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "更新の確認とダウンロード中はBluetooth監視が一時停止します。最初にコントローラーが再起動し、完了後にバッテリーへ再接続します。",
       "Finish the current firmware update first.": "先に現在のファームウェア更新を完了してください。",
       "Cancel": "キャンセル",
-      "Restart cancelled: Bluetooth connections did not close.": "再起動をキャンセルしました。Bluetooth接続が切断されませんでした。"
+      "Restart cancelled: Bluetooth connections did not close.": "再起動をキャンセルしました。Bluetooth接続が切断されませんでした。",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus は、スケジュールされたウィンドウでのみグリッドから充電します。AC 出力の余剰電力は引き続きバッテリーを充電します。バッテリ電圧が 5 秒間閾値以下に留まる場合、グリッドは次にスケジュールされた MultiPlus 充電ウィンドウまで、または電圧が 30 秒間復帰電圧を上回るまで負荷を供給します。",
+      "Switch back above": "この電圧を超えたら戻す",
+      "Leave empty to keep the grid until the next charge window.": "空欄の場合、次の充電ウィンドウまでグリッドを使用します。",
+      "Grid charging paused until the next window": "次のウィンドウまでグリッドからの充電が一時停止されます"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -12915,7 +12933,6 @@
       "Charging": "Opladen",
       "Charging blocked by ESS flag": "Opladen geblokkeerd door ESS-vlag",
       "Charging clock unavailable: accepting grid": "Laadklok niet beschikbaar: accepteer net",
-      "Charging paused until the next window": "Het opladen is gepauzeerd tot het volgende venster",
       "Charging requested": "Opladen gevraagd",
       "Charging stage": "Oplaadfase",
       "Charging takes priority: accepting grid": "Opladen heeft voorrang: net accepteren",
@@ -13621,7 +13638,6 @@
       "Temporarily disable AC PV": "Schakel AC PV tijdelijk uit",
       "Test connection": "Verbinding testen",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "De ESS-beslissing toont wat de controller vraagt. Meetwaarden en bevestigingen komen van de omvormer.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "De MultiPlus laadt alleen op in geplande vensters. Als de batterijspanning gedurende 5 seconden op of onder de drempel blijft, levert het elektriciteitsnet de belastingen tot het volgende geplande MultiPlus-laadvenster.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "De MultiPlus zal opnieuw opstarten en de AC-out zal worden onderbroken. Houd de brain_zero van stroom voorzien.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "De S3 ververst deze momentopname terwijl hij een ondersteunde MultiPlus bestuurt. Met “Foutrapport lezen” worden ook opgeslagen relaistestgegevens opgehaald. AC ingangsbeschikbaarheid en relaissluiting zijn afzonderlijke indicaties. Hernieuwbare prioriteit toont de bedrijfsmodus. De relay-test OK-vlag geeft aan of er een voldoende is aangegeven.",
       "The app file does not fit the OTA slot.": "Het app-bestand past niet in het OTA-slot.",
@@ -14188,7 +14204,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-bewaking wordt gepauzeerd tijdens het zoeken naar en downloaden van updates. De controller start eerst opnieuw op en maakt na afloop weer verbinding met de batterijen.",
       "Finish the current firmware update first.": "Voltooi eerst de huidige firmware-update.",
       "Cancel": "Annuleren",
-      "Restart cancelled: Bluetooth connections did not close.": "Herstart geannuleerd: de Bluetooth-verbindingen zijn niet gesloten."
+      "Restart cancelled: Bluetooth connections did not close.": "Herstart geannuleerd: de Bluetooth-verbindingen zijn niet gesloten.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "De MultiPlus laadt alleen in geplande vensters op vanaf het net; overschot op AC-uit laadt de batterij nog steeds. Als de batterijspanning gedurende 5 seconden op of onder de drempel blijft, levert het elektriciteitsnet de belastingen tot het volgende geplande MultiPlus-laadvenster, of totdat de spanning 30 seconden boven de terugschakelspanning blijft.",
+      "Switch back above": "Terugschakelen boven",
+      "Leave empty to keep the grid until the next charge window.": "Laat leeg om tot het volgende laadvenster op het net te blijven.",
+      "Grid charging paused until the next window": "Opladen vanaf het net gepauzeerd tot het volgende venster"
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -14334,7 +14354,6 @@
       "Charging": "Ładowanie",
       "Charging blocked by ESS flag": "Ładowanie zablokowane przez flagę ESS",
       "Charging clock unavailable: accepting grid": "Zegar ładowania niedostępny: akceptowanie sieci",
-      "Charging paused until the next window": "Ładowanie wstrzymane do następnego okna",
       "Charging requested": "Zażądano ładowania",
       "Charging stage": "Etap ładowania",
       "Charging takes priority: accepting grid": "Ładowanie ma priorytet: akceptacja sieci",
@@ -15040,7 +15059,6 @@
       "Temporarily disable AC PV": "Tymczasowo wyłącz AC PV",
       "Test connection": "Sprawdź połączenie",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Decyzja ESS jest intencją administratora. Zmierzony stan i odczyty pokazują, co raportuje falownik.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus ładuje się tylko w zaplanowanych oknach. Jeżeli napięcie akumulatora utrzymuje się na poziomie progu lub poniżej niego przez 5 sekund, sieć zasila odbiory do następnego zaplanowanego okna ładowania MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus uruchomi się ponownie, a wyjście AC zostanie przerwane. Utrzymaj zasilanie brain_zero.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 odświeża tę migawkę, kontrolując obsługiwany MultiPlus. „Odczytaj raport o błędach” pozwala również pobrać zapisane szczegóły testu przekaźnika. Dostępność wejścia AC i zamknięcie przekaźnika są odrębnymi wskazaniami. Priorytet odnawialny pokazuje tryb pracy. Flaga OK testu przekaźnika pokazuje, czy wskazano wynik pozytywny.",
       "The app file does not fit the OTA slot.": "Plik aplikacji nie pasuje do gniazda OTA.",
@@ -15607,7 +15625,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Monitorowanie przez Bluetooth jest wstrzymywane podczas sprawdzania i pobierania aktualizacji. Najpierw sterownik uruchamia się ponownie, a po zakończeniu ponownie łączy się z akumulatorami.",
       "Finish the current firmware update first.": "Najpierw zakończ bieżącą aktualizację oprogramowania.",
       "Cancel": "Anuluj",
-      "Restart cancelled: Bluetooth connections did not close.": "Anulowano ponowne uruchomienie: połączenia Bluetooth nie zostały zamknięte."
+      "Restart cancelled: Bluetooth connections did not close.": "Anulowano ponowne uruchomienie: połączenia Bluetooth nie zostały zamknięte.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus ładuje z sieci tylko w zaplanowanych oknach; nadwyżka na wyjściu AC nadal ładuje akumulator. Jeżeli napięcie akumulatora utrzymuje się na poziomie progu lub poniżej niego przez 5 sekund, sieć zasila odbiory do następnego zaplanowanego okna ładowania MultiPlus lub do czasu, gdy napięcie utrzyma się powyżej napięcia powrotu przez 30 sekund.",
+      "Switch back above": "Przełącz z powrotem powyżej",
+      "Leave empty to keep the grid until the next charge window.": "Pozostaw puste, aby korzystać z sieci do następnego okna ładowania.",
+      "Grid charging paused until the next window": "Ładowanie z sieci wstrzymane do następnego okna"
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -15753,7 +15775,6 @@
       "Charging": "A carregar",
       "Charging blocked by ESS flag": "Carregamento bloqueado pela flag ESS",
       "Charging clock unavailable: accepting grid": "Relógio de carregamento indisponível: aceitando grade",
-      "Charging paused until the next window": "Carregamento pausado até a próxima janela",
       "Charging requested": "Carregamento solicitado",
       "Charging stage": "Estágio de carregamento",
       "Charging takes priority: accepting grid": "Carregamento tem prioridade: aceitar rede",
@@ -16459,7 +16480,6 @@
       "Temporarily disable AC PV": "Desative temporariamente AC PV",
       "Test connection": "Testar ligação",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "A decisão ESS indica o que o controlador pede. As medições e confirmações são comunicadas pelo inversor.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "O MultiPlus carrega apenas em janelas agendadas. Se a tensão da bateria permanecer igual ou inferior ao limite por 5 segundos, a rede alimenta as cargas até a próxima janela de carga programada do MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "O MultiPlus será reiniciado e a saída AC será interrompida. Mantenha o brain_zero ligado.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "O S3 atualiza esse instantâneo enquanto controla um MultiPlus compatível. “Ler relatório de falha” também busca detalhes de teste de relé armazenados. A disponibilidade de entrada e o fechamento do relé AC são indicações separadas. A prioridade renovável mostra o modo de operação. O sinalizador OK do teste de relé mostra se uma aprovação foi indicada.",
       "The app file does not fit the OTA slot.": "O arquivo do aplicativo não cabe no slot OTA.",
@@ -17026,7 +17046,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "A monitorização por Bluetooth é suspensa durante a procura e a transferência de atualizações. O controlador reinicia primeiro e volta a ligar-se às baterias quando terminar.",
       "Finish the current firmware update first.": "Conclua primeiro a atualização de firmware em curso.",
       "Cancel": "Cancelar",
-      "Restart cancelled: Bluetooth connections did not close.": "Reinício cancelado: as ligações Bluetooth não foram encerradas."
+      "Restart cancelled: Bluetooth connections did not close.": "Reinício cancelado: as ligações Bluetooth não foram encerradas.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "O MultiPlus carrega a partir da rede apenas em janelas agendadas; o excedente na saída CA continua a carregar a bateria. Se a tensão da bateria permanecer igual ou inferior ao limite por 5 segundos, a rede alimenta as cargas até a próxima janela de carga programada do MultiPlus, ou até que a tensão permaneça acima da tensão de retorno por 30 segundos.",
+      "Switch back above": "Voltar acima de",
+      "Leave empty to keep the grid until the next charge window.": "Deixe vazio para manter a rede até a próxima janela de carga.",
+      "Grid charging paused until the next window": "Carregamento a partir da rede pausado até a próxima janela"
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -17172,7 +17196,6 @@
       "Charging": "заряжается",
       "Charging blocked by ESS flag": "Зарядка заблокирована флагом ESS",
       "Charging clock unavailable: accepting grid": "Часы зарядки недоступны: прием сетки",
-      "Charging paused until the next window": "Зарядка приостановлена до следующего окна",
       "Charging requested": "Запрос на зарядку",
       "Charging stage": "Стадия зарядки",
       "Charging takes priority: accepting grid": "Зарядка имеет приоритет: принятие сетки",
@@ -17878,7 +17901,6 @@
       "Temporarily disable AC PV": "Временно отключить AC PV",
       "Test connection": "Проверить подключение",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Решение ESS является намерением контролера. Измеренное состояние и результаты считывания показывают то, что сообщает инвертор.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus заряжается только в запланированные окна. Если напряжение батареи остается на уровне или ниже порогового значения в течение 5 секунд, сеть обеспечивает питание нагрузки до следующего запланированного окна зарядки MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus перезапустится, а выход AC будет прерван. Поддерживайте питание brain_zero.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 обновляет этот снимок, пока управляет поддерживаемым MultiPlus. Функция «Чтение отчета о неисправности» также позволяет получить сохраненные сведения о тестировании реле. AC Наличие входа и замыкание реле являются отдельными индикаторами. Приоритет возобновляемых источников энергии показывает режим работы. Флаг «ОК» реле-теста показывает, был ли пройден тест.",
       "The app file does not fit the OTA slot.": "Файл приложения не подходит для слота OTA.",
@@ -18445,7 +18467,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Мониторинг по Bluetooth приостанавливается на время проверки и загрузки обновлений. Сначала контроллер перезапускается, а после завершения снова подключается к аккумуляторам.",
       "Finish the current firmware update first.": "Сначала завершите текущее обновление прошивки.",
       "Cancel": "Отмена",
-      "Restart cancelled: Bluetooth connections did not close.": "Перезапуск отменён: соединения Bluetooth не были закрыты."
+      "Restart cancelled: Bluetooth connections did not close.": "Перезапуск отменён: соединения Bluetooth не были закрыты.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus заряжается от сети только в запланированные окна; излишек на выходе AC по-прежнему заряжает батарею. Если напряжение батареи остается на уровне или ниже порогового значения в течение 5 секунд, сеть обеспечивает питание нагрузки до следующего запланированного окна зарядки MultiPlus или пока напряжение не продержится выше напряжения возврата в течение 30 секунд.",
+      "Switch back above": "Вернуться выше",
+      "Leave empty to keep the grid until the next charge window.": "Оставьте пустым, чтобы использовать сеть до следующего окна зарядки.",
+      "Grid charging paused until the next window": "Зарядка от сети приостановлена до следующего окна"
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -18591,7 +18617,6 @@
       "Charging": "Încărcare",
       "Charging blocked by ESS flag": "Încărcare blocată de steag ESS",
       "Charging clock unavailable: accepting grid": "Ceas de încărcare indisponibil: se acceptă rețeaua",
-      "Charging paused until the next window": "Încărcarea a fost întreruptă până la următoarea fereastră",
       "Charging requested": "Încărcare solicitată",
       "Charging stage": "Etapă de încărcare",
       "Charging takes priority: accepting grid": "Încărcarea are prioritate: acceptarea rețelei",
@@ -19297,7 +19322,6 @@
       "Temporarily disable AC PV": "Dezactivați temporar AC PV",
       "Test connection": "Testați conexiunea",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Decizia ESS este intenția controlorului. Starea măsurată și readback-urile arată ceea ce raportează invertorul.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus se încarcă numai în ferestrele programate. Dacă tensiunea bateriei rămâne la sau sub pragul timp de 5 secunde, rețeaua alimentează încărcăturile până la următoarea fereastră de încărcare programată MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus va reporni și AC-out va fi întreruptă. Păstrați brain_zero alimentat.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 reîmprospătează acest instantaneu în timp ce controlează un MultiPlus acceptat. „Citiți raportul de eroare” preia și detaliile stocate ale testului releului. Disponibilitatea intrării AC și închiderea releului sunt indicații separate. Prioritatea reînnoibilă arată modul de funcționare. Steagul releu-test OK arată dacă a fost indicată o trecere.",
       "The app file does not fit the OTA slot.": "Fișierul aplicației nu se potrivește cu slotul OTA.",
@@ -19864,7 +19888,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Monitorizarea prin Bluetooth se întrerupe în timpul verificării și descărcării actualizărilor. Controlerul repornește mai întâi și se reconectează la baterii după finalizare.",
       "Finish the current firmware update first.": "Finalizați mai întâi actualizarea firmware-ului în curs.",
       "Cancel": "Anulare",
-      "Restart cancelled: Bluetooth connections did not close.": "Repornire anulată: conexiunile Bluetooth nu au fost închise."
+      "Restart cancelled: Bluetooth connections did not close.": "Repornire anulată: conexiunile Bluetooth nu au fost închise.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus se încarcă din rețea numai în ferestrele programate; surplusul de pe ieșirea AC încarcă în continuare bateria. Dacă tensiunea bateriei rămâne la sau sub prag timp de 5 secunde, rețeaua alimentează consumatorii până la următoarea fereastră de încărcare programată MultiPlus sau până când tensiunea rămâne peste tensiunea de revenire timp de 30 de secunde.",
+      "Switch back above": "Revino peste",
+      "Leave empty to keep the grid until the next charge window.": "Lăsați gol pentru a rămâne pe rețea până la următoarea fereastră de încărcare.",
+      "Grid charging paused until the next window": "Încărcarea din rețea întreruptă până la următoarea fereastră"
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -20010,7 +20038,6 @@
       "Charging": "Laddar",
       "Charging blocked by ESS flag": "Laddning blockerad av ESS-flaggan",
       "Charging clock unavailable: accepting grid": "Laddningsklocka ej tillgänglig: accepterar rutnät",
-      "Charging paused until the next window": "Laddningen pausades till nästa fönster",
       "Charging requested": "Laddning begärd",
       "Charging stage": "Laddningsfas",
       "Charging takes priority: accepting grid": "Laddning har prioritet: acceptera rutnät",
@@ -20716,7 +20743,6 @@
       "Temporarily disable AC PV": "Inaktivera AC PV tillfälligt",
       "Test connection": "Testa anslutning",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "ESS-beslutet är kontrollantens avsikt. Det uppmätta tillståndet och avläsningarna visar vad omriktaren rapporterar.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus laddar endast i schemalagda fönster. Om dess batterispänning stannar vid eller under tröskelvärdet i 5 sekunder, försörjer nätet lasterna tills nästa schemalagda MultiPlus laddningsfönster.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus kommer att starta om och AC-out kommer att avbrytas. Låt brain_zero drivas.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 uppdaterar denna ögonblicksbild medan den styr en MultiPlus som stöds. \"Läs felrapport\" hämtar också lagrade relätestdetaljer. AC-ingångstillgänglighet och relästängning är separata indikationer. Förnybar prioritet visar driftläget. Flaggan för relätest OK visar om ett godkänt indikeras.",
       "The app file does not fit the OTA slot.": "Appfilen passar inte OTA-platsen.",
@@ -21283,7 +21309,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Bluetooth-övervakning pausas när uppdateringar söks och hämtas. Styrenheten startar om först och ansluter till batterierna igen när åtgärden är klar.",
       "Finish the current firmware update first.": "Slutför först den pågående uppdateringen av fast program.",
       "Cancel": "Avbryt",
-      "Restart cancelled: Bluetooth connections did not close.": "Omstart avbruten: Bluetooth-anslutningarna kopplades inte från."
+      "Restart cancelled: Bluetooth connections did not close.": "Omstart avbruten: Bluetooth-anslutningarna kopplades inte från.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus laddar från elnätet endast i schemalagda fönster; överskott på AC-ut laddar fortfarande batteriet. Om dess batterispänning stannar vid eller under tröskelvärdet i 5 sekunder försörjer nätet lasterna till nästa schemalagda MultiPlus-laddningsfönster, eller tills spänningen har legat över återgångsspänningen i 30 sekunder.",
+      "Switch back above": "Växla tillbaka över",
+      "Leave empty to keep the grid until the next charge window.": "Lämna tomt för att använda elnätet till nästa laddningsfönster.",
+      "Grid charging paused until the next window": "Laddning från elnätet pausad till nästa fönster"
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -21429,7 +21459,6 @@
       "Charging": "กำลังชาร์จ",
       "Charging blocked by ESS flag": "การชาร์จถูกบล็อกโดยธง ESS",
       "Charging clock unavailable: accepting grid": "นาฬิกาชาร์จไม่พร้อมใช้งาน: ยอมรับตาราง",
-      "Charging paused until the next window": "การชาร์จหยุดชั่วคราวจนกระทั่งถึงหน้าต่างถัดไป",
       "Charging requested": "ร้องขอการชาร์จ",
       "Charging stage": "ขั้นตอนการชาร์จไฟ",
       "Charging takes priority: accepting grid": "การชาร์จมีความสำคัญ: การยอมรับกริด",
@@ -22135,7 +22164,6 @@
       "Temporarily disable AC PV": "ปิดการใช้งาน AC PV ชั่วคราว",
       "Test connection": "ทดสอบการเชื่อมต่อ",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "การตัดสินใจของ ESS ถือเป็นความตั้งใจของผู้ควบคุม สถานะที่วัดได้และการอ่านกลับจะแสดงสิ่งที่อินเวอร์เตอร์รายงาน",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus จะชาร์จเฉพาะหน้าต่างที่กำหนดไว้เท่านั้น หากแรงดันไฟฟ้าของแบตเตอรี่อยู่ที่หรือต่ำกว่าเกณฑ์เป็นเวลา 5 วินาที กริดจะจ่ายโหลดจนกว่าจะถึงเวลาชาร์จ MultiPlus ที่กำหนดไว้ครั้งถัดไป",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus จะรีสตาร์ท และ AC-out จะถูกขัดจังหวะ ให้ brain_zero ขับเคลื่อนอยู่",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 รีเฟรชสแนปช็อตนี้ในขณะที่ควบคุม MultiPlus ที่รองรับ “อ่านรายงานข้อผิดพลาด” ยังดึงข้อมูลรายละเอียดการทดสอบรีเลย์ที่เก็บไว้อีกด้วย ความพร้อมใช้งานของอินพุต AC และการปิดรีเลย์เป็นตัวบ่งชี้ที่แยกจากกัน ลำดับความสำคัญที่สามารถต่ออายุได้จะแสดงโหมดการทำงาน ธง OK ของการทดสอบรีเลย์จะแสดงให้เห็นว่ามีการระบุว่าผ่านหรือไม่",
       "The app file does not fit the OTA slot.": "ไฟล์แอปไม่พอดีกับช่อง OTA",
@@ -22702,7 +22730,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "การตรวจสอบผ่าน Bluetooth จะหยุดชั่วคราวระหว่างการตรวจหาและดาวน์โหลดอัพเดต ตัวควบคุมจะเริ่มต้นใหม่ก่อน แล้วเชื่อมต่อกับแบตเตอรี่อีกครั้งเมื่อเสร็จสิ้น",
       "Finish the current firmware update first.": "โปรดดำเนินการอัพเดตเฟิร์มแวร์ปัจจุบันให้เสร็จก่อน",
       "Cancel": "ยกเลิก",
-      "Restart cancelled: Bluetooth connections did not close.": "ยกเลิกการเริ่มต้นใหม่: ไม่สามารถปิดการเชื่อมต่อ Bluetooth ได้"
+      "Restart cancelled: Bluetooth connections did not close.": "ยกเลิกการเริ่มต้นใหม่: ไม่สามารถปิดการเชื่อมต่อ Bluetooth ได้",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus จะชาร์จจากกริดเฉพาะในหน้าต่างที่กำหนดไว้เท่านั้น ส่วนเกินที่เอาต์พุต AC ยังคงชาร์จแบตเตอรี่ หากแรงดันไฟฟ้าของแบตเตอรี่อยู่ที่หรือต่ำกว่าเกณฑ์เป็นเวลา 5 วินาที กริดจะจ่ายโหลดจนกว่าจะถึงหน้าต่างการชาร์จ MultiPlus ที่กำหนดไว้ครั้งถัดไป หรือจนกว่าแรงดันไฟฟ้าจะอยู่เหนือแรงดันกลับคืนเป็นเวลา 30 วินาที",
+      "Switch back above": "สลับกลับเมื่อสูงกว่า",
+      "Leave empty to keep the grid until the next charge window.": "เว้นว่างไว้เพื่อใช้กริดจนถึงหน้าต่างการชาร์จถัดไป",
+      "Grid charging paused until the next window": "การชาร์จจากกริดหยุดชั่วคราวจนถึงหน้าต่างถัดไป"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -22848,7 +22880,6 @@
       "Charging": "Şarj",
       "Charging blocked by ESS flag": "ESS bayrağı nedeniyle şarj işlemi engellendi",
       "Charging clock unavailable: accepting grid": "Şarj saati kullanılamıyor: Şebeke kabul ediliyor",
-      "Charging paused until the next window": "Şarj işlemi bir sonraki pencereye kadar duraklatıldı",
       "Charging requested": "Şarj talep edildi",
       "Charging stage": "Şarj aşaması",
       "Charging takes priority: accepting grid": "Şarj etme önceliklidir: şebekeyi kabul etmek",
@@ -23554,7 +23585,6 @@
       "Temporarily disable AC PV": "AC PV'yi geçici olarak devre dışı bırakın",
       "Test connection": "Bağlantıyı test et",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "ESS kararı kontrolörün amacıdır. Ölçülen durum ve tekrarlar, invertörün ne bildirdiğini gösterir.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus yalnızca zamanlanmış pencerelerde şarj olur. Akü voltajı 5 saniye boyunca eşik değerinde veya altında kalırsa şebeke, bir sonraki programlanan MultiPlus şarj penceresine kadar yükleri besler.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus yeniden başlatılacak ve AC çıkışı kesintiye uğrayacak. brain_zero'ye güç sağlayın.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3, desteklenen bir MultiPlus'yi kontrol ederken bu anlık görüntüyü yeniler. \"Arıza raporunu oku\" aynı zamanda kayıtlı röle testi ayrıntılarını da getirir. AC giriş kullanılabilirliği ve rölenin kapatılması ayrı göstergelerdir. Yenilenebilir öncelik çalışma modunu gösterir. Röle testi OK bayrağı, bir geçişin gösterilip gösterilmediğini gösterir.",
       "The app file does not fit the OTA slot.": "Uygulama dosyası OTA yuvasına uymuyor.",
@@ -24121,7 +24151,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Güncellemeler denetlenirken ve indirilirken Bluetooth ile izleme duraklatılır. Kontrol cihazı önce yeniden başlar ve işlem tamamlandığında akülere yeniden bağlanır.",
       "Finish the current firmware update first.": "Önce devam eden firmware güncellemesini tamamlayın.",
       "Cancel": "İptal",
-      "Restart cancelled: Bluetooth connections did not close.": "Yeniden başlatma iptal edildi: Bluetooth bağlantıları kapatılamadı."
+      "Restart cancelled: Bluetooth connections did not close.": "Yeniden başlatma iptal edildi: Bluetooth bağlantıları kapatılamadı.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus şebekeden yalnızca zamanlanmış pencerelerde şarj olur; AC çıkışındaki fazlalık aküyü şarj etmeye devam eder. Akü voltajı 5 saniye boyunca eşik değerinde veya altında kalırsa şebeke, bir sonraki programlanan MultiPlus şarj penceresine kadar veya voltaj 30 saniye boyunca geri dönüş voltajının üzerinde kalana kadar yükleri besler.",
+      "Switch back above": "Şu değerin üzerinde geri dön:",
+      "Leave empty to keep the grid until the next charge window.": "Bir sonraki şarj penceresine kadar şebekede kalmak için boş bırakın.",
+      "Grid charging paused until the next window": "Şebekeden şarj bir sonraki pencereye kadar duraklatıldı"
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -24267,7 +24301,6 @@
       "Charging": "Зарядка",
       "Charging blocked by ESS flag": "Зарядка заблокована прапором ESS",
       "Charging clock unavailable: accepting grid": "Годинник заряджання недоступний: приймаюча мережа",
-      "Charging paused until the next window": "Заряджання призупинено до наступного вікна",
       "Charging requested": "Запит на зарядку",
       "Charging stage": "Етап зарядки",
       "Charging takes priority: accepting grid": "Зарядка має пріоритет: приймаюча мережа",
@@ -24973,7 +25006,6 @@
       "Temporarily disable AC PV": "Тимчасово вимкнути AC PV",
       "Test connection": "Перевірити підключення",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "Рішення ESS є наміром контролера. Виміряний стан і зворотні зчитування показують, що повідомляє інвертор.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus заряджається лише в заплановані вікна. Якщо напруга його батареї залишається на рівні або нижче порогового значення протягом 5 секунд, мережа забезпечує навантаження до наступного запланованого періоду зарядки MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus перезапуститься, а вихід AC буде перервано. Підтримуйте живлення brain_zero.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 оновлює цей знімок, керуючи підтримуваним MultiPlus. «Прочитати звіт про помилку» також отримує збережені деталі перевірки реле. Доступність входу AC і замикання реле є різними індикаціями. Відновлюваний пріоритет показує режим роботи. Прапорець перевірки реле OK показує, чи було вказано пропуск.",
       "The app file does not fit the OTA slot.": "Файл програми не підходить до слота OTA.",
@@ -25540,7 +25572,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "Моніторинг через Bluetooth призупиняється на час перевірки та завантаження оновлень. Спочатку контролер перезапускається, а після завершення знову підключається до акумуляторів.",
       "Finish the current firmware update first.": "Спочатку завершіть поточне оновлення прошивки.",
       "Cancel": "Скасувати",
-      "Restart cancelled: Bluetooth connections did not close.": "Перезапуск скасовано: з’єднання Bluetooth не були закриті."
+      "Restart cancelled: Bluetooth connections did not close.": "Перезапуск скасовано: з’єднання Bluetooth не були закриті.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus заряджається від мережі лише в заплановані вікна; надлишок на виході AC і далі заряджає батарею. Якщо напруга його батареї залишається на рівні або нижче порогового значення протягом 5 секунд, мережа живить навантаження до наступного запланованого вікна зарядки MultiPlus або доки напруга не триматиметься вище напруги повернення протягом 30 секунд.",
+      "Switch back above": "Повернутися вище",
+      "Leave empty to keep the grid until the next charge window.": "Залиште порожнім, щоб використовувати мережу до наступного вікна зарядки.",
+      "Grid charging paused until the next window": "Заряджання від мережі призупинено до наступного вікна"
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -25686,7 +25722,6 @@
       "Charging": "充电",
       "Charging blocked by ESS flag": "充电被 ESS 标志阻止",
       "Charging clock unavailable: accepting grid": "充电时钟不可用：接受电网",
-      "Charging paused until the next window": "充电暂停，直到下一个窗口",
       "Charging requested": "要求充电",
       "Charging stage": "充电阶段",
       "Charging takes priority: accepting grid": "充电优先：接受电网",
@@ -26392,7 +26427,6 @@
       "Temporarily disable AC PV": "暂时禁用 AC PV",
       "Test connection": "测试连接",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "ESS 决策是控制器的意图。测量的状态和回读显示逆变器报告的内容。",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "MultiPlus 仅在预定时段充电。如果电池电压保持在阈值或低于阈值达 5 秒，电网将为负载供电，直到下一个计划的 MultiPlus 充电窗口。",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "MultiPlus 将重新启动，AC-out 将被中断。保持 brain_zero 通电。",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "S3 在控制受支持的 MultiPlus 时刷新此快照。 “读取故障报告”还可以获取存储的继电器测试详细信息。 AC 输入可用性和继电器闭合是单独的指示。可再生优先级显示操作模式。中继测试 OK 标志显示是否指示通过。",
       "The app file does not fit the OTA slot.": "应用程序文件不适合 OTA 插槽。",
@@ -26959,7 +26993,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "检查和下载更新时，蓝牙监测会暂停。控制器首先重新启动，完成后会重新连接电池。",
       "Finish the current firmware update first.": "请先完成当前的固件更新。",
       "Cancel": "取消",
-      "Restart cancelled: Bluetooth connections did not close.": "已取消重新启动：蓝牙连接未能关闭。"
+      "Restart cancelled: Bluetooth connections did not close.": "已取消重新启动：蓝牙连接未能关闭。",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus 仅在预定时段从电网充电；AC 输出端的富余电力仍会为电池充电。如果电池电压保持在阈值或低于阈值达 5 秒，电网将为负载供电，直到下一个计划的 MultiPlus 充电窗口，或直到电压在恢复电压以上保持 30 秒。",
+      "Switch back above": "高于此电压时切回",
+      "Leave empty to keep the grid until the next charge window.": "留空则使用电网直到下一个充电窗口。",
+      "Grid charging paused until the next window": "电网充电暂停，直到下一个窗口"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -27105,7 +27143,6 @@
       "Charging": "يقوم بالشحن",
       "Charging blocked by ESS flag": "تم حظر الشحن بواسطة علامة ESS",
       "Charging clock unavailable: accepting grid": "ساعة الشحن غير متاحة: قبول الشبكة",
-      "Charging paused until the next window": "توقف الشحن مؤقتًا حتى النافذة التالية",
       "Charging requested": "تم طلب الشحن",
       "Charging stage": "مرحلة الشحن",
       "Charging takes priority: accepting grid": "الشحن له الأولوية: قبول الشبكة",
@@ -27811,7 +27848,6 @@
       "Temporarily disable AC PV": "قم بتعطيل AC PV مؤقتًا",
       "Test connection": "اختبار الاتصال",
       "The ESS decision is the controller’s intent. The measured state and readbacks show what the inverter reports.": "قرار ESS هو نية وحدة التحكم. تُظهر الحالة المُقاسة وردود الفعل ما يُبلغ عنه العاكس.",
-      "The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.": "يتم شحن MultiPlus فقط في النوافذ المجدولة. إذا ظل جهد البطارية عند العتبة أو أقل منها لمدة 5 ثوانٍ، فستقوم الشبكة بتزويد الأحمال حتى نافذة الشحن المجدولة التالية MultiPlus.",
       "The MultiPlus will restart and AC-out will be interrupted. Keep brain_zero powered.": "ستتم إعادة تشغيل MultiPlus وسيتم مقاطعة خروج AC. حافظ على تشغيل brain_zero.",
       "The S3 refreshes this snapshot while it controls a supported MultiPlus. “Read fault report” also fetches stored relay-test details. AC input availability and relay closure are separate indications. Renewable priority shows the operating mode. The relay-test OK flag shows whether a pass was indicated.": "يقوم S3 بتحديث هذه اللقطة أثناء التحكم في MultiPlus المدعومة. يقوم \"قراءة تقرير الخطأ\" أيضًا بجلب تفاصيل اختبار الترحيل المخزنة. يعتبر توفر الإدخال AC وإغلاق التتابع مؤشرين منفصلين. تظهر الأولوية المتجددة وضع التشغيل. تُظهر علامة موافق لاختبار التتابع ما إذا كان قد تمت الإشارة إلى تمرير أم لا.",
       "The app file does not fit the OTA slot.": "ملف التطبيق لا يتناسب مع فتحة OTA.",
@@ -28378,7 +28414,11 @@
       "Bluetooth monitoring pauses for update checks and downloads. The controller restarts first and reconnects the batteries when finished.": "تتوقف المراقبة عبر Bluetooth مؤقتًا أثناء البحث عن التحديثات وتنزيلها. يُعاد تشغيل وحدة التحكم أولًا، ثم تتصل بالبطاريات مجددًا عند الانتهاء.",
       "Finish the current firmware update first.": "أكمل تحديث البرنامج الثابت الجاري أولًا.",
       "Cancel": "إلغاء",
-      "Restart cancelled: Bluetooth connections did not close.": "تم إلغاء إعادة التشغيل: لم تُغلق اتصالات Bluetooth."
+      "Restart cancelled: Bluetooth connections did not close.": "تم إلغاء إعادة التشغيل: لم تُغلق اتصالات Bluetooth.",
+      "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "يشحن MultiPlus من الشبكة فقط في النوافذ المجدولة؛ ويستمر الفائض على مخرج التيار المتردد في شحن البطارية. إذا ظل جهد البطارية عند العتبة أو أقل منها لمدة 5 ثوانٍ، فستقوم الشبكة بتزويد الأحمال حتى نافذة الشحن المجدولة التالية لـ MultiPlus، أو حتى يظل الجهد أعلى من جهد العودة لمدة 30 ثانية.",
+      "Switch back above": "العودة فوق",
+      "Leave empty to keep the grid until the next charge window.": "اتركه فارغًا لاستخدام الشبكة حتى نافذة الشحن التالية.",
+      "Grid charging paused until the next window": "توقف الشحن من الشبكة مؤقتًا حتى النافذة التالية"
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."

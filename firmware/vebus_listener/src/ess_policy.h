@@ -29,6 +29,9 @@ constexpr float SLOW_CHARGE_A = 5; // Venus's ForceChargeCurrent: recharging bel
 constexpr uint16_t FLAG_NO_CHARGE = 1, FLAG_NO_FEED_IN = 2, FLAG_NO_DC_PV_FEED_IN = 4;  // the flag word's bits
 constexpr uint16_t MIN_HOLD_CV = 800, MAX_HOLD_CV = 8000;
 constexpr int64_t HOLD_SAMPLE_MAX_US = 2000000, HOLD_DELAY_US = 5000000;
+// A latched hold releases early only after the battery stays above the release voltage this long:
+// with the loads on the grid an idle LFP bank rests above its loaded voltage within seconds.
+constexpr int64_t RELEASE_DELAY_US = 30000000;
 constexpr bool valid_hold_voltage(uint16_t cv) { return cv == 0 || (cv >= MIN_HOLD_CV && cv <= MAX_HOLD_CV); }
 // A saved absolute threshold from a 48 V installation must not arm a 24 V unit.
 constexpr bool hold_voltage_matches_model(uint16_t cv, uint8_t nominal_voltage) {
@@ -75,6 +78,9 @@ struct Settings {
     Schedule schedule[SCHEDULES];
     char tz[48] = "GMT0BST,M3.5.0/1,M10.5.0";  // POSIX time zone for the schedules: Europe/London
     uint16_t voltage_hold_cv = 0;  // 0 disables the guard. Stored separately from the original settings blob.
+    // 0: a latched hold lasts until the next charge window. Otherwise it also ends once the battery
+    // stays above this voltage for RELEASE_DELAY_US. Stored separately; must exceed voltage_hold_cv.
+    uint16_t voltage_release_cv = 0;
     uint8_t schedule_grid_mask = 0; // one bit per slot; persisted separately from the v1 settings blob
     bool grid_after_target(int slot) const { return (schedule_grid_mask & (1u << slot)) != 0; }
     void grid_after_target(int slot, bool on) {
@@ -117,7 +123,9 @@ struct Decision {
     bool charging = false;         // charging on purpose: schedule, keep charged, recharge
     bool grid_hold = false;
     bool voltage_hold = false;
-    bool charge_inhibited = false;  // voltage protection or the transient battery guard prohibits charging
+    // Voltage protection prohibits charging from the grid (AC-out surplus may still charge), or the
+    // transient battery guard prohibits all charging.
+    bool charge_inhibited = false;
     bool capped = false;           // the safety cap cut the setpoint
     float active_soc_limit = -1;   // no discharge at or below this SOC; -1 = none
     char why[112] = "";            // what the setpoint follows, for the page
@@ -165,6 +173,7 @@ class Policy {
     uint16_t voltage_threshold_cv_ = 0;
     bool voltage_latched_ = false;
     int64_t low_since_ = -1, last_low_sample_ = -1;
+    int64_t high_since_ = -1, last_high_sample_ = -1;
 };
 
 // The window a schedule is in at local time `t` (wall clock, like Venus's naive datetimes): -1, or

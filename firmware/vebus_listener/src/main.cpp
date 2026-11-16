@@ -525,6 +525,9 @@ void load_settings() {
         ess_settings.voltage_hold_cv = cv;
         policy.restore_voltage_hold(cv, (hold & VOLTAGE_HOLD_LATCHED) != 0);
     }
+    const uint32_t release = prefs.getUInt("voltrel", 0);
+    if (release <= ess::MAX_HOLD_CV && ess::valid_hold_voltage(uint16_t(release)) &&
+        (!release || release > ess_settings.voltage_hold_cv)) ess_settings.voltage_release_cv = uint16_t(release);
     ess_settings.schedule_grid_mask = prefs.getUChar("schedgrid", 0) & ((1u << ess::SCHEDULES) - 1);
     ess::Memory m;
     if (prefs.getBytesLength("memory") == sizeof m && prefs.getBytes("memory", &m, sizeof m) == sizeof m &&
@@ -1093,6 +1096,11 @@ bool listener_ess_set(const ess::Settings &s, char *why, size_t cap, bool save_n
             snprintf(why, cap, "Battery voltage hold storage failed");
             return false;
         }
+    }
+    if (s.voltage_release_cv != ess_settings.voltage_release_cv &&
+        prefs.putUInt("voltrel", s.voltage_release_cv) != sizeof(uint32_t)) {
+        snprintf(why, cap, "Battery voltage release storage failed");
+        return false;
     }
     const bool schedule_grid_changed = s.schedule_grid_mask != ess_settings.schedule_grid_mask;
     if (schedule_grid_changed && prefs.putUChar("schedgrid", s.schedule_grid_mask) != sizeof(uint8_t)) {

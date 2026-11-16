@@ -64,9 +64,11 @@ R"HTML(
 <h2>Battery voltage protection</h2>
 <div class="card">
 <div class="row"><label class="name" for="voltage_hold_enabled">Use grid at low battery voltage</label><input type="checkbox" id="voltage_hold_enabled" name="voltage_hold_enabled">
-<span class="hint">The MultiPlus charges only in scheduled windows. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window.</span></div>
+<span class="hint">The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.</span></div>
 <div class="row"><label class="name" for="voltage_hold_v">Switch to grid at</label><input type="number" id="voltage_hold_v" name="voltage_hold_v" min="8" max="80" step="0.01" placeholder="V" required disabled> V
 <span class="hint" id="voltage-hold-status">Waiting for controller status</span></div>
+<div class="row"><label class="name" for="voltage_release_v">Switch back above</label><input type="number" id="voltage_release_v" name="voltage_release_v" min="8" max="80" step="0.01" placeholder="V" disabled> V
+<span class="hint">Leave empty to keep the grid until the next charge window.</span></div>
 </div>
 <h2>Limits</h2>
 <div class="card">
@@ -115,12 +117,13 @@ E("s"+i+"_grid_after_target").setAttribute("aria-label",fmt("Schedule {slot}. Af
 }},{once:true});
 function showMode(){const m=+E("mode").value;document.querySelectorAll(".ext").forEach(e=>e.hidden=m!=3);$("mode-hint").textContent=MODE_HINT[m]}
 function limitBox(k){return document.querySelector('[data-limit="'+k+'"]')}
-function showVoltageHold(){E("voltage_hold_v").disabled=!E("voltage_hold_enabled").checked}
+function showVoltageHold(){const off=!E("voltage_hold_enabled").checked;E("voltage_hold_v").disabled=off;E("voltage_release_v").disabled=off}
 function fill(s){
 E("run").checked=!!s.run;E("safety_max").value=s.safety_max;E("mode").value=s.mode;E("min_soc").value=s.min_soc;
 E("grid_setpoint").value=s.grid_setpoint;E("ext_no_charge").checked=!!s.ext_no_charge;E("ext_no_feed_in").checked=!!s.ext_no_feed_in;
 E("voltage_hold_enabled").checked=!!s.voltage_hold_cv;
 E("voltage_hold_v").value=s.voltage_hold_cv?(s.voltage_hold_cv/100).toFixed(2):"";
+E("voltage_release_v").value=s.voltage_release_cv?(s.voltage_release_cv/100).toFixed(2):"";
 showVoltageHold();
 LIMITS.forEach(k=>{const on=s[k]>=0;limitBox(k).checked=on;if(on||E(k).value==="")E(k).value=on?s[k]:0;E(k).disabled=!on});
 E("always_peak_shave").value=s.always_peak_shave?1:0;E("dc_pv_feed_in").checked=!!s.dc_pv_feed_in;
@@ -140,7 +143,7 @@ showStatus(status.join(" · "));
 highlightSchedule(slot);
 $("voltage-hold-status").textContent=!s.voltage_hold_cv?"Off":!controlling?"Waiting for ESS control":
 st.voltage_hold_confirmed?"Grid supply confirmed":st.voltage_hold?"Waiting for inverter confirmation":
-st.charge_inhibited?"Charging paused until the next window":"Scheduled charge window";
+st.charge_inhibited?"Grid charging paused until the next window":"Scheduled charge window";
 }
 let timeZoneChecked=false;
 async function detectTimeZone(status){
@@ -172,6 +175,7 @@ const bad=[...F.elements].find(x=>!x.disabled&&x.willValidate&&!x.checkValidity(
 if(bad){bad.focus();$("msg").textContent="check the highlighted field";return}
 const b=new URLSearchParams();b.set("run",E("run").checked?1:0);
 b.set("voltage_hold_cv",E("voltage_hold_enabled").checked?Math.round(E("voltage_hold_v").valueAsNumber*100):0);
+b.set("voltage_release_cv",E("voltage_release_v").value===""?0:Math.round(E("voltage_release_v").valueAsNumber*100));
 ["safety_max","mode","min_soc","grid_setpoint","always_peak_shave"].forEach(k=>b.set(k,E(k).value.trim()));
 ["ext_no_charge","ext_no_feed_in","dc_pv_feed_in"].forEach(k=>b.set(k,E(k).checked?1:0));
 LIMITS.forEach(k=>b.set(k,limitBox(k).checked?E(k).value.trim():-1));

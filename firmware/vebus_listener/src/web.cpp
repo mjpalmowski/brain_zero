@@ -314,10 +314,11 @@ void status_json(const EssView &v, Out &o) {
 void settings_json(const ess::Settings &s, Out &o) {
     o.add("{\"run\":%d,\"mode\":%d,\"min_soc\":%.1f,\"grid_setpoint\":%d,\"max_charge\":%d,\"max_discharge\":%d,"
           "\"max_feed_in\":%d,\"max_import\":%d,\"always_peak_shave\":%d,\"dc_pv_feed_in\":%d,\"ext_no_charge\":%d,"
-          "\"ext_no_feed_in\":%d,\"safety_max\":%d,\"voltage_hold_cv\":%u,\"tz\":\"%s\",\"schedules\":[",
+          "\"ext_no_feed_in\":%d,\"safety_max\":%d,\"voltage_hold_cv\":%u,\"voltage_release_cv\":%u,\"tz\":\"%s\","
+          "\"schedules\":[",
           s.enabled, (int)s.mode, s.min_soc, s.grid_setpoint_w, s.max_charge_w, s.max_discharge_w, s.max_feed_in_w,
           s.max_import_w, s.always_peak_shave, s.dc_pv_feed_in, s.ext_no_charge, s.ext_no_feed_in, s.safety_max_w,
-          unsigned(s.voltage_hold_cv), s.tz);
+          unsigned(s.voltage_hold_cv), unsigned(s.voltage_release_cv), s.tz);
     for (int i = 0; i < ess::SCHEDULES; i++) {
         const ess::Schedule &w = s.schedule[i];
         o.add("%s{\"on\":%d,\"day\":%u,\"start\":%ld,\"duration\":%ld,\"soc\":%u,\"discharge\":%d}", i ? "," : "",
@@ -477,6 +478,9 @@ bool settings_from_form(ControlExchange &input, ess::Settings &s, char *why, siz
     f.get("safety_max", &s.safety_max_w, 0, ess::HARD_MAX_W);
     long voltage_hold;
     if (f.get_long("voltage_hold_cv", &voltage_hold, 0, ess::MAX_HOLD_CV)) s.voltage_hold_cv = uint16_t(voltage_hold);
+    long voltage_release;
+    if (f.get_long("voltage_release_cv", &voltage_release, 0, ess::MAX_HOLD_CV))
+        s.voltage_release_cv = uint16_t(voltage_release);
     if (input.hasArg("tz")) {
         String tz = input.arg("tz");
         tz.trim();
