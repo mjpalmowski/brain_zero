@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <cstdio>
 #include <future>
+#include <functional>
 #include <mutex>
 
 #define INC_FREERTOS_H 1
@@ -61,10 +62,23 @@ public:
 #include "actual_nimble_wait.inc"
 #pragma GCC diagnostic pop
 
+class NimBLEAddress {};
 class NimBLEClient {
 public:
     bool connected = false;
+    bool asynchronous = false, exchange_mtu = true;
+    int error = 0;
+    unsigned starts = 0, cancels = 0, disconnects = 0;
+    std::function<bool()> on_start;
+    std::function<void()> on_cancel, on_disconnect;
     bool isConnected() const { return connected; }
+    int getLastError() const { return error; }
+    bool connect(const NimBLEAddress &, bool erase, bool async, bool mtu) {
+        assert(erase); ++starts; asynchronous = async; exchange_mtu = mtu;
+        return on_start ? on_start() : true;
+    }
+    bool cancelConnect() { ++cancels; if (on_cancel) on_cancel(); return true; }
+    bool disconnect() { ++disconnects; if (on_disconnect) on_disconnect(); return true; }
 };
 struct Link;
 struct Callbacks {
@@ -81,16 +95,20 @@ uint32_t millis() { return fake_millis; }
 #define portENTER_CRITICAL(mutex) (mutex)->lock()
 #define portEXIT_CRITICAL(mutex) (mutex)->unlock()
 struct Link {
-    enum class State { OFF, STREAMING };
+    enum class State { OFF, STREAMING, WAITING, CONNECTING, CLOSING };
     NimBLEClient *client = nullptr;
     std::atomic<bool> connected{false}, queue_problem{false};
     std::atomic<uint32_t> connections{0}, epoch{1}, notifications{0}, dropped{0}, last_notification_ms{0};
     std::atomic<uint32_t> deadline_ms{0}, configuration_revision{0};
+    std::atomic<uint32_t> gap_events{0};
     std::atomic<State> state{State::OFF};
     std::atomic<int> last_error{0};
     std::atomic<TaskHandle_t> task{nullptr};
     std::mutex queue_lock;
     battery_ble::detail::NotificationQueue pending;
+    uint32_t gap_event_before = 0;
+    bool awaiting_gap_event = false;
+    int gap_failure = 0;
     void enqueue(const uint8_t *, size_t, uint32_t);
 };
 #include "actual_ble_callbacks.inc"
@@ -103,11 +121,32 @@ struct Runtime {
 };
 Runtime *runtime = nullptr;
 bool creation_in_progress = false, gap_active = false;
-struct { bool enabled = false; } desired;
+struct Settings { bool enabled = false; } desired;
 uint32_t desired_revision = 7;
 std::mutex settings_lock;
 int ble_gap_conn_active() { return gap_active; }
+Settings settings_copy(uint32_t *revision) { *revision = desired_revision; return desired; }
+void disconnected(Link &link) { link.connected = false; ++link.epoch; link.pending.clear(); }
+std::function<void()> on_tick;
+#define pdMS_TO_TICKS(value) (value)
+void vTaskDelay(uint32_t ticks) { fake_millis += ticks; if (on_tick) on_tick(); }
 #include "actual_runtime_helpers.inc"
+
+struct Attempt {
+    Link link;
+    NimBLEClient client;
+    Callbacks callback{&link};
+    NimBLEAddress address;
+    Attempt() {
+        fake_millis = 1000; on_tick = {}; desired.enabled = true; desired_revision = 7;
+        link.client = &client; link.configuration_revision = desired_revision;
+        link.deadline_ms = operation_deadline(CONNECT_GUARD_MS); link.state = State::CONNECTING;
+        gap_active = false;
+        client.on_start = [&] { gap_active = true; return true; };
+        client.on_disconnect = [&] { callback.onDisconnect(nullptr, 0x216); client.connected = false; };
+    }
+    ~Attempt() { on_tick = {}; }
+};
 
 void wait_until_waiting(FakeTask &task) {
     std::unique_lock<std::mutex> lock(task.mutex);
@@ -162,6 +201,74 @@ int main() {
         }
     }
     {
+        // A successful event can arrive inside connect(), before a synchronous
+        // wrapper would have installed its stack-local task data.
+        Attempt attempt;
+        attempt.client.error = 999; // A previous SDK error is not this attempt's result.
+        attempt.link.gap_events = UINT32_MAX;
+        attempt.client.on_start = [&] {
+            attempt.client.connected = true; gap_active = false;
+            attempt.callback.onConnect(nullptr); return true;
+        };
+        assert(connect_jk(attempt.link, attempt.address));
+        assert(attempt.client.asynchronous && !attempt.client.exchange_mtu && attempt.link.gap_events == 0);
+    }
+    {
+        Attempt attempt;
+        on_tick = [&] {
+            if (fake_millis == 1080) attempt.client.connected = true;
+            if (fake_millis == 1100) { gap_active = false; attempt.callback.onConnect(nullptr); }
+        };
+        assert(connect_jk(attempt.link, attempt.address) && fake_millis == 1100);
+    }
+    for (bool revision_change : {false, true}) {
+        Attempt attempt;
+        attempt.client.on_cancel = [&] { gap_active = false; };
+        on_tick = [&] {
+            if (fake_millis == 1040) {
+                if (revision_change) ++desired_revision; else desired.enabled = false;
+            }
+            if (fake_millis == 1060) { // A late success must be closed, not admitted.
+                attempt.client.connected = true; attempt.callback.onConnect(nullptr);
+            }
+            if (fake_millis == 1080) attempt.callback.onConnectFail(nullptr, 0x23e);
+        };
+        assert(!connect_jk(attempt.link, attempt.address));
+        assert(fake_millis >= 1120 && attempt.client.cancels == 1 && attempt.client.disconnects == 1);
+        assert(!attempt.client.connected && !attempt.link.awaiting_gap_event && !gap_active);
+        assert(attempt.link.last_error == CONFIG_CHANGED_ERROR && attempt.link.state == State::WAITING);
+    }
+    {
+        Attempt attempt;
+        desired.enabled = false;
+        assert(!connect_jk(attempt.link, attempt.address) && !attempt.client.starts);
+    }
+    {
+        Attempt attempt;
+        attempt.client.on_cancel = [&] {
+            gap_active = false; attempt.callback.onConnectFail(nullptr, 13);
+        };
+        assert(!connect_jk(attempt.link, attempt.address));
+        assert(fake_millis >= 13000 && fake_millis <= 13000 + CLOSE_GUARD_MS);
+        assert(attempt.client.cancels == 1 && attempt.link.last_error == GAP_TIMEOUT_ERROR);
+    }
+    {
+        Attempt attempt;
+        attempt.client.on_cancel = [&] { gap_active = false; }; // No final callback yet.
+        assert(!connect_jk(attempt.link, attempt.address));
+        assert(attempt.link.state == State::CLOSING && attempt.link.awaiting_gap_event);
+        assert(attempt.link.gap_failure == GAP_TIMEOUT_ERROR);
+        attempt.callback.onConnectFail(nullptr, 13);
+        assert(close_jk_attempt(attempt.link) && !attempt.link.awaiting_gap_event);
+    }
+    {
+        Attempt attempt;
+        attempt.client.error = 42;
+        attempt.client.on_start = [] { return false; };
+        assert(!connect_jk(attempt.link, attempt.address));
+        assert(attempt.link.last_error == 42 && !attempt.client.cancels);
+    }
+    {
         assert(quiescent());
         desired.enabled = true; assert(quiescent()); // A deferred boot has no allocated host.
         creation_in_progress = true; assert(!quiescent());
@@ -195,4 +302,5 @@ int main() {
     }
     std::puts("Pinned NimBLE notification collision reproduced; production connect/disconnect/queue callbacks cannot release GATT waits");
     std::puts("Actual runtime helpers: separate GAP/GATT budgets, millis wrap, init/GAP closure and worker-revision quiescence passed");
+    std::puts("Actual JK async GAP: early/delayed/late callbacks, no-MTU, disabled/revision cancellation, deadline and callback-confirmed closure passed");
 }

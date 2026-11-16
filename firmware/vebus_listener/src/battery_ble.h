@@ -17,12 +17,12 @@ struct Settings {
 
 enum class State : uint8_t {
     OFF, STARTING, WAITING, CONNECTING, DISCOVERING, IDENTIFYING,
-    CLOCK_WAIT, STREAMING, BACKOFF, NO_MEMORY, STACK_FAILED, DEFERRED
+    CLOCK_WAIT, STREAMING, BACKOFF, NO_MEMORY, STACK_FAILED, DEFERRED, CLOSING
 };
 
 struct LinkView {
     State state = State::OFF;
-    bool configured = false, connected = false;
+    bool configured = false, connected = false, hci_connected = false;
     uint32_t attempts = 0, connections = 0, notifications = 0, dropped = 0;
     uint32_t retry_ms = 0, stack_min_free = 0;
     int last_error = 0, rssi = 0;

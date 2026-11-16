@@ -55,6 +55,7 @@ const char *state_name(State s) {
     case State::NO_MEMORY: return "no_memory";
     case State::STACK_FAILED: return "stack_failed";
     case State::DEFERRED: return "deferred";
+    case State::CLOSING: return "closing";
     }
     return "unknown";
 }
@@ -90,12 +91,14 @@ constexpr char PACE_FRAMES[] = "e6c00003-b5a3-4f4f-9b8d-73d619b32720";
 constexpr size_t MAX_NOTIFICATION = detail::NOTIFICATION_BYTES;
 constexpr uint32_t OPERATION_MS = 5500, RETRY_MAX_MS = 30000;
 constexpr uint32_t CONNECT_TIMEOUT_MS = 10000, CONNECT_GUARD_MS = 12000;
+constexpr uint32_t CLOSE_GUARD_MS = 3000, CLOSE_QUIET_MS = 40;
 constexpr int MEMORY_ERROR = -1001, SERVICE_ERROR = -1002, PROPERTIES_ERROR = -1003;
 constexpr int SUBSCRIBE_ERROR = -1004, METADATA_ERROR = -1005, IDENTITY_TIMEOUT = -1006;
 constexpr int READ_REQUEST_ERROR = -1007, STREAM_TIMEOUT = -1008;
 constexpr int NOTIFICATION_OVERFLOW = -1009;
 constexpr int ADAPTER_RESTARTED = -1010;
 constexpr int WIFI_COEX_ERROR = -1012;
+constexpr int GAP_TIMEOUT_ERROR = -1013, CONFIG_CHANGED_ERROR = -1014;
 
 uint32_t operation_deadline(uint32_t duration = OPERATION_MS) {
     const uint32_t deadline = millis() + duration;
@@ -134,6 +137,7 @@ struct Link {
     std::atomic<uint32_t> epoch{1}, deadline_ms{0}, attempts{0}, connections{0};
     std::atomic<uint32_t> configuration_revision{0};
     std::atomic<uint32_t> notifications{0}, dropped{0}, last_notification_ms{0};
+    std::atomic<uint32_t> gap_events{0};
     std::atomic<bool> queue_problem{false};
     std::atomic<int> last_error{0}, rssi{0};
     std::atomic<State> state{State::STARTING};
@@ -144,6 +148,9 @@ struct Link {
     uint8_t identity_attempts = 0;
     bool status_requested = false;
     bool adapter_restarted = false;
+    uint32_t gap_event_before = 0;
+    bool awaiting_gap_event = false;
+    int gap_failure = 0;
 
     void clear_queue() {
         portENTER_CRITICAL(&queue_lock);
@@ -212,12 +219,15 @@ Settings settings_copy(uint32_t *revision = nullptr) {
 
 void Callbacks::onConnect(NimBLEClient *) {
     link->connected = true; ++link->connections;
+    ++link->gap_events;
 }
 void Callbacks::onConnectFail(NimBLEClient *, int reason) {
     link->last_error = reason; link->connected = false;
+    ++link->gap_events;
 }
 void Callbacks::onDisconnect(NimBLEClient *, int reason) {
     link->last_error = reason; link->connected = false; ++link->epoch;
+    ++link->gap_events;
 }
 
 void disconnected(Link &link) {
@@ -280,12 +290,90 @@ bool read_request(Link &link, uint8_t opcode) {
     return sent;
 }
 
+bool current_attempt(uint32_t revision) {
+    uint32_t actual;
+    const Settings settings = settings_copy(&actual);
+    return settings.enabled && actual == revision;
+}
+
+// Called only while this worker owns operation_lock. The callback counter is
+// necessary: GAP can become inactive just before its final host callback runs.
+bool close_jk_attempt(Link &link) {
+    const uint32_t end = operation_deadline(CLOSE_GUARD_MS);
+    uint32_t quiet_at = 0;
+    uint32_t last_event = link.gap_events.load();
+    bool quiet = false, cancel_sent = false, disconnect_sent = false;
+    for (;;) {
+        const bool initiating = ble_gap_conn_active();
+        const bool actual = link.client->isConnected();
+        if (initiating && link.awaiting_gap_event && !cancel_sent) {
+            link.client->cancelConnect(); cancel_sent = true;
+        }
+        if (actual && !disconnect_sent) {
+            link.client->disconnect(); disconnect_sent = true;
+        }
+        if (!actual) disconnect_sent = false; // Also close a late successful connection.
+        const uint32_t events = link.gap_events.load();
+        if (events != last_event) { quiet = false; last_event = events; }
+        const bool callback_done = !link.awaiting_gap_event || events != link.gap_event_before;
+        if (!ble_gap_conn_active() && !link.client->isConnected() && callback_done) {
+            if (!quiet) { quiet = true; quiet_at = millis(); }
+            if (uint32_t(millis() - quiet_at) >= CLOSE_QUIET_MS) {
+                link.awaiting_gap_event = false;
+                return true;
+            }
+        } else quiet = false;
+        if (int32_t(millis() - end) >= 0) return false;
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
+}
+
+bool fail_jk_attempt(Link &link, int reason) {
+    link.gap_failure = reason;
+    link.state = State::CLOSING;
+    const bool closed = close_jk_attempt(link);
+    disconnected(link);
+    link.last_error = reason;
+    if (closed) link.state = State::WAITING;
+    return false;
+}
+
+bool connect_jk(Link &link, const NimBLEAddress &address) {
+    const uint32_t revision = link.configuration_revision.load();
+    const uint32_t end = link.deadline_ms.load();
+    if (!current_attempt(revision)) { link.last_error = CONFIG_CHANGED_ERROR; return false; }
+    link.gap_event_before = link.gap_events.load();
+    link.awaiting_gap_event = true;
+    // Async GAP avoids the pinned SDK's synchronous m_pTaskData setup window.
+    // JK uses20-byte commands/notifications, supported by the default MTU23.
+    if (!link.client->connect(address, true, true, false)) {
+        link.awaiting_gap_event = false;
+        const int reason = link.client->getLastError();
+        return fail_jk_attempt(link, reason ? reason : GAP_TIMEOUT_ERROR);
+    }
+    for (;;) {
+        if (!current_attempt(revision)) return fail_jk_attempt(link, CONFIG_CHANGED_ERROR);
+        const bool callback = link.gap_events.load() != link.gap_event_before;
+        const bool actual = link.client->isConnected();
+        if (callback && actual && link.connected.load()) {
+            link.awaiting_gap_event = false;
+            return true;
+        }
+        if (callback && link.last_error.load() && !actual)
+            return fail_jk_attempt(link, link.last_error.load());
+        if (!end || int32_t(millis() - end) >= 0)
+            return fail_jk_attempt(link, GAP_TIMEOUT_ERROR);
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
+}
+
 bool connect_link(Link &link, const char *address) {
     link.state = State::CONNECTING; link.last_error = 0; ++link.attempts;
     // GAP discovery needs more airtime when another pack and Wi-Fi share the
     // radio. The GATT operations below retain their shorter individual guard.
     link.deadline_ms = operation_deadline(CONNECT_GUARD_MS);
-    const bool connected = link.client->connect(NimBLEAddress(std::string(address), BLE_ADDR_PUBLIC), true, false, true);
+    const NimBLEAddress peer(std::string(address), BLE_ADDR_PUBLIC);
+    const bool connected = link.index ? link.client->connect(peer, true, false, true) : connect_jk(link, peer);
     link.deadline_ms = 0;
     if (!connected || !link.connected.load()) return false;
     link.connected_ms = millis();
@@ -360,6 +448,15 @@ void run_link(void *argument) {
         const Settings settings = settings_copy(&revision);
         const char *wanted = link.index ? settings.pace_address : settings.jk_address;
         const bool configured = settings.enabled && wanted[0];
+        if (link.state.load() == State::CLOSING) {
+            if (xSemaphoreTake(link.owner->operation_lock, pdMS_TO_TICKS(50))) {
+                const int reason = link.gap_failure;
+                const bool closed = close_jk_attempt(link);
+                xSemaphoreGive(link.owner->operation_lock);
+                if (closed) retry(link, reason);
+            }
+            vTaskDelay(pdMS_TO_TICKS(20)); continue;
+        }
         if (!configured || strcmp(wanted, link.active_address)) {
             if (link.active_address[0] || link.connected.load()) close_link(link);
             if (configured) memcpy(link.active_address, wanted, sizeof link.active_address);
@@ -383,12 +480,23 @@ void run_link(void *argument) {
                 vTaskDelay(pdMS_TO_TICKS(100)); continue;
             }
             if (!xSemaphoreTake(link.owner->operation_lock, pdMS_TO_TICKS(50))) continue;
+            // A canceled initiator retains global GAP ownership until its
+            // final callback and closure have settled. Do not race it with
+            // another peer's connection procedure between cleanup retries.
+            if (link.owner->links[0].state.load() == State::CLOSING ||
+                link.owner->links[1].state.load() == State::CLOSING) {
+                xSemaphoreGive(link.owner->operation_lock);
+                vTaskDelay(pdMS_TO_TICKS(20)); continue;
+            }
             // Only one GAP connection procedure runs at a time; the other
             // worker continues draining notifications throughout this wait.
             const bool connected = connect_link(link, wanted);
             const int error = link.last_error.load() ? link.last_error.load() : link.client->getLastError();
             xSemaphoreGive(link.owner->operation_lock);
-            if (!connected) { retry(link, error); continue; }
+            if (!connected) {
+                if (link.state.load() != State::CLOSING) retry(link, error);
+                continue;
+            }
         }
         // A cancelled connection can complete late. It must pass service and
         // subscription setup before either feed can consume its notifications.
@@ -562,6 +670,7 @@ void link_view(Link &link, LinkView &out, const Settings &settings, int64_t now_
     out.state = link.state.load();
     out.configured = settings.enabled && (link.index ? settings.pace_address[0] : settings.jk_address[0]);
     out.connected = link.connected.load(); out.attempts = link.attempts.load();
+    out.hci_connected = link.owner->initialized.load() && link.client && link.client->isConnected();
     out.connections = link.connections.load(); out.notifications = link.notifications.load();
     out.dropped = link.dropped.load(); out.last_error = link.last_error.load(); out.rssi = link.rssi.load();
     const uint32_t now_ms = uint32_t(now_us / 1000), last = link.last_notification_ms.load();

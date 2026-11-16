@@ -35,6 +35,9 @@ def main() -> None:
     assert "vTaskDelay(pdMS_TO_TICKS(100))" in runtime
     assert "setConnectTimeout(CONNECT_TIMEOUT_MS)" in runtime
     assert "operation_deadline(CONNECT_GUARD_MS)" in function(runtime, "bool connect_link(")
+    assert "link.index ? link.client->connect(peer, true, false, true) : connect_jk(link, peer)" in runtime
+    assert "link.owner->links[0].state.load() == State::CLOSING" in runtime
+    assert "link.owner->links[1].state.load() == State::CLOSING" in runtime
     callbacks = "\n".join(function(runtime, name) for name in (
         "void Callbacks::onConnect(", "void Callbacks::onConnectFail(", "void Callbacks::onDisconnect("))
     enqueue = function(runtime, "void enqueue(").replace("void enqueue(", "void Link::enqueue(", 1)
@@ -42,9 +45,11 @@ def main() -> None:
     waits = "\n".join(function(upstream, name) for name in (
         "bool NimBLEUtils::taskWait(", "void NimBLEUtils::taskRelease("))
     helpers = "\n".join(re.search(pattern, runtime).group(0) for pattern in (
-        r"constexpr uint32_t OPERATION_MS\s*=.*?;", r"constexpr uint32_t CONNECT_TIMEOUT_MS\s*=.*?;"))
-    helpers += "\n" + function(runtime, "uint32_t operation_deadline(")
-    helpers += "\n" + function(runtime, "bool quiescent(")
+        r"constexpr uint32_t OPERATION_MS\s*=.*?;", r"constexpr uint32_t CONNECT_TIMEOUT_MS\s*=.*?;",
+        r"constexpr uint32_t CLOSE_GUARD_MS\s*=.*?;", r"constexpr int GAP_TIMEOUT_ERROR\s*=.*?;"))
+    helpers += "\n" + "\n".join(function(runtime, name) for name in (
+        "uint32_t operation_deadline(", "bool current_attempt(", "bool close_jk_attempt(",
+        "bool fail_jk_attempt(", "bool connect_jk(", "bool quiescent("))
     cxx = str(Path(args.cxx).resolve()) if Path(args.cxx).exists() else args.cxx
     env = os.environ.copy()
     if Path(cxx).is_file():
