@@ -13,6 +13,7 @@ enum class Phase { IDLE, CHECKING, AVAILABLE, CURRENT, DOWNLOADING, STAGED, ERRO
 
 constexpr char UNSAFE[] = "Firmware download stopped because the inverter is no longer ready.";
 constexpr char BUSY[] = "A GitHub firmware operation is already in progress.";
+constexpr char CANCELLED[] = "Firmware operation cancelled.";
 constexpr uint32_t SAFETY_POLL_MS = 100;
 constexpr uint32_t WORKER_STACK_BYTES = 12288;
 
@@ -35,7 +36,9 @@ struct Work {
 };
 Work work = {};
 std::atomic<bool> completed{false}, cancelled{false};
+std::atomic<bool> user_cancelled{false};
 std::atomic<size_t> received{0};
+TaskHandle_t worker = nullptr;
 
 void release_download_reservation() {
     auto release = release_reservation;
@@ -44,7 +47,7 @@ void release_download_reservation() {
 }
 
 const char *receive(const uint8_t *data, size_t bytes, void *) {
-    if (cancelled.load()) return UNSAFE;
+    if (cancelled.load()) return user_cancelled.load() ? CANCELLED : UNSAFE;
     if (const char *error = firmware_ota::write(data, bytes)) return error;
     received.fetch_add(bytes);
     return nullptr;
@@ -54,15 +57,19 @@ void run(void *) {
     work.error = work.download ? firmware_release::download(work.build, receive, nullptr)
                                : firmware_release::check(work.running, work.capacity, work.build);
     completed.store(true, std::memory_order_release);
-    vTaskDelete(nullptr);
+    // The loop deletes this task only after observing it suspended. Deleting a
+    // stopped task from the loop frees its stack before BLE is resumed.
+    vTaskSuspend(nullptr);
 }
 
 const char *launch(Phase next) {
     completed.store(false);
     cancelled.store(false);
+    user_cancelled.store(false);
     received.store(0);
     blocked_by = "";
-    if (xTaskCreatePinnedToCore(run, "firmware-https", WORKER_STACK_BYTES, nullptr, 1, nullptr, 0) != pdPASS) {
+    if (xTaskCreatePinnedToCore(run, "firmware-https", WORKER_STACK_BYTES, nullptr, 1, &worker, 0) != pdPASS) {
+        worker = nullptr;
         phase = Phase::ERROR;
         message = "Not enough memory to start the GitHub firmware operation.";
         return message;
@@ -74,6 +81,8 @@ const char *launch(Phase next) {
 }  // namespace
 
 bool busy() { return phase == Phase::CHECKING || phase == Phase::DOWNLOADING; }
+bool worker_idle() { return !busy() && worker == nullptr; }
+void cancel() { if (busy()) { user_cancelled.store(true); cancelled.store(true); } }
 
 Status status() {
     static const char *const names[] = {"idle", "checking", "available", "current", "downloading", "staged", "error"};
@@ -116,6 +125,26 @@ const char *stage(const char *tag, const char *(*reserve)(), void (*release)()) 
     return nullptr;
 }
 
+const char *selection(const char *tag, firmware_release::Build &out) {
+    if (busy()) return BUSY;
+    if (phase != Phase::AVAILABLE || !tag || strcmp(tag, selected.tag))
+        return "Check GitHub Releases again before downloading.";
+    out = selected;
+    return nullptr;
+}
+const char *resume_stage(const firmware_release::Build &build, const char *(*reserve)(), void (*release)()) {
+    if (!worker_idle()) return BUSY;
+    bool digest = false;
+    for (uint8_t v : build.sha256) digest |= v != 0;
+    const auto ota = firmware_ota::status();
+    if (!memchr(build.tag, 0, sizeof build.tag) || !build.version || !digest ||
+        firmware_release::tag_version(build.tag) != build.version ||
+        build.size < firmware_ota::PREFIX_BYTES || build.size > ota.max_bytes)
+        return "Invalid GitHub firmware selection.";
+    selected = build; phase = Phase::AVAILABLE;
+    return stage(build.tag, reserve, release);
+}
+
 void poll(const char *(*not_ready)()) {
     if (!busy()) return;
     const bool downloading = phase == Phase::DOWNLOADING;
@@ -129,6 +158,11 @@ void poll(const char *(*not_ready)()) {
         }
     }
     if (!completed.load(std::memory_order_acquire)) return;
+    if (worker) {
+        if (eTaskGetState(worker) != eSuspended) return;
+        vTaskDelete(worker);
+        worker = nullptr;
+    }
 
     const char *error = work.error;
     if (downloading) {
@@ -138,11 +172,12 @@ void poll(const char *(*not_ready)()) {
                 cancelled.store(true);
             }
         }
-        if (cancelled.load()) error = UNSAFE;
+        if (cancelled.load()) error = user_cancelled.load() ? CANCELLED : UNSAFE;
         if (!error) error = firmware_ota::finish();
         if (error) firmware_ota::discard(error);
         release_download_reservation();
     }
+    if (!downloading && user_cancelled.load()) error = CANCELLED;
     if (error) {
         phase = Phase::ERROR;
         message = error;

@@ -57,6 +57,7 @@ Status status() {
 bool authorized(const char *token) {
     return nonce[0] && token && strcmp(token, nonce) == 0;
 }
+bool uploading() { return receiving; }
 
 const char *start(size_t bytes) {
     if (!target) return "No spare OTA slot is available.";

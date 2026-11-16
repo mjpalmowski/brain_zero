@@ -17,6 +17,7 @@ struct Status {
 // All entry points are called from the Arduino loop. The background task owns
 // OTA writes while downloading; ota_status() uses a snapshot for that interval.
 bool busy();
+bool worker_idle(); // true only after the HTTPS task and its stack have been deleted
 Status status();
 firmware_ota::Status ota_status();
 const char *check(uint32_t running, size_t capacity);
@@ -24,6 +25,9 @@ const char *check(uint32_t running, size_t capacity);
 // refreshes. A successful reservation is released after finish/discard, including
 // every pre-launch failure. The callbacks run only on the Arduino loop task.
 const char *stage(const char *tag, const char *(*reserve)(), void (*release)());
+const char *selection(const char *tag, firmware_release::Build &out);
+const char *resume_stage(const firmware_release::Build &, const char *(*reserve)(), void (*release)());
+void cancel();
 // nullptr means strictly ready. A non-null stable literal cancels immediately;
 // the first failed snapshot is retained in blocked_by for diagnosis.
 void poll(const char *(*not_ready)());

@@ -23,6 +23,7 @@ struct Status {
 void begin();
 Status status();
 bool authorized(const char *token);
+bool uploading();
 const char *start(size_t bytes);
 const char *write(const uint8_t *data, size_t bytes);
 const char *finish();

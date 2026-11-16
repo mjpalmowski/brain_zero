@@ -11,6 +11,8 @@ bool offer = false, failed_check = false, safe_now = true, fail_task = false;
 bool failed_download = false, failed_write = false, failed_start = false, failed_finish = false;
 bool reserved = false, automatic_read_busy = false, cross_refresh_deadline = false;
 bool inject_temporary_unsafe = false;
+bool suspended = false, defer_suspend = false;
+int deleted_workers = 0;
 uint32_t now_ms = 1000;
 int checks = 0, starts = 0, downloads = 0, writes = 0, finishes = 0, discards = 0;
 int reserve_calls = 0, release_calls = 0, automatic_reads = 0;
@@ -54,11 +56,14 @@ void available() {
 }
 }
 uint32_t millis() { return now_ms; }
-BaseType_t xTaskCreatePinnedToCore(void (*run)(void *), const char *, unsigned, void *, unsigned, void *, int) {
+BaseType_t xTaskCreatePinnedToCore(void (*run)(void *), const char *, unsigned, void *, unsigned, void *handle, int) {
     if (fail_task) return 0;
-    assert(!task); task = run; return pdPASS;
+    assert(!task); task = run; suspended = false;
+    *static_cast<TaskHandle_t *>(handle) = reinterpret_cast<void *>(1); return pdPASS;
 }
-void vTaskDelete(void *) {}
+void vTaskDelete(void *handle) { assert(handle && suspended); ++deleted_workers; suspended = false; }
+void vTaskSuspend(void *) { suspended = !defer_suspend; }
+eTaskState eTaskGetState(TaskHandle_t handle) { assert(handle); return suspended ? eSuspended : eRunning; }
 namespace firmware_ota {
 Status status() { return {false, false, 3342336, 0, 0, "app0", "app1", "token", "Ready", Action::NONE}; }
 const char *start(size_t bytes) {
@@ -79,7 +84,7 @@ namespace firmware_release {
 const char *check(uint32_t running, size_t capacity, Build &out) {
     assert(running == 2026111106 && capacity == 3342336); ++checks; out = {};
     if (failed_check) return "Secure check failed";
-    if (offer) { std::strcpy(out.tag, tag); out.version = 2026111107; out.size = 1024; }
+    if (offer) { std::strcpy(out.tag, tag); out.version = 2026111107; out.size = 1024; std::memset(out.sha256, 0x51, sizeof out.sha256); }
     return nullptr;
 }
 const char *download(const Build &build, Sink sink, void *context) {
@@ -189,5 +194,44 @@ int main() {
     assert(firmware_release_job::check(2026111106, 3342336));
     assert(!busy() && !status().can_stage && !task && !reserved && release_calls == old_releases);
     fail_task = false;
-    puts("Release job reservation, periodic-read collision and strict safety tests passed.");
+
+    // A published result is not permission to resume BLE while the worker can
+    // still run or its stack remains allocated.
+    offer = true; defer_suspend = true;
+    assert(!firmware_release_job::check(2026111106, 3342336));
+    complete(); const int deleted_before = deleted_workers;
+    poll(); assert(busy() && !worker_idle() && deleted_workers == deleted_before);
+    suspended = true; poll(); defer_suspend = false;
+    assert(!busy() && worker_idle() && deleted_workers == deleted_before + 1);
+
+    firmware_release::Build selected;
+    assert(!selection(tag, selected));
+    assert(selection("firmware-20261111.8", selected));
+    assert(selected.version == 2026111107 && selected.size == 1024 && selected.sha256[0] == 0x51);
+    const int before_invalid = reserve_calls;
+    auto invalid = selected; ++invalid.version;
+    assert(resume_stage(invalid, reserve, release));
+    invalid = selected; std::memset(invalid.sha256, 0, sizeof invalid.sha256);
+    assert(resume_stage(invalid, reserve, release));
+    invalid = selected; invalid.size = 4000000;
+    assert(resume_stage(invalid, reserve, release));
+    assert(reserve_calls == before_invalid);
+    safe_now = false;
+    assert(resume_stage(selected, reserve, release) && !reserved);
+    safe_now = true;
+    assert(!resume_stage(selected, reserve, release));
+    complete(); poll(); assert(worker_idle() && !std::strcmp(status().phase, "staged"));
+    discarded();
+
+    // User cancellation also waits for the worker, releases the exact owned
+    // reservation, and never stages the cancelled transfer.
+    assert(!stage()); const int before_cancel_writes = writes;
+    firmware_release_job::cancel(); assert(!worker_idle());
+    complete(); poll();
+    assert(worker_idle() && !reserved && writes == before_cancel_writes);
+    assert(!std::strcmp(status().message, "Firmware operation cancelled.") && !std::strcmp(status().phase, "error"));
+    assert(!firmware_release_job::check(2026111106, 3342336));
+    firmware_release_job::cancel(); complete(); poll();
+    assert(worker_idle() && !std::strcmp(status().message, "Firmware operation cancelled."));
+    puts("Release job reservation, strict safety, exact replay, cancellation and suspended-worker stack cleanup tests passed.");
 }
