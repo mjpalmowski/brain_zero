@@ -9,7 +9,7 @@ exact operator-supplied model/hardware/firmware match. Never changes settings or
 Only validated type02 telemetry can be written to a private 0600 /tmp capture;
 identity/settings records are never saved or printed.
 Never print raw notifications, device addresses, serials, or passcodes.
-Advertisement names are limited to a whitelisted model or a family hint.
+Unrelated advertisement names and service inventories are never included in output.
 """
 import argparse
 import json
@@ -77,17 +77,6 @@ def telemetry_candidates(raw):
         candidates.append({"format": fmt, "enabled_cells": len(active),
                            "pack_voltage_v": round(volts, 3), "soc_percent": soc})
     return candidates
-
-
-def advertised_name_hint(name):
-    # Many advertisements contain an address/serial as their name. Never echo it.
-    if re.fullmatch(r"JK-(?:BD|B|PB)[0-9A-Z]{3,11}", name):
-        return name
-    if re.match(r"^JK", name, re.IGNORECASE):
-        return "JK (suffix redacted)"
-    if re.match(r"^(PACE|PC[-_ ]?)", name, re.IGNORECASE):
-        return "PACE/PC (suffix redacted)"
-    return "other (name redacted)" if name else "unnamed"
 
 
 def safe_bluez_reason(message):
@@ -294,7 +283,6 @@ def run():
         own_scan = False
         report["cleanup"]["scan_stopped"] = True
         candidates = []
-        advertisements = []
         for path, interfaces in all_objects.items():
             info = interfaces.get(DEVICE)
             if not info or str(info.get("Adapter", "")) != adapter_path:
@@ -302,9 +290,6 @@ def run():
             name = str(info.get("Name", ""))
             address = str(info.get("Address", "")).upper()
             uuids = {str(u).lower() for u in info.get("UUIDs", [])}
-            if "RSSI" in info:
-                advertisements.append({"name_hint": advertised_name_hint(name),
-                                       "service_uuids": sorted(uuids)})
             jk_name = bool(re.match(r"^JK(?:[-_ ]|BMS|$)", name, re.IGNORECASE))
             if expected:
                 # An address read from the user's working bridge configuration
@@ -317,7 +302,6 @@ def run():
                 qualified = jk_name and (not uuids or FFE0 in uuids)
             if qualified:
                 candidates.append((str(path), info))
-        report["advertisements"] = advertisements[:30]
         report["candidate_count"] = len(candidates)
         if len(candidates) != 1:
             report["status"] = "need_one_unambiguous_JK_candidate"
