@@ -96,6 +96,7 @@
     "Battery current",
     "Battery data unavailable: charging paused",
     "Battery discharge; the grid supplies the rest. 0 W stops discharge altogether.",
+    "Battery power",
     "Battery readings",
     "Battery settings saved; Bluetooth could not start. Check diagnostics.",
     "Battery snapshot overflow",
@@ -680,7 +681,7 @@
     "Period mismatch",
     "PermanentFlags0",
     "Phase master missing",
-    "Positive current charges the battery. The combined bank needs both packs and their capacities.",
+    "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.",
     "Power",
     "Power assist",
     "Power is measured at the MultiPlus terminals. An external manual bypass switch is not detected.",
@@ -2816,7 +2817,6 @@
       "PACE bridge Bluetooth address": "PACE-brug se Bluetooth-adres",
       "PACE capacity for combined SOC (Ah)": "PACE-kapasiteit vir gekombineerde SOC (Ah)",
       "PACE over BLE": "PACE via BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Positiewe stroom laai die battery. Die gekombineerde batterybank benodig albei batterypakke en hul kapasiteite.",
       "Saved": "Gestoor",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Stel SOC, maksimum selspanning en selverskil in voordat jy laailimiete aktiveer",
       "Set at least one Bluetooth battery address": "Stel minstens een Bluetooth-batteryadres in",
@@ -2840,7 +2840,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "Die MultiPlus laai slegs in geskeduleerde vensters vanaf die rooster; surplus op AC-uit laai steeds die battery. As sy batteryspanning vir 5 sekondes by of onder die drempel bly, verskaf die rooster die vragte tot die volgende geskeduleerde MultiPlus-laaivenster, of totdat die spanning vir 30 sekondes bo die terugskakelspanning bly.",
       "Switch back above": "Skakel terug bo",
       "Leave empty to keep the grid until the next charge window.": "Laat leeg om die rooster tot die volgende laaivenster te gebruik.",
-      "Grid charging paused until the next window": "Laai vanaf die rooster onderbreek tot die volgende venster"
+      "Grid charging paused until the next window": "Laai vanaf die rooster onderbreek tot die volgende venster",
+      "Battery power": "Batterykrag",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Positiewe stroom en krag laai die battery; negatiewe waardes ontlaai dit. Die gekombineerde batterybank benodig albei batterypakke en hul kapasiteite; sy stroom en krag is die totaal van albei pakke."
     },
     "cs": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -4237,7 +4239,6 @@
       "PACE bridge Bluetooth address": "Adresa Bluetooth můstku PACE",
       "PACE capacity for combined SOC (Ah)": "Kapacita PACE pro společný SOC (Ah)",
       "PACE over BLE": "PACE přes BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Kladný proud nabíjí baterii. Společná bateriová banka vyžaduje obě baterie a jejich kapacity.",
       "Saved": "Uloženo",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Před povolením limitů nabíjení nastavte SOC, maximální napětí článku a rozdíl napětí článků",
       "Set at least one Bluetooth battery address": "Nastavte alespoň jednu adresu Bluetooth baterie",
@@ -4261,7 +4262,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus nabíjí ze sítě pouze v naplánovaných oknech; přebytek na AC výstupu baterii nabíjí i nadále. Pokud napětí baterie zůstane na nebo pod prahovou hodnotou po dobu 5 sekund, síť napájí zátěže až do dalšího plánovaného nabíjecího okna MultiPlus, nebo dokud napětí nezůstane 30 sekund nad napětím pro návrat.",
       "Switch back above": "Přepnout zpět nad",
       "Leave empty to keep the grid until the next charge window.": "Ponechte prázdné, aby síť napájela zátěže až do dalšího nabíjecího okna.",
-      "Grid charging paused until the next window": "Nabíjení ze sítě pozastaveno do dalšího okna"
+      "Grid charging paused until the next window": "Nabíjení ze sítě pozastaveno do dalšího okna",
+      "Battery power": "Výkon baterie",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Kladný proud a výkon nabíjejí baterii, záporné hodnoty ji vybíjejí. Společná bateriová banka vyžaduje obě baterie a jejich kapacity; její proud a výkon jsou součtem obou baterií."
     },
     "da": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -5658,7 +5661,6 @@
       "PACE bridge Bluetooth address": "PACE-broens Bluetooth-adresse",
       "PACE capacity for combined SOC (Ah)": "PACE-kapacitet til samlet SOC (Ah)",
       "PACE over BLE": "PACE via BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Positiv strøm oplader batteriet. Den samlede batteribank kræver begge batterier og deres kapaciteter.",
       "Saved": "Gemt",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Indstil SOC, maksimal cellespænding og spændingsforskel mellem celler, før ladegrænserne aktiveres",
       "Set at least one Bluetooth battery address": "Angiv mindst én Bluetooth-adresse til et batteri",
@@ -5682,7 +5684,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus oplader kun fra elnettet i planlagte vinduer; overskud på AC-ud oplader stadig batteriet. Hvis dets batterispænding forbliver på eller under tærsklen i 5 sekunder, leverer nettet belastningerne indtil det næste planlagte MultiPlus-opladningsvindue, eller indtil spændingen har været over tilbageskiftsspændingen i 30 sekunder.",
       "Switch back above": "Skift tilbage over",
       "Leave empty to keep the grid until the next charge window.": "Lad feltet være tomt for at bruge elnettet indtil næste opladningsvindue.",
-      "Grid charging paused until the next window": "Opladning fra elnettet sat på pause indtil næste vindue"
+      "Grid charging paused until the next window": "Opladning fra elnettet sat på pause indtil næste vindue",
+      "Battery power": "Batterieffekt",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Positiv strøm og effekt oplader batteriet; negative værdier aflader det. Den samlede batteribank kræver begge batterier og deres kapaciteter; dens strøm og effekt er summen af begge batterier."
     },
     "de": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -7079,7 +7083,6 @@
       "PACE bridge Bluetooth address": "Bluetooth-Adresse der PACE-Brücke",
       "PACE capacity for combined SOC (Ah)": "PACE-Kapazität für gemeinsamen SOC (Ah)",
       "PACE over BLE": "PACE über BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Positiver Strom lädt die Batterie. Die gemeinsame Batteriebank benötigt beide Batterien und deren Kapazitäten.",
       "Saved": "Gespeichert",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Vor dem Aktivieren der Ladegrenzen SOC, maximale Zellspannung und Zellspannungsdifferenz einstellen",
       "Set at least one Bluetooth battery address": "Mindestens eine Bluetooth-Adresse einer Batterie angeben",
@@ -7103,7 +7106,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "Der MultiPlus lädt nur in geplanten Fenstern aus dem Netz; Überschuss am AC-Ausgang lädt die Batterie weiterhin. Wenn die Batteriespannung 5 Sekunden lang auf oder unter dem Schwellenwert bleibt, versorgt das Netz die Lasten bis zum nächsten geplanten MultiPlus-Ladefenster oder bis die Spannung 30 Sekunden lang über der Rückschaltspannung bleibt.",
       "Switch back above": "Oberhalb dieser Spannung zurückschalten",
       "Leave empty to keep the grid until the next charge window.": "Leer lassen, um bis zum nächsten Ladefenster am Netz zu bleiben.",
-      "Grid charging paused until the next window": "Netzladung bis zum nächsten Fenster unterbrochen"
+      "Grid charging paused until the next window": "Netzladung bis zum nächsten Fenster unterbrochen",
+      "Battery power": "Batterieleistung",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Positiver Strom und positive Leistung laden die Batterie, negative Werte entladen sie. Die gemeinsame Batteriebank benötigt beide Batterien und deren Kapazitäten; ihr Strom und ihre Leistung sind die Summe beider Batterien."
     },
     "es": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" trazo-dasharray=\"0 100\"/>",
@@ -8500,7 +8505,6 @@
       "PACE bridge Bluetooth address": "Dirección Bluetooth del puente PACE",
       "PACE capacity for combined SOC (Ah)": "Capacidad PACE para el estado de carga combinado (Ah)",
       "PACE over BLE": "PACE por BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "La corriente positiva carga la batería. El banco combinado necesita los dos bancos y sus capacidades.",
       "Saved": "Guardado",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Ajuste el estado de carga, la tensión máxima de celda y la diferencia entre celdas antes de habilitar los límites de carga",
       "Set at least one Bluetooth battery address": "Configure al menos una dirección Bluetooth de batería",
@@ -8524,7 +8528,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "El MultiPlus carga desde la red solo en ventanas programadas; el excedente en la salida de CA sigue cargando la batería. Si el voltaje de la batería se mantiene en el umbral o por debajo de él durante 5 segundos, la red suministra las cargas hasta la siguiente ventana de carga programada del MultiPlus, o hasta que el voltaje se mantenga por encima del voltaje de retorno durante 30 segundos.",
       "Switch back above": "Volver por encima de",
       "Leave empty to keep the grid until the next charge window.": "Déjelo vacío para usar la red hasta la siguiente ventana de carga.",
-      "Grid charging paused until the next window": "Carga desde la red pausada hasta la siguiente ventana"
+      "Grid charging paused until the next window": "Carga desde la red pausada hasta la siguiente ventana",
+      "Battery power": "Potencia de la batería",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "La corriente y la potencia positivas cargan la batería; los valores negativos la descargan. El banco combinado necesita los dos bancos y sus capacidades; su corriente y su potencia son la suma de ambos bancos."
     },
     "fr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" Stroke-dasharray=\"0 100\"/>",
@@ -9921,7 +9927,6 @@
       "PACE bridge Bluetooth address": "Adresse Bluetooth du pont PACE",
       "PACE capacity for combined SOC (Ah)": "Capacité PACE pour le SOC combiné (Ah)",
       "PACE over BLE": "PACE via BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Un courant positif charge la batterie. Le parc combiné nécessite les deux parcs et leurs capacités.",
       "Saved": "Enregistré",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Réglez le SOC, la tension maximale de cellule et l’écart entre cellules avant d’activer les limites de charge",
       "Set at least one Bluetooth battery address": "Configurez au moins une adresse Bluetooth de batterie",
@@ -9945,7 +9950,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "Le MultiPlus ne charge depuis le réseau que dans les fenêtres planifiées ; le surplus sur la sortie CA charge toujours la batterie. Si la tension de sa batterie reste égale ou inférieure au seuil pendant 5 secondes, le réseau alimente les charges jusqu'à la prochaine fenêtre de charge MultiPlus programmée, ou jusqu'à ce que la tension reste au-dessus de la tension de retour pendant 30 secondes.",
       "Switch back above": "Revenir au-dessus de",
       "Leave empty to keep the grid until the next charge window.": "Laissez vide pour rester sur le réseau jusqu'à la prochaine fenêtre de charge.",
-      "Grid charging paused until the next window": "Charge depuis le réseau en pause jusqu'à la fenêtre suivante"
+      "Grid charging paused until the next window": "Charge depuis le réseau en pause jusqu'à la fenêtre suivante",
+      "Battery power": "Puissance de la batterie",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Un courant et une puissance positifs chargent la batterie ; les valeurs négatives la déchargent. Le parc combiné nécessite les deux parcs et leurs capacités ; son courant et sa puissance sont la somme des deux parcs."
     },
     "it": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ictus-dasharray=\"0 100\"/>",
@@ -11342,7 +11349,6 @@
       "PACE bridge Bluetooth address": "Indirizzo Bluetooth del bridge PACE",
       "PACE capacity for combined SOC (Ah)": "Capacità PACE per il SOC combinato (Ah)",
       "PACE over BLE": "PACE tramite BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "La corrente positiva carica la batteria. Il banco combinato richiede entrambi i banchi e le rispettive capacità.",
       "Saved": "Salvato",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Impostare SOC, tensione massima delle celle e differenza tra celle prima di abilitare i limiti di carica",
       "Set at least one Bluetooth battery address": "Impostare almeno un indirizzo Bluetooth della batteria",
@@ -11366,7 +11372,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus si ricarica dalla rete solo nelle finestre programmate; l'eccedenza sull'uscita CA continua a caricare la batteria. Se la tensione della batteria rimane pari o inferiore alla soglia per 5 secondi, la rete alimenta i carichi fino alla successiva finestra di carica programmata MultiPlus, oppure finché la tensione non rimane sopra la tensione di ritorno per 30 secondi.",
       "Switch back above": "Torna indietro sopra",
       "Leave empty to keep the grid until the next charge window.": "Lascia vuoto per restare sulla rete fino alla successiva finestra di carica.",
-      "Grid charging paused until the next window": "Ricarica dalla rete sospesa fino alla finestra successiva"
+      "Grid charging paused until the next window": "Ricarica dalla rete sospesa fino alla finestra successiva",
+      "Battery power": "Potenza della batteria",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Corrente e potenza positive caricano la batteria; i valori negativi la scaricano. Il banco combinato richiede entrambi i banchi e le rispettive capacità; la sua corrente e la sua potenza sono la somma dei due banchi."
     },
     "ja": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" ストローク-dasharray=\"0 100\"/>",
@@ -12763,7 +12771,6 @@
       "PACE bridge Bluetooth address": "PACEブリッジのBluetoothアドレス",
       "PACE capacity for combined SOC (Ah)": "統合SOC計算用のPACE容量（Ah）",
       "PACE over BLE": "BLE経由のPACE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "正の電流はバッテリーへの充電を示します。統合バッテリーバンクには、両方のパックのデータと容量が必要です。",
       "Saved": "保存しました",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "充電制限を有効にする前に、SOC、最高セル電圧、セル電圧差を設定してください",
       "Set at least one Bluetooth battery address": "少なくとも1つのバッテリーのBluetoothアドレスを設定してください",
@@ -12787,7 +12794,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus は、スケジュールされたウィンドウでのみグリッドから充電します。AC 出力の余剰電力は引き続きバッテリーを充電します。バッテリ電圧が 5 秒間閾値以下に留まる場合、グリッドは次にスケジュールされた MultiPlus 充電ウィンドウまで、または電圧が 30 秒間復帰電圧を上回るまで負荷を供給します。",
       "Switch back above": "この電圧を超えたら戻す",
       "Leave empty to keep the grid until the next charge window.": "空欄の場合、次の充電ウィンドウまでグリッドを使用します。",
-      "Grid charging paused until the next window": "次のウィンドウまでグリッドからの充電が一時停止されます"
+      "Grid charging paused until the next window": "次のウィンドウまでグリッドからの充電が一時停止されます",
+      "Battery power": "バッテリー電力",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "正の電流と電力はバッテリーへの充電、負の値は放電を示します。統合バッテリーバンクには、両方のパックのデータと容量が必要です。その電流と電力は両パックの合計です。"
     },
     "nl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" stroke-dasharray = \"0 100\"/>",
@@ -14184,7 +14193,6 @@
       "PACE bridge Bluetooth address": "Bluetooth-adres van PACE-brug",
       "PACE capacity for combined SOC (Ah)": "PACE-capaciteit voor gezamenlijke SOC (Ah)",
       "PACE over BLE": "PACE via BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Positieve stroom laadt de accu. De gezamenlijke accubank vereist beide accu's en hun capaciteiten.",
       "Saved": "Opgeslagen",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Stel SOC, maximale celspanning en celspanningsverschil in voordat u laadlimieten inschakelt",
       "Set at least one Bluetooth battery address": "Stel minstens één Bluetooth-adres van een accu in",
@@ -14208,7 +14216,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "De MultiPlus laadt alleen in geplande vensters op vanaf het net; overschot op AC-uit laadt de batterij nog steeds. Als de batterijspanning gedurende 5 seconden op of onder de drempel blijft, levert het elektriciteitsnet de belastingen tot het volgende geplande MultiPlus-laadvenster, of totdat de spanning 30 seconden boven de terugschakelspanning blijft.",
       "Switch back above": "Terugschakelen boven",
       "Leave empty to keep the grid until the next charge window.": "Laat leeg om tot het volgende laadvenster op het net te blijven.",
-      "Grid charging paused until the next window": "Opladen vanaf het net gepauzeerd tot het volgende venster"
+      "Grid charging paused until the next window": "Opladen vanaf het net gepauzeerd tot het volgende venster",
+      "Battery power": "Accuvermogen",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Positieve stroom en positief vermogen laden de accu; negatieve waarden ontladen hem. De gezamenlijke accubank vereist beide accu's en hun capaciteiten; de stroom en het vermogen ervan zijn de som van beide accu's."
     },
     "pl": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" udar-dasharray=\"0 100\"/>",
@@ -15605,7 +15615,6 @@
       "PACE bridge Bluetooth address": "Adres Bluetooth mostka PACE",
       "PACE capacity for combined SOC (Ah)": "Pojemność PACE do obliczania wspólnego SOC (Ah)",
       "PACE over BLE": "PACE przez BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Dodatni prąd ładuje akumulator. Wspólny bank wymaga obu akumulatorów i ich pojemności.",
       "Saved": "Zapisano",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Przed włączeniem limitów ładowania ustaw SOC, maksymalne napięcie ogniwa i różnicę napięć ogniw",
       "Set at least one Bluetooth battery address": "Ustaw co najmniej jeden adres Bluetooth akumulatora",
@@ -15629,7 +15638,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus ładuje z sieci tylko w zaplanowanych oknach; nadwyżka na wyjściu AC nadal ładuje akumulator. Jeżeli napięcie akumulatora utrzymuje się na poziomie progu lub poniżej niego przez 5 sekund, sieć zasila odbiory do następnego zaplanowanego okna ładowania MultiPlus lub do czasu, gdy napięcie utrzyma się powyżej napięcia powrotu przez 30 sekund.",
       "Switch back above": "Przełącz z powrotem powyżej",
       "Leave empty to keep the grid until the next charge window.": "Pozostaw puste, aby korzystać z sieci do następnego okna ładowania.",
-      "Grid charging paused until the next window": "Ładowanie z sieci wstrzymane do następnego okna"
+      "Grid charging paused until the next window": "Ładowanie z sieci wstrzymane do następnego okna",
+      "Battery power": "Moc akumulatora",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Dodatni prąd i moc ładują akumulator, wartości ujemne go rozładowują. Wspólny bank wymaga obu akumulatorów i ich pojemności; jego prąd i moc są sumą obu akumulatorów."
     },
     "pt": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" acidente vascular cerebral-dasharray=\"0 100\"/>",
@@ -17026,7 +17037,6 @@
       "PACE bridge Bluetooth address": "Endereço Bluetooth da ponte PACE",
       "PACE capacity for combined SOC (Ah)": "Capacidade PACE para o estado de carga combinado (Ah)",
       "PACE over BLE": "PACE por BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "A corrente positiva carrega a bateria. O banco combinado necessita de ambos os bancos e das respetivas capacidades.",
       "Saved": "Guardado",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Defina o estado de carga, a tensão máxima das células e a diferença entre células antes de ativar os limites de carga",
       "Set at least one Bluetooth battery address": "Defina pelo menos um endereço Bluetooth de bateria",
@@ -17050,7 +17060,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "O MultiPlus carrega a partir da rede apenas em janelas agendadas; o excedente na saída CA continua a carregar a bateria. Se a tensão da bateria permanecer igual ou inferior ao limite por 5 segundos, a rede alimenta as cargas até a próxima janela de carga programada do MultiPlus, ou até que a tensão permaneça acima da tensão de retorno por 30 segundos.",
       "Switch back above": "Voltar acima de",
       "Leave empty to keep the grid until the next charge window.": "Deixe vazio para manter a rede até a próxima janela de carga.",
-      "Grid charging paused until the next window": "Carregamento a partir da rede pausado até a próxima janela"
+      "Grid charging paused until the next window": "Carregamento a partir da rede pausado até a próxima janela",
+      "Battery power": "Potência da bateria",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "A corrente e a potência positivas carregam a bateria; os valores negativos descarregam-na. O banco combinado necessita de ambos os bancos e das respetivas capacidades; a sua corrente e potência são a soma dos dois bancos."
     },
     "ru": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\"stroke-dasharray=\"0 100\"/>",
@@ -18447,7 +18459,6 @@
       "PACE bridge Bluetooth address": "Адрес Bluetooth моста PACE",
       "PACE capacity for combined SOC (Ah)": "Ёмкость PACE для общего SOC (Ah)",
       "PACE over BLE": "PACE через BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Положительный ток заряжает батарею. Для общей группы нужны обе батареи и их ёмкости.",
       "Saved": "Сохранено",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Перед включением ограничений зарядки задайте SOC, максимальное напряжение ячейки и разницу напряжений ячеек",
       "Set at least one Bluetooth battery address": "Задайте хотя бы один адрес Bluetooth батареи",
@@ -18471,7 +18482,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus заряжается от сети только в запланированные окна; излишек на выходе AC по-прежнему заряжает батарею. Если напряжение батареи остается на уровне или ниже порогового значения в течение 5 секунд, сеть обеспечивает питание нагрузки до следующего запланированного окна зарядки MultiPlus или пока напряжение не продержится выше напряжения возврата в течение 30 секунд.",
       "Switch back above": "Вернуться выше",
       "Leave empty to keep the grid until the next charge window.": "Оставьте пустым, чтобы использовать сеть до следующего окна зарядки.",
-      "Grid charging paused until the next window": "Зарядка от сети приостановлена до следующего окна"
+      "Grid charging paused until the next window": "Зарядка от сети приостановлена до следующего окна",
+      "Battery power": "Мощность батареи",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Положительные ток и мощность заряжают батарею, отрицательные значения разряжают её. Для общей группы нужны обе батареи и их ёмкости; её ток и мощность — сумма обеих батарей."
     },
     "ro": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -19868,7 +19881,6 @@
       "PACE bridge Bluetooth address": "Adresa Bluetooth a punții PACE",
       "PACE capacity for combined SOC (Ah)": "Capacitatea PACE pentru SOC comun (Ah)",
       "PACE over BLE": "PACE prin BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Curentul pozitiv încarcă bateria. Bancul comun necesită ambele baterii și capacitățile lor.",
       "Saved": "Salvat",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Setați SOC, tensiunea maximă a celulei și diferența de tensiune între celule înainte de a activa limitele de încărcare",
       "Set at least one Bluetooth battery address": "Setați cel puțin o adresă Bluetooth a unei baterii",
@@ -19892,7 +19904,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus se încarcă din rețea numai în ferestrele programate; surplusul de pe ieșirea AC încarcă în continuare bateria. Dacă tensiunea bateriei rămâne la sau sub prag timp de 5 secunde, rețeaua alimentează consumatorii până la următoarea fereastră de încărcare programată MultiPlus sau până când tensiunea rămâne peste tensiunea de revenire timp de 30 de secunde.",
       "Switch back above": "Revino peste",
       "Leave empty to keep the grid until the next charge window.": "Lăsați gol pentru a rămâne pe rețea până la următoarea fereastră de încărcare.",
-      "Grid charging paused until the next window": "Încărcarea din rețea întreruptă până la următoarea fereastră"
+      "Grid charging paused until the next window": "Încărcarea din rețea întreruptă până la următoarea fereastră",
+      "Battery power": "Puterea bateriei",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Curentul și puterea pozitive încarcă bateria, iar valorile negative o descarcă. Bancul comun necesită ambele baterii și capacitățile lor; curentul și puterea sa sunt suma celor două baterii."
     },
     "sv": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -21289,7 +21303,6 @@
       "PACE bridge Bluetooth address": "PACE-bryggans Bluetooth-adress",
       "PACE capacity for combined SOC (Ah)": "PACE-kapacitet för gemensam SOC (Ah)",
       "PACE over BLE": "PACE via BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Positiv ström laddar batteriet. Den gemensamma batteribanken kräver båda batterierna och deras kapaciteter.",
       "Saved": "Sparat",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Ställ in SOC, högsta cellspänning och cellspänningsskillnad innan laddningsgränserna aktiveras",
       "Set at least one Bluetooth battery address": "Ange minst en Bluetooth-adress för ett batteri",
@@ -21313,7 +21326,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus laddar från elnätet endast i schemalagda fönster; överskott på AC-ut laddar fortfarande batteriet. Om dess batterispänning stannar vid eller under tröskelvärdet i 5 sekunder försörjer nätet lasterna till nästa schemalagda MultiPlus-laddningsfönster, eller tills spänningen har legat över återgångsspänningen i 30 sekunder.",
       "Switch back above": "Växla tillbaka över",
       "Leave empty to keep the grid until the next charge window.": "Lämna tomt för att använda elnätet till nästa laddningsfönster.",
-      "Grid charging paused until the next window": "Laddning från elnätet pausad till nästa fönster"
+      "Grid charging paused until the next window": "Laddning från elnätet pausad till nästa fönster",
+      "Battery power": "Batterieffekt",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Positiv ström och effekt laddar batteriet; negativa värden laddar ur det. Den gemensamma batteribanken kräver båda batterierna och deras kapaciteter; dess ström och effekt är summan av båda batterierna."
     },
     "th": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dashharray=\"0 100\"/>",
@@ -22710,7 +22725,6 @@
       "PACE bridge Bluetooth address": "ที่อยู่ Bluetooth ของบริดจ์ PACE",
       "PACE capacity for combined SOC (Ah)": "ความจุ PACE สำหรับคำนวณ SOC รวม (Ah)",
       "PACE over BLE": "PACE ผ่าน BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "กระแสบวกหมายถึงการชาร์จแบตเตอรี่ แบตเตอรี่รวมต้องใช้ข้อมูลและความจุของทั้งสองแพ็ก",
       "Saved": "บันทึกแล้ว",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "ตั้งค่า SOC แรงดันเซลล์สูงสุด และความต่างแรงดันเซลล์ก่อนเปิดใช้ขีดจำกัดการชาร์จ",
       "Set at least one Bluetooth battery address": "ตั้งค่าที่อยู่ Bluetooth ของแบตเตอรี่อย่างน้อยหนึ่งชุด",
@@ -22734,7 +22748,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus จะชาร์จจากกริดเฉพาะในหน้าต่างที่กำหนดไว้เท่านั้น ส่วนเกินที่เอาต์พุต AC ยังคงชาร์จแบตเตอรี่ หากแรงดันไฟฟ้าของแบตเตอรี่อยู่ที่หรือต่ำกว่าเกณฑ์เป็นเวลา 5 วินาที กริดจะจ่ายโหลดจนกว่าจะถึงหน้าต่างการชาร์จ MultiPlus ที่กำหนดไว้ครั้งถัดไป หรือจนกว่าแรงดันไฟฟ้าจะอยู่เหนือแรงดันกลับคืนเป็นเวลา 30 วินาที",
       "Switch back above": "สลับกลับเมื่อสูงกว่า",
       "Leave empty to keep the grid until the next charge window.": "เว้นว่างไว้เพื่อใช้กริดจนถึงหน้าต่างการชาร์จถัดไป",
-      "Grid charging paused until the next window": "การชาร์จจากกริดหยุดชั่วคราวจนถึงหน้าต่างถัดไป"
+      "Grid charging paused until the next window": "การชาร์จจากกริดหยุดชั่วคราวจนถึงหน้าต่างถัดไป",
+      "Battery power": "กำลังไฟฟ้าแบตเตอรี่",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "กระแสและกำลังไฟฟ้าที่เป็นบวกหมายถึงการชาร์จแบตเตอรี่ ค่าลบหมายถึงการคายประจุ แบตเตอรี่รวมต้องใช้ข้อมูลและความจุของทั้งสองแพ็ก กระแสและกำลังไฟฟ้าของแบตเตอรี่รวมคือผลรวมของทั้งสองแพ็ก"
     },
     "tr": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" vuruş-dasharray = \"0 100\"/>",
@@ -24131,7 +24147,6 @@
       "PACE bridge Bluetooth address": "PACE köprüsü Bluetooth adresi",
       "PACE capacity for combined SOC (Ah)": "Birleşik SOC için PACE kapasitesi (Ah)",
       "PACE over BLE": "BLE üzerinden PACE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Pozitif akım aküyü şarj eder. Birleşik akü grubu için her iki grubun verileri ve kapasiteleri gereklidir.",
       "Saved": "Kaydedildi",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Şarj sınırlarını etkinleştirmeden önce SOC, en yüksek hücre voltajı ve hücre farkını ayarlayın",
       "Set at least one Bluetooth battery address": "En az bir akü Bluetooth adresi ayarlayın",
@@ -24155,7 +24170,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus şebekeden yalnızca zamanlanmış pencerelerde şarj olur; AC çıkışındaki fazlalık aküyü şarj etmeye devam eder. Akü voltajı 5 saniye boyunca eşik değerinde veya altında kalırsa şebeke, bir sonraki programlanan MultiPlus şarj penceresine kadar veya voltaj 30 saniye boyunca geri dönüş voltajının üzerinde kalana kadar yükleri besler.",
       "Switch back above": "Şu değerin üzerinde geri dön:",
       "Leave empty to keep the grid until the next charge window.": "Bir sonraki şarj penceresine kadar şebekede kalmak için boş bırakın.",
-      "Grid charging paused until the next window": "Şebekeden şarj bir sonraki pencereye kadar duraklatıldı"
+      "Grid charging paused until the next window": "Şebekeden şarj bir sonraki pencereye kadar duraklatıldı",
+      "Battery power": "Akü gücü",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Pozitif akım ve güç aküyü şarj eder, negatif değerler aküyü deşarj eder. Birleşik akü grubu için her iki grubun verileri ve kapasiteleri gereklidir; akımı ve gücü her iki grubun toplamıdır."
     },
     "uk": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>",
@@ -25552,7 +25569,6 @@
       "PACE bridge Bluetooth address": "Адреса Bluetooth моста PACE",
       "PACE capacity for combined SOC (Ah)": "Ємність PACE для спільного SOC (Ah)",
       "PACE over BLE": "PACE через BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "Додатний струм заряджає батарею. Спільному блоку потрібні обидві батареї та їхні ємності.",
       "Saved": "Збережено",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "Перед увімкненням обмежень заряджання задайте SOC, максимальну напругу комірки та різницю напруг комірок",
       "Set at least one Bluetooth battery address": "Задайте принаймні одну адресу Bluetooth батареї",
@@ -25576,7 +25592,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus заряджається від мережі лише в заплановані вікна; надлишок на виході AC і далі заряджає батарею. Якщо напруга його батареї залишається на рівні або нижче порогового значення протягом 5 секунд, мережа живить навантаження до наступного запланованого вікна зарядки MultiPlus або доки напруга не триматиметься вище напруги повернення протягом 30 секунд.",
       "Switch back above": "Повернутися вище",
       "Leave empty to keep the grid until the next charge window.": "Залиште порожнім, щоб використовувати мережу до наступного вікна зарядки.",
-      "Grid charging paused until the next window": "Заряджання від мережі призупинено до наступного вікна"
+      "Grid charging paused until the next window": "Заряджання від мережі призупинено до наступного вікна",
+      "Battery power": "Потужність батареї",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "Додатні струм і потужність заряджають батарею, від'ємні значення її розряджають. Спільному блоку потрібні обидві батареї та їхні ємності; його струм і потужність є сумою обох батарей."
     },
     "zh_CN": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "“pathLength =“100”行程dasharray =“0 100”/>",
@@ -26973,7 +26991,6 @@
       "PACE bridge Bluetooth address": "PACE网桥蓝牙地址",
       "PACE capacity for combined SOC (Ah)": "用于合并SOC计算的PACE容量（Ah）",
       "PACE over BLE": "通过BLE连接PACE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "正电流表示向电池充电。合并电池组需要两个电池组的数据及其容量。",
       "Saved": "已保存",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "启用充电限制前，请先设置SOC、最高单体电压和单体电压差",
       "Set at least one Bluetooth battery address": "请至少设置一个电池蓝牙地址",
@@ -26997,7 +27014,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "MultiPlus 仅在预定时段从电网充电；AC 输出端的富余电力仍会为电池充电。如果电池电压保持在阈值或低于阈值达 5 秒，电网将为负载供电，直到下一个计划的 MultiPlus 充电窗口，或直到电压在恢复电压以上保持 30 秒。",
       "Switch back above": "高于此电压时切回",
       "Leave empty to keep the grid until the next charge window.": "留空则使用电网直到下一个充电窗口。",
-      "Grid charging paused until the next window": "电网充电暂停，直到下一个窗口"
+      "Grid charging paused until the next window": "电网充电暂停，直到下一个窗口",
+      "Battery power": "电池功率",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "正电流和正功率表示向电池充电，负值表示放电。合并电池组需要两个电池组的数据及其容量；其电流和功率为两个电池组之和。"
     },
     "ar": {
       "\" pathLength=\"100\" stroke-dasharray=\"0 100\"/>": "\" pathLength = \"100\" السكتة الدماغية-dasharray = \"0 100\"/>",
@@ -28394,7 +28413,6 @@
       "PACE bridge Bluetooth address": "عنوان Bluetooth لجسر PACE",
       "PACE capacity for combined SOC (Ah)": "سعة PACE لحساب حالة الشحن المجمّعة (Ah)",
       "PACE over BLE": "PACE عبر BLE",
-      "Positive current charges the battery. The combined bank needs both packs and their capacities.": "التيار الموجب يشحن البطارية. يتطلب بنك البطاريات المجمّع بيانات المجموعتين وسعتيهما.",
       "Saved": "تم الحفظ",
       "Set SOC, maximum cell voltage and cell difference before enabling charge limits": "اضبط حالة الشحن وأقصى جهد للخلايا وفرق جهد الخلايا قبل تمكين حدود الشحن",
       "Set at least one Bluetooth battery address": "اضبط عنوان Bluetooth لبطارية واحدة على الأقل",
@@ -28418,7 +28436,9 @@
       "The MultiPlus charges from the grid only in scheduled windows; surplus on AC-out still charges the battery. If its battery voltage stays at or below the threshold for 5 seconds, the grid supplies the loads until the next scheduled MultiPlus charge window, or until the voltage stays above the release voltage for 30 seconds.": "يشحن MultiPlus من الشبكة فقط في النوافذ المجدولة؛ ويستمر الفائض على مخرج التيار المتردد في شحن البطارية. إذا ظل جهد البطارية عند العتبة أو أقل منها لمدة 5 ثوانٍ، فستقوم الشبكة بتزويد الأحمال حتى نافذة الشحن المجدولة التالية لـ MultiPlus، أو حتى يظل الجهد أعلى من جهد العودة لمدة 30 ثانية.",
       "Switch back above": "العودة فوق",
       "Leave empty to keep the grid until the next charge window.": "اتركه فارغًا لاستخدام الشبكة حتى نافذة الشحن التالية.",
-      "Grid charging paused until the next window": "توقف الشحن من الشبكة مؤقتًا حتى النافذة التالية"
+      "Grid charging paused until the next window": "توقف الشحن من الشبكة مؤقتًا حتى النافذة التالية",
+      "Battery power": "قدرة البطارية",
+      "Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.": "التيار والقدرة الموجبان يشحنان البطارية، والقيم السالبة تفرّغها. يتطلب بنك البطاريات المجمّع بيانات المجموعتين وسعتيهما؛ وتياره وقدرته هما مجموع المجموعتين."
     }
   },
   "source": "Venus OS nomenclature from venus-language-terms.json, with project terms and reviewed machine-assisted interface translations."

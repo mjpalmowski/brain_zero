@@ -6,7 +6,7 @@ body{font:15px/1.5 system-ui,sans-serif;margin:0}main{max-width:900px;margin:aut
 </style></head><body>)HTML" BRAIN_ZERO_NAV R"HTML(
 <main><h1>Batteries</h1><section><h2>Battery readings</h2>
 <table><thead><tr><th>Measurement</th><th>JK</th><th>PACE</th><th>Combined bank</th></tr></thead><tbody id="readings"></tbody></table>
-<p id="bank-note"></p><small>Positive current charges the battery. The combined bank needs both packs and their capacities.</small></section>
+<p id="bank-note"></p><small>Positive current and power charge the battery; negative values discharge it. The combined bank needs both packs and their capacities; its current and power are the totals of both packs.</small></section>
 <form id="battery"><section><h2>Bluetooth connections</h2>
 <label><input type="checkbox" name="enabled"> Enable Bluetooth battery monitoring</label>
 <label>JK Bluetooth address<input name="jk_address" maxlength="17" placeholder="AA:BB:CC:DD:EE:FF" autocomplete="off" spellcheck="false"></label>
@@ -30,7 +30,7 @@ body{font:15px/1.5 system-ui,sans-serif;margin:0}main{max-width:900px;margin:aut
 <p><a href="/diagnostics">Diagnostics</a></p></main><script>
 'use strict';const $=id=>document.getElementById(id),form=$('battery');let loaded=false,busy=false,edited=false;
 const tr=s=>window.bzText?.(s)||s;
-const rows=[['State of charge','soc','%',1],['Battery voltage','voltage','V',2],['Battery current','current','A',2],['Minimum cell voltage','min_cell_v','V',3],['Maximum cell voltage','max_cell_v','V',3],['Cell voltage difference','delta_cell_v','mV',0,1000],['Maximum battery temperature','temp_max_c','°C',1]];
+const rows=[['State of charge','soc','%',1],['Battery voltage','voltage','V',2],['Battery current','current','A',2],['Battery power','power','W',0],['Minimum cell voltage','min_cell_v','V',3],['Maximum cell voltage','max_cell_v','V',3],['Cell voltage difference','delta_cell_v','mV',0,1000],['Maximum battery temperature','temp_max_c','°C',1]];
 for(const row of rows){const r=document.createElement('tr'),label=document.createElement('th');label.textContent=tr(row[0]);r.append(label);for(const p of ['jk','pace','bank']){const td=document.createElement('td');td.id=p+'-'+row[1];td.dataset.noTranslate='';r.append(td);} $('readings').append(r);}
 form.addEventListener('input',()=>edited=true);
 async function api(data){const r=await fetch('/api/bms',data?{method:'POST',body:new URLSearchParams(data),signal:AbortSignal.timeout(12000)}:{cache:'no-store',signal:AbortSignal.timeout(5000)});if(r.status===401){location.replace('/login');throw Error('Sign in');}const j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j;}
