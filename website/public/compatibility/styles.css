@@ -38,3 +38,5 @@ details p { margin-bottom: 0; }
 code { font-size: .92em; }
 footer { margin-bottom: 25px; color: var(--muted); font-size: 11px; }
 @media (max-width: 540px) { header, main, footer { width: calc(100% - 28px); } header { padding-block: 20px; } main { margin-top: 12px; } section { padding: 20px 18px; } .intro { font-size: 16px; } .back { font-size: 11px; } .privacy { padding: 13px 16px; } }
+
+select { max-width: 100%; width: 100%; font: inherit; padding: .45rem; }

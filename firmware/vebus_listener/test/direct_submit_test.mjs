@@ -21,14 +21,14 @@ function fixture(options = {}) {
   const backup = new Blob([new Uint8Array([0x00, 0x82, 0xFE, 0xFF, 0x56, 0x45])], {type: 'application/octet-stream'});
   let nextTimer = 0;
   function element(id) {
-    if (!elements.has(id)) elements.set(id, {id, value: '', textContent: '', innerHTML: '', disabled: false,
+    if (!elements.has(id)) elements.set(id, {id, options: [], add(option) {this.options.push(option);}, value: id === 'submit-layout' ? 'single' : '', textContent: '', innerHTML: '', disabled: false,
       hidden: false, listeners: {}, addEventListener(type, listener) {this.listeners[type] = listener;},
       querySelector() {return null;}, replaceChildren() {}, focus() {this.focused = true;}});
     return elements.get(id);
   }
   const response = (body, status = 200) => ({ok: status >= 200 && status < 300, status,
     async json() {return structuredClone(body);}, async text() {return JSON.stringify(body);}});
-  const context = vm.createContext({console, AbortController, TypeError, TextEncoder,
+  const context = vm.createContext({console, Option: class {constructor(text,value) {this.value=value;}}, AbortController, TypeError, TextEncoder,
     recordDownload(blob, name) {downloads.push({blob, name});},
     document: {getElementById: element, hidden: false, addEventListener() {}},
     window: {addEventListener() {}},
@@ -69,7 +69,7 @@ assert(!header.includes('/compatibility/"'), 'No external submission-page link r
   const posted = f.calls.find(call => call.path === endpoint);
   assert(posted, 'Submission sends an HTTPS API request');
   const envelope = JSON.parse(posted.init.body);
-  assert.deepEqual(envelope, {model: data.setup.model, consent: true, profile});
+  assert.deepEqual(envelope, {model: data.setup.model, system_layout: 'single', units_per_phase: [1,0,0], consent: true, profile});
   assert(!posted.init.body.includes(data.serial), 'Serial number is excluded');
   assert(!posted.init.body.includes('5750'), 'Saved settings are excluded');
   assert.equal(posted.init.method, 'POST');

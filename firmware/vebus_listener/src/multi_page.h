@@ -6,6 +6,7 @@
 
 #include <pgmspace.h>
 #include "site_nav.h"
+#include "submission_model_options.h"
 
 static const char MULTI_HTML[] PROGMEM = R"HTML(<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -23,7 +24,7 @@ ol{padding-left:22px;margin:0 0 12px}li{padding-left:3px;margin:6px 0}.notice{ma
 .good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.file{margin:16px 0 0;padding:12px 14px;background:var(--bg);border-radius:8px;overflow-wrap:anywhere}.filename{font-weight:600}
 button,.button{font:inherit;font-weight:600;color:var(--ink);padding:10px 18px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;min-height:44px}
 button.primary{background:#2463eb;border-color:#2463eb;color:white}button:disabled{opacity:.45;cursor:default}button:not(:disabled):hover,.button:hover{filter:brightness(.94)}
-.button{text-decoration:none}.profile-submit-note{margin:12px 0 16px}.model-label{display:block;font-weight:600;margin-bottom:6px}input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;min-height:44px}
+.button{text-decoration:none}.profile-submit-note{margin:12px 0 16px}.model-label{display:block;font-weight:600;margin-bottom:6px}#submit-model,#submit-layout{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;min-height:44px}
 :focus-visible{outline:3px solid var(--a);outline-offset:3px}input[type=file]{display:block;width:100%;max-width:100%;font:inherit;color:var(--muted)}
 input::file-selector-button{font:inherit;color:var(--ink);padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-right:12px;cursor:pointer;min-height:44px}
 progress{display:block;width:100%;height:8px;accent-color:#2463eb;margin-top:16px}details{margin:12px 0 16px}summary{cursor:pointer;color:var(--a);font-size:14px}
@@ -74,7 +75,9 @@ R"HTML(
 <h2 id="profile-title">Inverter/firmware not supported?</h2>
 <p>Submit your inverter data and we’ll work on adding support.</p>
 <label class="model-label" for="submit-model">Inverter model</label>
-<input type="text" id="submit-model" maxlength="160" autocomplete="off" aria-describedby="submit-privacy">
+<select id="submit-model"><option value="">Select inverter model</option>)HTML" SUBMISSION_MODEL_OPTIONS R"HTML(</select>
+<label class="model-label" for="submit-layout">System layout</label>
+<select id="submit-layout"><option value="single">Single inverter</option><option value="parallel">Parallel (single phase)</option><option value="three_phase">Three-phase</option><option value="three_phase_parallel">Three-phase with parallel units</option></select>
 <p class="hint profile-submit-note" id="submit-privacy">By selecting Submit to developer, you agree to send firmware and setting limits privately to brain_zero. Serial numbers, saved settings and credentials are excluded. Your inverter settings will not change.</p>
 <div class="bar"><button class="primary" id="submit" disabled>Submit to developer</button>
 <button id="profile" disabled>Download compatibility profile</button></div>
@@ -116,7 +119,7 @@ async function sendSubmission(profile){
         render();
         message("submit-msg","Submitting your inverter data…");
         const response=await fetch(submissionEndpoint,{method:"POST",mode:"cors",credentials:"omit",cache:"no-store",redirect:"error",
-            headers:{"Content-Type":"application/json"},body:JSON.stringify({model:submission.model,consent:true,profile}),signal:controller.signal});
+            headers:{"Content-Type":"application/json"},body:JSON.stringify({model:submission.model,system_layout:submission.layout,units_per_phase:[1,0,0],consent:true,profile}),signal:controller.signal});
         const text=await response.text();
         if(text.length>2048)throw Error("The submission server returned an invalid response. Please try again.");
         let result;
@@ -150,7 +153,12 @@ function renderDownloads(busy){
         }
     }
     $("submit-model").disabled=busy||!!submission;
-    if(!$("submit-model").value&&!submission&&typeof data?.setup?.model==="string")$("submit-model").value=data.setup.model;
+    $("submit-layout").disabled=busy||!!submission;
+    const select=$("submit-model"), detected=data?.setup?.model;
+    if(!select.value&&!submission&&detected){
+        if(!Array.from(select.options).some(option=>option.value===detected))select.add(new Option(detected,detected));
+        select.value=detected;
+    }
 }
 async function finishDownload(id){
     const download=downloads[id],channel=id+"-msg";
@@ -276,7 +284,7 @@ $("submit").addEventListener("click",()=>{
     if(!model||model.length>160||/[\x00-\x1f\x7f]/.test(model)){
         message("submit-msg","Enter the inverter model using at most 160 characters.","bad");$("submit-model").focus();return;
     }
-    submission={model};
+    submission={model,layout:$("submit-layout").value};
     run(async()=>{
         await json("/api/settings/read",{method:"POST"});
         pendingDownload="submit";

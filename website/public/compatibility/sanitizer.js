@@ -72,6 +72,14 @@ function chargerRangeIsValid(row, voltage) {
 }
 
 export async function sanitizeRvsc(input) {
+  const result = await sanitizeBackup(input);
+  if (result.unitsPerPhase.reduce((a, b) => a + b) !== 1) {
+    throw new Error("Use the website to submit a multi-unit backup with its system layout.");
+  }
+  return result.bundle;
+}
+
+export async function sanitizeBackup(input) {
   if (!(input instanceof Uint8Array)) { throw new Error("Choose a VEConfigure .rvsc backup."); }
   if (input.length > MAX_BACKUP_BYTES) { throw new Error("VEConfigure backup exceeds the 128 KiB size limit."); }
   const file = new Reader(input);
@@ -79,8 +87,11 @@ export async function sanitizeRvsc(input) {
   if (!equal(file.blob(magic.length), magic)) { throw new Error("Expected a VEConfigure settings backup (.rvsc)."); }
   const producer = file.section("Mk2vscInfo");
   const schema = file.section("BareSettingInfo");
-  const unit = file.section("BareSettingData");
-  if (file.remaining) { throw new Error("Expected a backup for one standalone inverter."); }
+  const units = [];
+  do {
+    if (units.length === 18) throw new Error("Too many unit sections.");
+    units.push(file.section("BareSettingData"));
+  } while (file.remaining);
   if (producer.number(4) !== 1 || !producer.blob().length || producer.remaining) {
     throw new Error("Unsupported VEConfigure producer layout.");
   }
@@ -95,43 +106,78 @@ export async function sanitizeRvsc(input) {
       recordView.getUint16(at + 4, true), recordView.getUint16(at + 6, true),
       recordView.getUint16(at + 8, true), access[index]];
   });
-  const unitVersion = unit.number(4);
-  if (!((schemaVersion === 3 && unitVersion === 2) || (schemaVersion === 4 && unitVersion === 3))) {
-    throw new Error("Unsupported VEConfigure schema/unit layout.");
-  }
-  unit.take(4); // Never include the unique unit ID.
-  const unitFirmware = unit.number(4);
-  if (unit.take(unitVersion === 2 ? 1 : 3)[0] !== (unitVersion === 2 ? 1 : 255)) {
-    throw new Error("Unexpected VEConfigure unit header.");
-  }
-  const version = concat(unit.take(4), unit.blob(6));
-  const unitInfo = unit.take(10);
-  if (unitInfo[0] !== model || !equal(unitInfo.subarray(1, 8), new Uint8Array([1, 1, 1, 0, 0, 0, 0])) ||
-      (unitInfo[8] & 15) || unitInfo[9]) { throw new Error("Expected a backup for one standalone inverter."); }
-  const versionView = new DataView(version.buffer, version.byteOffset, version.byteLength);
-  if (firmware !== versionView.getUint32(0, true)) { throw new Error("The settings schema and firmware reply disagree."); }
   const nominalVoltage = [...VOLTAGES].find(([, prefixes]) => prefixes.has(Math.floor(firmware / 1000)))?.[0];
   if (nominalVoltage === undefined) { throw new Error("Expected a recognized 230 V MultiPlus-II firmware."); }
   if (!settings.slice(2, 4).every(row => chargerRangeIsValid(row, nominalVoltage))) {
     throw new Error("Charger descriptors disagree with the inverter battery voltage.");
   }
-  const serialLength = unit.blob().length; // Consume without decoding, displaying or retaining it.
-  if (serialLength < 1 || serialLength > 15) { throw new Error("Unexpected VEConfigure serial field length."); }
-  const credentialCount = unit.number(2);
-  if (credentialCount > 7) { throw new Error("Unexpected VEConfigure credential count."); }
-  for (let index = 0; index < credentialCount; index++) { unit.blob(8); }
-  unit.take(16); // Timestamps stay local.
-  unit.blob(SETTING_COUNT * 2); // Saved settings stay local.
-  let assistantBytes = 0;
-  while (unit.remaining) {
-    const literalLength = unit.blob().length;
-    const marker = unit.number(1), fillLength = unit.number(2);
-    if (marker !== 255 && fillLength) { throw new Error("Invalid VEConfigure Assistant fill marker."); }
-    assistantBytes += literalLength + fillLength;
-    if (assistantBytes > 65536) { throw new Error("Invalid VEConfigure Assistant area size."); }
+  function readUnit(unit) {
+    const unitVersion = unit.number(4);
+    if (!((schemaVersion === 3 && unitVersion === 2) || (schemaVersion === 4 && unitVersion === 3))) {
+      throw new Error("Unsupported VEConfigure schema/unit layout.");
+    }
+    unit.take(4); // Never include the unique unit ID.
+    const unitFirmware = unit.number(4);
+    if (unit.take(unitVersion === 2 ? 1 : 3)[0] !== (unitVersion === 2 ? 1 : 255)) {
+      throw new Error("Unexpected VEConfigure unit header.");
+    }
+    const version = concat(unit.take(4), unit.blob(6));
+    const unitInfo = unit.take(10);
+    if (unitInfo[0] !== model) throw new Error("Unit model differs from the shared descriptors.");
+    const versionView = new DataView(version.buffer, version.byteOffset, version.byteLength);
+    if (firmware !== versionView.getUint32(0, true)) { throw new Error("The settings schema and firmware reply disagree."); }
+    const serialLength = unit.blob().length; // Consume without decoding, displaying or retaining it.
+    if (serialLength < 1 || serialLength > 15) { throw new Error("Unexpected VEConfigure serial field length."); }
+    const credentialCount = unit.number(2);
+    if (credentialCount > 7) { throw new Error("Unexpected VEConfigure credential count."); }
+    for (let index = 0; index < credentialCount; index++) { unit.blob(8); }
+    unit.take(16); // Timestamps stay local.
+    unit.blob(SETTING_COUNT * 2); // Saved settings stay local.
+    let assistantBytes = 0;
+    while (unit.remaining) {
+      const literalLength = unit.blob().length;
+      const marker = unit.number(1), fillLength = unit.number(2);
+      if (marker !== 255 && fillLength) { throw new Error("Invalid VEConfigure Assistant fill marker."); }
+      assistantBytes += literalLength + fillLength;
+      if (assistantBytes > 65536) { throw new Error("Invalid VEConfigure Assistant area size."); }
+    }
+    if (!assistantBytes || assistantBytes % 64) { throw new Error("Invalid VEConfigure Assistant area size."); }
+    return {unitVersion, unitFirmware, version, unitInfo, assistantBytes};
   }
-  if (!assistantBytes || assistantBytes % 64) { throw new Error("Invalid VEConfigure Assistant area size."); }
-
+  const parsed = units.map(readUnit);
+  const {unitVersion, unitFirmware, version, assistantBytes} = parsed[0];
+  const unitsPerPhase = [0, 0, 0], addresses = new Set();
+  for (const member of parsed) {
+    const info = member.unitInfo, phase = info[7] / 4;
+    if (![0, 1, 2].includes(phase) || addresses.has(info[9]) ||
+        member.unitVersion !== unitVersion || member.unitFirmware !== unitFirmware ||
+        !equal(member.version, version) || member.assistantBytes !== assistantBytes) {
+      throw new Error("Unsupported or inconsistent unit sections.");
+    }
+    addresses.add(info[9]);
+    unitsPerPhase[phase]++;
+  }
+  const [l1, l2, l3] = unitsPerPhase;
+  if (!l1 || l1 > 6 || ((l2 || l3) && (l2 !== l1 || l3 !== l1))) {
+    throw new Error("Unsupported phase arrangement.");
+  }
+  const first = parsed[0].unitInfo;
+  if (parsed.length === 1 && (!equal(first.subarray(1, 8), new Uint8Array([1, 1, 1, 0, 0, 0, 0])) ||
+      (first[8] & 15) || first[9])) throw new Error("Incomplete standalone backup.");
+  if (parsed.length > 1) {
+    if (!addresses.has(0)) throw new Error("Missing system master.");
+    const mask = [...addresses].reduce((bits, addr) => bits | (1 << addr), 0) >>> 0;
+    for (const {unitInfo: info} of parsed) {
+      const members = new DataView(info.buffer, info.byteOffset).getUint32(3, true);
+      if (info[9] > 31 || members !== mask || (info[8] & 15) !== (l2 ? 8 + info[7] / 4 : 0)) {
+        throw new Error("Incomplete or inconsistent multi-unit backup.");
+      }
+    }
+  }
+  // The offline worker uses one synthetic unit to inspect shared descriptors.
+  // The installation layout is carried separately, never as commissioning data.
+  const unitInfo = parsed.length === 1 ? first : Uint8Array.of(model, 1, 1, 1, 0, 0, 0, 0,
+    parsed.find(member => member.unitInfo[9] === 0).unitInfo[8] & 240, 0);
   const layout = new Uint8Array(17), layoutView = new DataView(layout.buffer);
   layout[0] = model;
   layoutView.setUint32(1, unitFirmware, true); layoutView.setUint32(5, firmware, true);
@@ -147,7 +193,7 @@ export async function sanitizeRvsc(input) {
   if (!globalThis.crypto?.subtle) { throw new Error("This browser cannot create the profile checksum. Open this saved file in a current browser."); }
   const fingerprint = new Uint8Array(await crypto.subtle.digest("SHA-256", concat(layout, version, unitInfo, flagAccess, descriptors)));
   // Exact public field allowlist: never spread original metadata into the result.
-  return {profile: {
+  const bundle = {profile: {
     format: 1, model, unit_firmware: unitFirmware, schema_firmware: firmware,
     descriptor_firmware: version[0] + version[1] * 256 + version[2] * 65536 + version[7] * 16777216,
     nominal_voltage: nominalVoltage, descriptor_sha256: hex(fingerprint), version_reply: hex(version),
@@ -155,5 +201,6 @@ export async function sanitizeRvsc(input) {
     grid_bytes: grid.length, assistant_bytes: assistantBytes, flag_access: hex(flagAccess),
     setting_fields: [...SETTING_FIELDS], settings,
   }, grid: hex(grid)};
+  return {bundle, unitsPerPhase};
 }
 

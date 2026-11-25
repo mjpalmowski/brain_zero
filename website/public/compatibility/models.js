@@ -27,6 +27,7 @@ const MODELS = new Map([
   [2699, {"voltage": 48, "name": "MultiPlus-II 48/3000/35-32"}]
 ]);
 
+export const modelNames = [...new Set([...MODELS.values()].map(model => model.name))].sort();
 export function detectModel(profile) {
   const firmware = profile?.schema_firmware;
   if (!Number.isInteger(firmware) || firmware < 1000000 || firmware > 9999999) {

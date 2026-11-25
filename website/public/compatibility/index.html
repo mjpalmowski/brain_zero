@@ -14,20 +14,24 @@
   <main>
     <p class="eyebrow">Help add support</p>
     <h1>Inverter/firmware not supported?</h1>
-    <p class="intro">Select a current <code>.rvsc</code> backup. Your browser removes private data before you submit the compatibility profile to the brain_zero developer.</p>
+    <p class="intro">Select a current <code>.rvsc</code> or <code>.rvms</code> backup. Your browser removes private data before you submit the compatibility profile to the brain_zero developer.</p>
     <div class="privacy"><strong>Your original stays on your computer.</strong> Serial numbers, unit IDs, authorization data, timestamps, saved settings and Assistant contents are excluded. Only the sanitized compatibility profile is submitted.</div>
     <section aria-labelledby="backup-title">
       <div class="step-title"><span class="step" aria-hidden="true">1</span><h2 id="backup-title">Choose your backup</h2></div>
-      <p>Use a fresh backup for one standalone 230 V MultiPlus-II.</p>
-      <input id="backup" type="file" accept=".rvsc" hidden>
-      <button id="choose" type="button">Choose .rvsc backup</button>
+      <p>Use a 230 V MultiPlus-II backup from VRM. For a parallel or three-phase system, choose its complete .rvms export.</p>
+      <input id="backup" type="file" accept=".rvsc,.rvms" hidden>
+      <button id="choose" type="button">Choose backup</button>
       <p id="file-status" class="status" role="status" aria-live="polite">No backup selected.</p>
       <dl id="profile-summary" hidden>
-        <div><dt>Inverter model</dt><dd id="model"></dd></div>
+        <div><dt><label for="model">Inverter model</label></dt><dd><select id="model"></select></dd></div>
+        <div><dt><label for="system-layout">System layout</label></dt><dd><select id="system-layout">
+          <option value="single">Single inverter</option><option value="parallel">Parallel (single phase)</option>
+          <option value="three_phase">Three-phase</option><option value="three_phase_parallel">Three-phase with parallel units</option>
+        </select></dd></div><div><dt>Units in backup</dt><dd id="unit-count"></dd></div>
         <div><dt>Battery voltage</dt><dd id="voltage"></dd></div>
         <div><dt>VE.Bus firmware</dt><dd id="firmware"></dd></div>
       </dl>
-      <details><summary>How do I get a current .rvsc?</summary><p>In VRM, open your installation → <strong>Device list → Remote VEConfigure → Download</strong>. Wait for the live settings read and save the original backup. Download it again after a firmware or settings change. A local <code>.vsc</code> save is a different format; renaming it does not convert it.</p></details>
+      <details><summary>How do I get a current backup?</summary><p>In VRM, open your installation → <strong>Device list → Remote VEConfigure → Download</strong>. Wait for the live settings read and save the original backup. Download it again after a firmware or settings change. A local <code>.vsc</code> save is a different format; renaming it does not convert it.</p></details>
     </section>
     <section aria-labelledby="submit-title">
       <div class="step-title"><span class="step" aria-hidden="true">2</span><h2 id="submit-title">Submit the sanitized profile</h2></div>

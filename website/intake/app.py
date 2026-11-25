@@ -67,7 +67,7 @@ def parse_submission(raw):
     envelope = parse_json(raw)
     required = {"model", "consent", "profile"}
     if (not isinstance(envelope, dict) or not required <= envelope.keys() or
-            envelope.keys() - required - {"email"}):
+            envelope.keys() - required - {"email", "system_layout", "units_per_phase"}):
         raise SubmissionError("The submission has missing or unexpected fields.")
     model = envelope["model"]
     if (not isinstance(model, str) or not 1 <= len(model.strip()) <= 160 or
@@ -80,6 +80,23 @@ def parse_submission(raw):
         raise SubmissionError("Enter a contact email address or leave it blank.")
     if envelope["consent"] is not True:
         raise SubmissionError("Confirm that you agree to submit the compatibility profile.")
+    installation = {}
+    if "system_layout" in envelope or "units_per_phase" in envelope:
+        layout = envelope.get("system_layout")
+        counts = envelope.get("units_per_phase")
+        if layout not in ("single", "parallel", "three_phase", "three_phase_parallel"):
+            raise SubmissionError("Select a recognized system layout.")
+        if (not isinstance(counts, list) or len(counts) != 3 or
+                any(type(n) is not int or not 0 <= n <= 6 for n in counts)):
+            raise SubmissionError("Invalid unit counts.")
+        l1, l2, l3 = counts
+        if not l1 or ((l2 or l3) and not l1 == l2 == l3):
+            raise SubmissionError("Unsupported phase arrangement.")
+        if sum(counts) > 1:
+            observed = ("three_phase_parallel" if l1 > 1 else "three_phase") if l2 else "parallel"
+            if layout != observed:
+                raise SubmissionError("System layout disagrees with the backup.")
+        installation = {"system_layout": layout, "units_per_phase": counts}
     try:
         profile_raw = canonical_json(envelope["profile"])
         normalized, details = validate_profile(profile_raw)
@@ -87,6 +104,7 @@ def parse_submission(raw):
         raise SubmissionError(str(error) if isinstance(error, ValueError) else
                               "The compatibility profile is invalid.") from None
     return normalized, {
+        **installation,
         "model": model.strip(),
         "email": email,
         "consent": True,

@@ -15,6 +15,13 @@ The total request limit is 280 KiB. The profile validator separately enforces
 `receipt` and `status: "queued"`. The normalized profile, private metadata,
 synthetic RVSC and settings map are saved atomically.
 
+New clients can also send `system_layout` and `units_per_phase` (L1, L2, L3).
+The first records the selected installation type and the second counts units in the backup.
+Older clients omit both fields. For a homogeneous multi-unit backup the browser validates
+each unit, removes its private data, and creates one shared capability profile for the
+offline single-unit fixture. The original topology counts stay in receipt metadata.
+Neither the selection nor the fixture grants control or settings-write qualification.
+
 The receipt response keeps the existing `queued` status for controller compatibility.
 Before any claim, the worker checks a separate read-only approval directory
 for the receipt and normalized profile SHA-256. The authenticated admin page

@@ -63,6 +63,16 @@ class IntakeTest(unittest.TestCase):
         digest = json.loads((folder / "metadata.json").read_bytes())["normalized_profile_sha256"]
         (self.server.queue.approvals / f"{receipt}.{digest}").touch()
 
+    def test_installation_details_remain_private_and_require_approval(self):
+        status, result = self.request(app.PATH, submission(system_layout="three_phase_parallel", units_per_phase=[2,2,2]))
+        self.assertEqual(status, 202)
+        metadata = json.loads((Path(self.directory.name) / result["receipt"] / "metadata.json").read_bytes())
+        self.assertEqual(metadata["system_layout"], "three_phase_parallel")
+        self.assertEqual(metadata["units_per_phase"], [2,2,2])
+        self.assertIsNone(self.server.queue.claim("17", "1"))
+        for layout, counts in (("single",[1,1,1]),("parallel",[2,0,1]),("three_phase",[True,1,1]),("other",[1,0,0])):
+            self.assertEqual(self.request(app.PATH, submission(system_layout=layout, units_per_phase=counts))[0], 400)
+
     def test_accepts_and_prepares_private_atomic_job(self):
         receipt = self.accept()["receipt"]
         folder = Path(self.directory.name) / receipt
