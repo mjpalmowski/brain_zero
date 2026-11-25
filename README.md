@@ -116,7 +116,7 @@ Download immediately before submitting, using the inverter's currently installed
 
 If your system has no GX/VRM connection, your installer may be able to provide a current `.rvsc` backup. VEConfigure's local **File → Save As** creates a `.vsc`, which is a different format; changing its extension does not convert it.
 
-The [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) accepts only sanitized `compatibility.json`, validates it, and produces review reports under **Artifacts** on its workflow run. Reports omit original filenames and attachment URLs. The VEConfigure fixture uses a fixed artificial identity with default settings. Server submissions return their reports privately to brain_zero.
+The project owner reviews each submission before authorizing VEConfigure processing. For a public issue, the owner starts the [public intake workflow](https://github.com/mjpalmowski/brain_zero/actions/workflows/compatibility-intake.yml) with the issue number and reviewed `compatibility.json` attachment link. Its reports appear under **Artifacts**. For submissions through brain_zero, the owner approves the profile in the private admin page and receives the report there. The VEConfigure fixture uses a fixed artificial identity with default settings.
 
 <details>
 <summary>Python alternative to the local browser sanitizer</summary>

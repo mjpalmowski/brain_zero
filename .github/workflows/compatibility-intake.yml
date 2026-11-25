@@ -2,12 +2,14 @@ name: Compatibility profile intake
 run-name: 'Compatibility profile intake for issue #${{ github.event.issue.number || inputs.issue_number }}'
 
 on:
-  issues:
-    types: [opened, edited, reopened]
   workflow_dispatch:
     inputs:
       issue_number:
         description: Issue number to process
+        required: true
+        type: string
+      attachment_url:
+        description: Exact compatibility.json attachment link you reviewed
         required: true
         type: string
 
@@ -18,9 +20,8 @@ jobs:
     if: >-
       github.ref_type == 'branch' &&
       github.ref_name == github.event.repository.default_branch &&
-      (github.event_name == 'workflow_dispatch' ||
-      startsWith(github.event.issue.title, '[Compatibility]') ||
-      contains(github.event.issue.body, '### Downloaded compatibility profile'))
+      github.event_name == 'workflow_dispatch' &&
+      github.actor == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

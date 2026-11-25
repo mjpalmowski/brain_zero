@@ -123,17 +123,22 @@ class SubmissionTest(unittest.TestCase):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 intake.attachment_kind(url)
 
-    def test_issue_trigger_recognizes_both_field_headings_without_compatibility_title(self):
+    def test_dispatch_processes_only_the_reviewed_issue_attachment(self):
         with tempfile.TemporaryDirectory() as folder:
             event = Path(folder) / "event.json"
             for field in intake.PROFILE_FIELDS:
-                event.write_text(json.dumps({"action": "opened", "issue": {"number": 12,
-                    "title": "Inverter support", "body": body(field=field)}}), encoding="utf-8")
-                environment = {"GITHUB_REPOSITORY": "example/brain_zero", "GITHUB_EVENT_NAME": "issues",
+                issue = {"number": 12, "body": body(field=field)}
+                event.write_text(json.dumps({"inputs": {"issue_number": "12",
+                    "attachment_url": intake.submission(issue["body"])[0]}}), encoding="utf-8")
+                environment = {"GITHUB_REPOSITORY": "example/brain_zero", "GITHUB_EVENT_NAME": "workflow_dispatch",
                                "GITHUB_EVENT_PATH": str(event)}
                 with patch.dict(os.environ, environment, clear=True), patch.object(intake, "process", return_value=0) as process:
-                    with patch("sys.argv", ["intake", "--output-dir", str(Path(folder) / "output")]):
+                    with patch("sys.argv", ["intake", "--output-dir", str(Path(folder) / "output")]), patch.object(intake, "load_issue", return_value=issue):
                         self.assertEqual(intake.main(), 0)
+                        event.write_text(json.dumps({"inputs": {"issue_number": "12",
+                            "attachment_url": "different"}}), encoding="utf-8")
+                        with self.assertRaises(SystemExit):
+                            intake.main()
                     process.assert_called_once()
 
 

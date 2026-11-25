@@ -240,15 +240,11 @@ def main():
     if event_name == "workflow_dispatch":
         try:
             issue = load_issue(repository, issue_number(event["inputs"]["issue_number"]))
+            reviewed_url = event["inputs"].get("attachment_url", "")
+            if submission(issue.get("body") or "")[0] != reviewed_url:
+                parser.error("The issue attachment differs from the one approved for processing.")
         except ValueError as error:
             parser.error(str(error))
-    elif event_name == "issues":
-        issue = event["issue"]
-        if event.get("action") == "edited" and "body" not in event.get("changes", {}):
-            return 0
-        if not ((issue.get("title") or "").casefold().startswith("[compatibility]") or
-                any(f"### {field}" in (issue.get("body") or "") for field in PROFILE_FIELDS)):
-            return 0
     else:
         parser.error("Unsupported intake trigger.")
     return process(issue, repository, args.output_dir)
