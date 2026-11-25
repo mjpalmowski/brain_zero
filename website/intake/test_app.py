@@ -27,6 +27,9 @@ class IntakeTest(unittest.TestCase):
                 raise ValueError("Bad signature.")
             return {"run_id": "17" if token == "worker" else "18", "run_attempt": "1"}
         self.server = app.create_server(("127.0.0.1", 0), self.directory.name, verify_oidc=verify)
+        approvals = tempfile.TemporaryDirectory()
+        self.addCleanup(approvals.cleanup)
+        self.server.queue.approvals = Path(approvals.name)
         thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         thread.start()
         self.addCleanup(self.server.server_close)
@@ -54,6 +57,11 @@ class IntakeTest(unittest.TestCase):
         status, result = self.request(app.PATH, submission(), origin="http://brain-zero.local")
         self.assertEqual(status, 202)
         return result
+
+    def approve(self, receipt):
+        folder = Path(self.directory.name) / receipt
+        digest = json.loads((folder / "metadata.json").read_bytes())["normalized_profile_sha256"]
+        (self.server.queue.approvals / f"{receipt}.{digest}").touch()
 
     def test_accepts_and_prepares_private_atomic_job(self):
         receipt = self.accept()["receipt"]
@@ -135,6 +143,10 @@ class IntakeTest(unittest.TestCase):
         self.assertEqual(self.request(app.CLAIM_PATH, claim_request)[0], 401)
         self.assertEqual(self.request(app.CLAIM_PATH, claim_request, token="bad")[0], 401)
         self.assertEqual(self.request(app.CLAIM_PATH, claim_request, token="other")[0], 403)
+        self.assertEqual(self.request(app.CLAIM_PATH, claim_request, token="worker"), (204, None))
+        (self.server.queue.approvals / (receipt + "." + "0"*64)).touch()
+        self.assertEqual(self.request(app.CLAIM_PATH, claim_request, token="worker"), (204, None))
+        self.approve(receipt)
         status, claimed = self.request(app.CLAIM_PATH, claim_request, token="worker")
         self.assertEqual(status, 200)
         self.assertEqual(claimed["receipt"], receipt)
@@ -151,7 +163,7 @@ class IntakeTest(unittest.TestCase):
         self.assertEqual(json.loads((folder / "worker-report.json").read_bytes()), body["report"])
 
     def test_expired_worker_is_reclaimed_and_old_lease_cannot_complete(self):
-        self.accept()
+        self.approve(self.accept()["receipt"])
         first = self.server.queue.claim("17", "1")
         with patch.object(app.time, "time", return_value=app.time.time() + app.LEASE_SECONDS + 1):
             second = self.server.queue.claim("18", "1")

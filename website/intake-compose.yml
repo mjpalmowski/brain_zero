@@ -14,6 +14,7 @@ services:
       - /tmp:size=8m,noexec,nosuid
     volumes:
       - /opt/brain-zero/intake-data:/var/lib/brain-zero-intake
+      - /var/lib/brain-zero-intake-approvals:/var/lib/brain-zero-intake-approvals:ro
     networks:
       - website
 networks:

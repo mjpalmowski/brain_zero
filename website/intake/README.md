@@ -15,6 +15,11 @@ The total request limit is 280 KiB. The profile validator separately enforces
 `receipt` and `status: "queued"`. The normalized profile, private metadata,
 synthetic RVSC and settings map are saved atomically.
 
+The receipt response keeps the existing `queued` status for controller compatibility.
+Before any claim, the worker checks a separate read-only approval directory
+for the receipt and normalized profile SHA-256. The authenticated admin page
+writes this approval after the owner selects **Approve processing**.
+
 `POST /api/internal/compatibility/claim` and
 `POST /api/internal/compatibility/complete` require the GitHub OIDC identity
 verified by `oidc.py`. Claim takes string `run_id` and `run_attempt` fields.

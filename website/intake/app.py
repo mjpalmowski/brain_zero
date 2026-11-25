@@ -116,6 +116,7 @@ def replace_private_json(path, value):
 class Queue:
     def __init__(self, directory):
         self.directory = Path(directory)
+        self.approvals = Path(os.environ.get("INTAKE_APPROVALS", "/var/lib/brain-zero-intake-approvals"))
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.directory.chmod(0o700)
         self.lock = threading.Lock()
@@ -146,6 +147,10 @@ class Queue:
                 if not RECEIPT.fullmatch(folder.name) or not folder.is_dir():
                     continue
                 metadata = json.loads((folder / "metadata.json").read_bytes())
+                digest = metadata.get("normalized_profile_sha256", "")
+                if not re.fullmatch(r"[0-9a-f]{64}", digest) or not (
+                        self.approvals / (folder.name + "." + digest)).is_file():
+                    continue
                 jobs.append((metadata["received_at"], folder, metadata))
             jobs.sort(key=lambda item: item[0])
             # Network retries from one run receive its existing lease.
